@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-from database import get_db 
+from app.database.database import get_db 
 import uvicorn
 import os
 
