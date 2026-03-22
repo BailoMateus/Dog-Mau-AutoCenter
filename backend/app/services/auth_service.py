@@ -8,7 +8,7 @@ def authenticate_user(db: Session, email: str, password: str):
     if not user:
         return None
 
-    if not verify_password(password, user.password):
+    if not verify_password(password, user.senha_hash):
         return None
 
     return user
