@@ -1,8 +1,16 @@
+import logging
+
 from sqlalchemy.orm import Session
+
 from app.models.user import User
 
+logger = logging.getLogger(__name__)
+
+
 def get_user_by_email(db: Session, email: str):
-    return db.query(User).filter(User.email == email).first()
+    user = db.query(User).filter(User.email == email).first()
+    logger.debug("get_user_by_email email=%s found=%s", email, user is not None)
+    return user
 
 def get_user_by_id(db: Session, user_id: str):
     return db.query(User).filter(User.id_usuario == user_id).first()

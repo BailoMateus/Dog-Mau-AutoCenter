@@ -1,8 +1,7 @@
-import os
+from app.core.settings import get_settings
 
-SECRET_KEY = os.getenv("SECRET_KEY")
-if not SECRET_KEY:
-    raise ValueError("SECRET_KEY deve ser configurada nas variáveis de ambiente")
+_s = get_settings()
 
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+SECRET_KEY = _s.secret_key
+ALGORITHM = _s.algorithm
+ACCESS_TOKEN_EXPIRE_MINUTES = _s.access_token_expire_minutes
