@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
-
 @router.post("/login", response_model=TokenResponse)
 def login_user(data: LoginRequest, db: Session = Depends(get_db)):
     logger.info("POST /auth/login email=%s", data.email)
@@ -23,9 +22,7 @@ def login_user(data: LoginRequest, db: Session = Depends(get_db)):
 
     return {"access_token": token}
 
-
 @router.get("/me")
 def me(current=Depends(get_current_user)):
-    """Endpoint protegido de exemplo: exige Bearer JWT."""
     logger.info("GET /auth/me user_id=%s role=%s", current["user_id"], current["role"])
     return current

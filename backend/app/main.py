@@ -2,6 +2,8 @@ import logging
 import os
 import time
 
+import uvicorn
+
 from fastapi import Depends, FastAPI, Request
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -17,6 +19,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 from app.controllers.auth_controller import router as auth_router
+from app.controllers.user_controller import router as users_router
 from app.core.roles import ADMIN
 from app.core.security import require_role
 from app.database.database import get_db
@@ -24,7 +27,7 @@ from app.database.database import get_db
 app = FastAPI(title="Dog Mau AutoCenter API")
 
 app.include_router(auth_router)
-
+app.include_router(users_router)
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
@@ -45,7 +48,6 @@ async def log_requests(request: Request, call_next):
         logger.exception("erro ao processar %s %s", request.method, request.url.path)
         raise
 
-
 @app.on_event("startup")
 async def on_startup():
     logger.info("API iniciada (FastAPI)")
@@ -61,11 +63,9 @@ def test_db_connection(db: Session = Depends(get_db)):
         logger.exception("testar-banco falhou")
         return {"status": "Erro", "detalhes": str(e)}
 
-
 @app.get("/saude")
 def health_check():
     return {"message": "API Online"}
-
 
 @app.get("/admin/ping")
 def admin_only(_=Depends(require_role([ADMIN]))):
@@ -73,9 +73,7 @@ def admin_only(_=Depends(require_role([ADMIN]))):
     logger.info("GET /admin/ping autorizado (admin)")
     return {"ok": True, "scope": "admin"}
 
-
 if __name__ == "__main__":
-    import uvicorn
 
     port = int(os.environ.get("PORT", 8080))
     uvicorn.run("app.main:app", host="0.0.0.0", port=port)
