@@ -9,7 +9,8 @@ from app.core.security import require_role
 from app.database.database import get_db
 from app.schemas.cliente_schema import ClienteCreate, ClientePublic, ClienteUpdate
 from app.schemas.endereco_schema import EnderecoCreate, EnderecoPublic, EnderecoUpdate
-from app.services import cliente_service, endereco_service
+from app.schemas.veiculo_schema import VeiculoCreate, VeiculoPublic, VeiculoUpdate
+from app.services import cliente_service, endereco_service, veiculo_service
 
 logger = logging.getLogger(__name__)
 
@@ -110,3 +111,58 @@ def remove_endereco(
 ):
     logger.info("DELETE /clientes/%s/enderecos/%s", cliente_id, endereco_id)
     return endereco_service.delete_endereco(db, cliente_id, endereco_id)
+
+
+@router.post("/{cliente_id}/veiculos", response_model=VeiculoPublic, status_code=201)
+def add_veiculo(
+    cliente_id: Annotated[int, Path(ge=1)],
+    data: VeiculoCreate,
+    db: Session = Depends(get_db),
+    _=Depends(require_role(_STAFF)),
+):
+    logger.info("POST /clientes/%s/veiculos placa=%s", cliente_id, data.placa)
+    return veiculo_service.create_veiculo(db, cliente_id, data)
+
+
+@router.get("/{cliente_id}/veiculos", response_model=list[VeiculoPublic])
+def list_veiculos(
+    cliente_id: Annotated[int, Path(ge=1)],
+    db: Session = Depends(get_db),
+    _=Depends(require_role(_STAFF)),
+):
+    logger.info("GET /clientes/%s/veiculos", cliente_id)
+    return veiculo_service.list_veiculos(db, cliente_id)
+
+
+@router.get("/{cliente_id}/veiculos/{veiculo_id}", response_model=VeiculoPublic)
+def get_veiculo(
+    cliente_id: Annotated[int, Path(ge=1)],
+    veiculo_id: Annotated[int, Path(ge=1)],
+    db: Session = Depends(get_db),
+    _=Depends(require_role(_STAFF)),
+):
+    logger.info("GET /clientes/%s/veiculos/%s", cliente_id, veiculo_id)
+    return veiculo_service.get_veiculo_or_404(db, cliente_id, veiculo_id)
+
+
+@router.patch("/{cliente_id}/veiculos/{veiculo_id}", response_model=VeiculoPublic)
+def patch_veiculo(
+    cliente_id: Annotated[int, Path(ge=1)],
+    veiculo_id: Annotated[int, Path(ge=1)],
+    data: VeiculoUpdate,
+    db: Session = Depends(get_db),
+    _=Depends(require_role(_STAFF)),
+):
+    logger.info("PATCH /clientes/%s/veiculos/%s", cliente_id, veiculo_id)
+    return veiculo_service.update_veiculo(db, cliente_id, veiculo_id, data)
+
+
+@router.delete("/{cliente_id}/veiculos/{veiculo_id}", response_model=VeiculoPublic)
+def remove_veiculo(
+    cliente_id: Annotated[int, Path(ge=1)],
+    veiculo_id: Annotated[int, Path(ge=1)],
+    db: Session = Depends(get_db),
+    _=Depends(require_role(_STAFF)),
+):
+    logger.info("DELETE /clientes/%s/veiculos/%s", cliente_id, veiculo_id)
+    return veiculo_service.delete_veiculo(db, cliente_id, veiculo_id)

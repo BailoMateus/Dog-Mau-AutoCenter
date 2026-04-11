@@ -27,3 +27,4 @@ class Cliente(Base):
     deleted_at = Column(DateTime(timezone=True), nullable=True)
 
     enderecos = relationship("Endereco", back_populates="cliente")
+    veiculos = relationship("Veiculo", back_populates="cliente")

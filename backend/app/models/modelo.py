@@ -4,25 +4,22 @@ from sqlalchemy.sql import func
 
 from app.database.database import Base
 
-class Endereco(Base):
-    __tablename__ = "endereco"
+class Modelo(Base):
+    __tablename__ = "modelo"
 
-    id_endereco = Column(
+    id_modelo = Column(
         Integer,
         Identity(start=1, increment=1),
         primary_key=True,
     )
 
-    id_cliente = Column(
-        Integer,
-        ForeignKey("cliente.id_cliente", name="fk_endereco_cliente"),
-        nullable=False,
-    )
+    id_marca = Column(Integer, ForeignKey("marca.id_marca"), nullable=False)
 
-    logradouro = Column(String(150), nullable=False)
-    numero = Column(String(10), nullable=True)
-    cep = Column(String(9), nullable=True)
-    complemento = Column(String(100), nullable=True)
+    nome_modelo = Column(String(50), nullable=False)
+    ano_lancamento = Column(Integer, nullable=True)
+    tipo_combustivel = Column(String(30), nullable=True)
+    categoria = Column(String(30), nullable=True)
+    num_portas = Column(Integer, nullable=True)
 
     created_at = Column(DateTime(timezone=True), nullable=True, server_default=func.now())
     updated_at = Column(
@@ -33,4 +30,4 @@ class Endereco(Base):
     )
     deleted_at = Column(DateTime(timezone=True), nullable=True)
 
-    cliente = relationship("Cliente", back_populates="enderecos")
+    marca = relationship("Marca", back_populates="modelos")
