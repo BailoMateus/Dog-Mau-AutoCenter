@@ -19,6 +19,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 from app.controllers.auth_controller import router as auth_router
+from app.controllers.cliente_controller import router as clientes_router
 from app.controllers.user_controller import router as users_router
 from app.core.roles import ADMIN
 from app.core.security import require_role
@@ -28,6 +29,7 @@ app = FastAPI(title="Dog Mau AutoCenter API")
 
 app.include_router(auth_router)
 app.include_router(users_router)
+app.include_router(clientes_router)
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
