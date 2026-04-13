@@ -6,7 +6,7 @@ body {
 }
 header {
   background-color: gray;
-  height: 100px;
+  padding: 10px 0;
 }
 
 header .container > div {
@@ -16,14 +16,13 @@ header .container > div {
 }
 
 #logo {
-  height: 70px;
+  height: 90px;
   width: auto;
 }
 
 header .nav-link {
   position: relative;
   transition: 0.3s;
-  bottom: -5px;
 }
 
 header .nav-link::after {
@@ -39,4 +38,9 @@ header .nav-link::after {
 
 header .nav-link:hover::after {
   width: 100%;
+}
+
+.search-input {
+  width: 250px;
+  transition: width 0.3s ease;
 }
