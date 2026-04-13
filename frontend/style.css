@@ -4,6 +4,8 @@
 body {
   background-color: black;
 }
+
+/* CSS do Header */
 header {
   background-color: gray;
   padding: 10px 0;
@@ -43,4 +45,19 @@ header .nav-link:hover::after {
 .search-input {
   width: 250px;
   transition: width 0.3s ease;
+}
+
+/* CSS do Carrossel */
+
+#myCarousel {
+  height: 500px;
+}
+
+#myCarousel .carousel-item img {
+  height: 500px;
+  object-fit: cover;
+}
+
+.carousel-fade .carousel-item {
+  transition: opacity 0.8s ease-in-out;
 }
