@@ -1,44 +1,63 @@
-*{
-    margin: 0;
+* {
+  margin: 0;
 }
-body{
-    background-color: black;
-} 
-header{
-    /* background-image: url('assets/navbar.png'); */
-    /* background-size: cover; */
-    /* background-position: 0px 590px; */
-    background-color: gray;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem 2rem;
-}
-.logo{
-    width: 150px;
-    font-size: 2rem;
-    padding: 0.5rem 0.5rem;
+body {
+  background-color: black;
 }
 
-nav ul{
-    display: flex;
-    flex-direction: row;
-    gap: 2rem;
-    padding: 0;
-    margin: 0;
+/* CSS do Header */
+header {
+  background-color: gray;
+  padding: 10px 0;
 }
-.nav-item{
-    list-style: none;
+
+header .container > div {
+  height: 100%;
+  display: flex;
+  align-items: center;
 }
-nav ul li a{
-    text-decoration: none;
-    color: white;
-    font-size: 1.5rem;
+
+#logo {
+  height: 90px;
+  width: auto;
 }
-nav ul li a:hover{
-    transition: ease-in-out 0.3s;
-    color:darkred;
-    text-decoration: underline;
-    text-decoration-color: darkred;
+
+header .nav-link {
+  position: relative;
+  transition: 0.3s;
+}
+
+header .nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0%;
+  height: 2px;
+  background: darkred;
+  transition: 0.3s;
+}
+
+header .nav-link:hover::after {
+  width: 100%;
+}
+
+.search-input {
+  width: 250px;
+  transition: width 0.3s ease;
+}
+
+/* CSS do Carrossel */
+
+#myCarousel {
+  height: 500px;
+}
+
+#myCarousel .carousel-item img {
+  height: 500px;
+  object-fit: cover;
+}
+
+.carousel-fade .carousel-item {
+  transition: opacity 0.8s ease-in-out;
 }
