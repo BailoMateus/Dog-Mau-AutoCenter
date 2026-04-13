@@ -23,22 +23,27 @@ const userDeslogado = `
 `;
 
 const header = `
-<header class="py-3 border-bottom">
+<header class="py-2 border-bottom">
   <div class="container">
     <div class="d-flex align-items-center justify-content-between">
       <a href="index.html" class="d-flex align-items-center text-decoration-none">
-        <img src="assets/logo.png" width="70" class="me-2">
+        <img src="assets/logo.png" class="me-2" id="logo">
       </a>
 
-      <ul class="nav mx-auto">
-        <li><a href="#" class="nav-link px-4 fs-5 link-secondary">Home</a></li>
-        <li><a href="#" class="nav-link px-4 fs-5 link-body-emphasis">Produtos</a></li>
-        <li><a href="#" class="nav-link px-4 fs-5 link-body-emphasis">Serviços</a></li>
-        <li><a href="#" class="nav-link px-4 fs-5 link-body-emphasis">Sobre</a></li>
+      <ul class="nav mx-auto mb-0">
+        <li><a href="#" class="nav-link px-4 fs-4 link-secondary">Home</a></li>
+        <li><a href="#" class="nav-link px-4 fs-4 link-body-emphasis">Produtos</a></li>
+        <li><a href="#" class="nav-link px-4 fs-4 link-body-emphasis">Serviços</a></li>
+        <li><a href="#" class="nav-link px-4 fs-4 link-body-emphasis">Sobre</a></li>
       </ul>
 
       <div class="d-flex align-items-center gap-3">
-        <input type="search" class="form-control" placeholder="Buscar..." style="width: 180px;"/>
+        <form class="search-box d-flex align-items-center">
+            <input type="search" class="form-control search-input" placeholder="Buscar..." />
+            <button class="btn btn-danger ms-2">
+                <i class="bi bi-search"></i>
+            </button>
+        </form>
         <div class="dropdown">
           <div id="user-area"></div>
         </div>
