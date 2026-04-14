@@ -1,4 +1,4 @@
-const userLogado = `
+export const userLogado = `
   <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
     <img src="assets/perfil.png" width="32" height="32" class="rounded-circle me-2"/>
     <span class="fw-semibold">User</span>
@@ -11,7 +11,7 @@ const userLogado = `
   </ul>
 `;
 
-const userDeslogado = `
+export const userDeslogado = `
   <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
     <i class="bi bi-person-circle fs-4 me-2"></i>
     <span>Login</span>
@@ -22,7 +22,7 @@ const userDeslogado = `
   </ul>
 `;
 
-const header = `
+export const header = `
 <header class="py-2 border-bottom">
   <div class="container">
     <div class="d-flex align-items-center justify-content-between">
@@ -52,12 +52,5 @@ const header = `
   </div>
 </header>
 `;
-document.getElementById("header").innerHTML = header;
 
-let logado = true;
 
-if (logado) {
-  document.getElementById("user-area").innerHTML = userLogado;
-} else {
-  document.getElementById("user-area").innerHTML = userDeslogado;
-}
