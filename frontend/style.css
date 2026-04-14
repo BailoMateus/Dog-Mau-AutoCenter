@@ -61,3 +61,7 @@ header .nav-link:hover::after {
 .carousel-fade .carousel-item {
   transition: opacity 0.8s ease-in-out;
 }
+
+.footer {
+  background-color: #111;
+}
