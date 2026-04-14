@@ -61,3 +61,42 @@ header .nav-link:hover::after {
 .carousel-fade .carousel-item {
   transition: opacity 0.8s ease-in-out;
 }
+
+.form-signin {
+  max-width: 330px;
+  padding: 1rem;
+}
+
+.form-signin .form-floating:focus-within {
+  z-index: 2;
+}
+
+.form-signin input[type="email"] {
+  margin-bottom: -1px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.form-signin input[type="password"] {
+  margin-bottom: 10px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.btn-primary {
+  background-color: rgba(192, 37, 43);
+  border: 0;
+}
+
+.btn-primary:hover {
+  background-color: dimgray;
+}
+
+.btn:focus,
+.btn:active {
+ background-color: dimgray !important;
+}
+
+.text-body-secondary {
+  text-align: center;
+}
