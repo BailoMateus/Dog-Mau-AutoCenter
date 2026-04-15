@@ -8,7 +8,7 @@ from app.core.roles import CLIENTE
 from app.core.security import require_role
 from app.database.database import get_db
 from app.middlewares.auth_middleware import get_current_user
-from app.schemas.cliente_schema import ClientePublic, ClienteUpdate
+from app.schemas.cliente_schema import ClienteCreate, ClientePublic, ClienteUpdate
 from app.schemas.endereco_schema import EnderecoCreate, EnderecoPublic, EnderecoUpdate
 from app.schemas.veiculo_schema import VeiculoCreate, VeiculoPublic, VeiculoUpdate
 from app.services import cliente_service, endereco_service, veiculo_service, user_service
@@ -26,6 +26,18 @@ def require_cliente(current=Depends(get_current_user)):
             detail="Acesso permitido apenas para clientes"
         )
     return current
+
+
+def get_my_cliente(db: Session, current: dict):
+    user = user_service.get_user_or_404(db, int(current["user_id"]))
+    cliente = cliente_service.get_cliente_by_email(db, user.email)
+    if not cliente:
+        from fastapi import HTTPException, status
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Dados do cliente não encontrados. Complete seu cadastro."
+        )
+    return cliente
 
 @router.post("/cliente", response_model=ClientePublic, status_code=201)
 def create_my_cliente_data(

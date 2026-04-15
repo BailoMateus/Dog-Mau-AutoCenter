@@ -5,7 +5,8 @@ from sqlalchemy.orm import Session
 
 from app.schemas.auth_schema import LoginRequest, RegisterRequest, TokenResponse
 from app.services.auth_service import login
-from app.services import user_service
+from app.services import cliente_service, user_service
+from app.schemas.cliente_schema import ClienteCreate
 from app.schemas.user_schema import UserCreate
 from app.database.database import get_db
 from app.middlewares.auth_middleware import get_current_user
@@ -29,7 +30,7 @@ def login_user(data: LoginRequest, db: Session = Depends(get_db)):
 def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
     logger.info("POST /auth/register nome=%s email=%s", data.nome, data.email)
     
-    # Criar cliente (usuário com role CLIENTE)
+    # Criar usuário como cliente
     user_data = UserCreate(
         nome=data.nome,
         email=data.email,
@@ -43,10 +44,23 @@ def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
     except HTTPException as e:
         raise e
     
+    # Criar perfil de cliente para o usuário recém-registrado
+    cliente_data = ClienteCreate(
+        nome=data.nome,
+        telefone=data.telefone,
+        email=data.email,
+        cpf_cnpj=data.cpf_cnpj,
+        data_nascimento=data.data_nascimento,
+    )
+    try:
+        cliente_service.create_cliente(db, cliente_data)
+    except HTTPException as e:
+        raise e
+    
     # Fazer login automático
     token = login(db, data.email, data.password)
     if not token:
-        logger.error("registro: falha ao gerar token user_id=%s", user.id)
+        logger.error("registro: falha ao gerar token user_id=%s", user.id_usuario)
         raise HTTPException(status_code=500, detail="Erro ao gerar token")
     
     logger.info("POST /auth/register sucesso user_id=%s", user.id_usuario)
