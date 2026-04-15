@@ -17,6 +17,8 @@ def create_cliente(db: Session, data: ClienteCreate):
         nome=data.nome,
         telefone=data.telefone,
         email=data.email,
+        cpf_cnpj=data.cpf_cnpj,
+        data_nascimento=data.data_nascimento,
     )
     return repo.create_cliente(db, cliente)
 
@@ -35,8 +37,15 @@ def update_cliente(db: Session, cliente_id: int, data: ClienteUpdate):
         cliente.telefone = data.telefone
     if data.email is not None:
         cliente.email = data.email
+    if data.cpf_cnpj is not None:
+        cliente.cpf_cnpj = data.cpf_cnpj
+    if data.data_nascimento is not None:
+        cliente.data_nascimento = data.data_nascimento
     return repo.update_cliente(db, cliente)
 
 def delete_cliente(db: Session, cliente_id: int):
     cliente = get_cliente_or_404(db, cliente_id)
     return repo.soft_delete_cliente(db, cliente)
+
+def get_cliente_by_email(db: Session, email: str):
+    return repo.get_cliente_by_email(db, email)

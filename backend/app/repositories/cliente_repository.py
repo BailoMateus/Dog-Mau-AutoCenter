@@ -40,3 +40,12 @@ def soft_delete_cliente(db: Session, cliente: Cliente):
     db.refresh(cliente)
     logger.info("cliente soft-delete id=%s", cliente.id_cliente)
     return cliente
+
+def get_cliente_by_email(db: Session, email: str):
+    row = (
+        db.query(Cliente)
+        .filter(Cliente.email == email, Cliente.deleted_at.is_(None))
+        .first()
+    )
+    logger.debug("get_cliente_by_email email=%s found=%s", email, row is not None)
+    return row

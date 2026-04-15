@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 from app.controllers.auth_controller import router as auth_router
 from app.controllers.cliente_controller import router as clientes_router
+from app.controllers.me_controller import router as me_router
 from app.controllers.user_controller import router as users_router
 from app.controllers.endereco_controller import router as enderecos_router
 from app.controllers.marca_controller import router as marcas_router
@@ -36,6 +37,7 @@ app = FastAPI(title="Dog Mau AutoCenter API")
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(clientes_router)
+app.include_router(me_router)
 app.include_router(enderecos_router)
 app.include_router(marcas_router)
 app.include_router(modelos_router)
