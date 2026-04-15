@@ -1,7 +1,10 @@
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap");
 * {
   margin: 0;
 }
+html,
 body {
+  min-height: 100vh;
   background-color: black;
 }
 
@@ -102,4 +105,135 @@ header .nav-link:hover::after {
 
 .text-body-secondary {
   text-align: center;
+}
+
+#login {
+  background-image: radial-gradient(rgb(0, 0, 0), rgb(38, 0, 0));
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+
+h1 {
+  font-family: "Orbitron", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+}
+
+label {
+  color: white;
+}
+
+body {
+    background: #0b0b0b;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    margin: 0;
+}
+
+.container {
+    max-width: 900px;
+    margin: 60px auto;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    font-size: 40px;
+    letter-spacing: 2px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #aaa;
+    margin-bottom: 40px;
+}
+
+/* Steps */
+.steps {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
+    gap: 20px;
+}
+
+.step {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.step.active {
+    background: rgba(192, 37, 43);
+}
+
+/* Card */
+.card {
+    background: #111;
+    padding: 30px;
+    border-radius: 10px;
+    border: 1px solid #222;
+}
+
+/* Inputs */
+select, textarea {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    background: #0b0b0b;
+    border: 1px solid #333;
+    color: #fff;
+    border-radius: 5px;
+}
+
+/* Buttons */
+.btn {
+    padding: 12px 20px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.btn-primary {
+    background: rgba(192, 37, 43);
+    color: #fff;
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 1px solid #555;
+    color: #fff;
+}
+
+/* Services Grid */
+.services {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.service {
+    border: 1px solid #333;
+    padding: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.service:hover {
+    border-color: rgba(192, 37, 43);
+}
+
+.price {
+    color: rgba(192, 37, 43);
+    float: right;
+}
+
+.hidden {
+    display: none;
 }
