@@ -31,3 +31,4 @@ class Modelo(Base):
     deleted_at = Column(DateTime(timezone=True), nullable=True)
 
     marca = relationship("Marca", back_populates="modelos")
+    veiculos = relationship("Veiculo", back_populates="modelo")
