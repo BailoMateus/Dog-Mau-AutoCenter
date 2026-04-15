@@ -16,9 +16,10 @@ def main():
 
         import uvicorn
         port = int(os.environ.get("PORT", 8080))
-        uvicorn.run("app.main:app", host="0.0.0.0", port=port)
-    except Exception:
-        print("=== STARTUP FALHOU ===", file=sys.stderr, flush=True)
+        # Passar o objeto 'app' diretamente evita que o uvicorn faça um segundo __import__ por trás dos panos
+        uvicorn.run(app, host="0.0.0.0", port=port)
+    except BaseException as e:
+        print(f"=== STARTUP CRASH: {type(e).__name__} ===", file=sys.stderr, flush=True)
         traceback.print_exc()
         sys.stderr.flush()
         sys.stdout.flush()
