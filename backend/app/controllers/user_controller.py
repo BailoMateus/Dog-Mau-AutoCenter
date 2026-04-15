@@ -1,7 +1,7 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Path, status
+from fastapi import APIRouter, Depends, HTTPException, Path, status
 from sqlalchemy.orm import Session
 
 from app.core.roles import ADMIN
@@ -28,7 +28,7 @@ def list_users(
 def create_user(
     data: UserCreate,
     db: Session = Depends(get_db),
-    authorization: Annotated[str | None, Header(None)] = None,
+    authorization: str = None,  # Header opcional
 ):
     existing_users = user_service.list_users(db)
     if not existing_users:
