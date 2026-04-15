@@ -76,6 +76,18 @@ def admin_only(_=Depends(require_role([ADMIN]))):
     return {"ok": True, "scope": "admin"}
 
 if __name__ == "__main__":
+    import uvicorn
+    import os
+    import sys
+    import traceback
 
     port = int(os.environ.get("PORT", 8080))
-    uvicorn.run("main:app", host="0.0.0.0", port=port)
+    try:
+        # Passar o objeto 'app' diretamente (e não a string) evita que o uvicorn faça 
+        # recarregamentos dinâmicos que quebram o path no Docker/Cloud Run
+        uvicorn.run(app, host="0.0.0.0", port=port)
+    except BaseException as e:
+        print(f"=== STARTUP CRASH: {type(e).__name__} ===", file=sys.stderr, flush=True)
+        traceback.print_exc()
+        sys.stderr.flush()
+        sys.exit(1)
