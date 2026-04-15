@@ -29,7 +29,9 @@ steps:
       - 'managed'
       - '--allow-unauthenticated'
       - '--add-cloudsql-instances'
-      - '${_INSTANCE_CONNECTION_NAME}' 
+      - '${_INSTANCE_CONNECTION_NAME}'
+      - '--update-env-vars'
+      - 'SECRET_KEY=${_SECRET_KEY}'
 images:
   - 'us-central1-docker.pkg.dev/$PROJECT_ID/backend-repo/fastapi-backend:$SHORT_SHA'
 
