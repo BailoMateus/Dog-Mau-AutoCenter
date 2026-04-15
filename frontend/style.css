@@ -62,6 +62,9 @@ header .nav-link:hover::after {
   transition: opacity 0.8s ease-in-out;
 }
 
+.footer {
+  background-color: #111;
+}
 .form-signin {
   max-width: 330px;
   padding: 1rem;

@@ -1,5 +1,5 @@
 // Ativar o data-bs-ride="carousel" caso queira que haja o autoplay
-const carrossel = `
+export const carrossel = `
     <div id="myCarousel" class="carousel slide carousel-fade" data-bs-ride="false">
         <div class="carousel-indicators">
           <button
@@ -26,15 +26,17 @@ const carrossel = `
         <div class="carousel-inner">
           <div class="carousel-item active">
             <div class="container">
-                <img src="assets/navbar.png" class="d-block w-100" alt="Slide 1">
+              <img class="d-block w-100" alt="Slide 1" id="carrosselItem1">
             </div>
           </div>
           <div class="carousel-item">
             <div class="container">
+              <img class="d-block w-100" alt="Slide 2" id="carrosselItem2">
             </div>
           </div>
           <div class="carousel-item">
             <div class="container">
+              <img class="d-block w-100" alt="Slide 3" id="carrosselItem3">
             </div>
           </div>
         </div>
@@ -58,6 +60,3 @@ const carrossel = `
         </button>
     </div>
 `;
-
-
-document.getElementById("carrossel").innerHTML = carrossel;
