@@ -6,7 +6,7 @@ export const footer = `
       <!-- LOGO + COPYRIGHT -->
       <div class="d-flex align-items-center gap-2">
         <img src="assets/logo.png" width="40">
-        <span class="text-light small">© 2026 DogMau Autocenter</span>
+        <span class="text-light small">© 2026 DogMau Auto Center</span>
       </div>
 
       <!-- REDES SOCIAIS -->
