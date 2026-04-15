@@ -1,7 +1,7 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Path
+from fastapi import APIRouter, Depends, HTTPException, Path, status
 from sqlalchemy.orm import Session
 
 from app.core.roles import ADMIN
@@ -28,9 +28,20 @@ def list_users(
 def create_user(
     data: UserCreate,
     db: Session = Depends(get_db),
-    _=Depends(require_role([ADMIN])),
+    current=Depends(get_current_user),
 ):
-    logger.info("POST /users email=%s role=%s", data.email, data.role)
+    existing_users = user_service.list_users(db)
+    if not existing_users:
+        if data.role != ADMIN:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Primeiro usuário deve ser ADMIN"
+            )
+        logger.info("POST /users (primeiro usuário - sem autenticação) email=%s role=%s", data.email, data.role)
+    else:
+        user_service.assert_can_modify(current, None, admin_only=True)
+        logger.info("POST /users email=%s role=%s", data.email, data.role)
+    
     user = user_service.create_user(db, data)
     return user
 
