@@ -49,7 +49,7 @@ def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
         logger.error("registro: falha ao gerar token user_id=%s", user.id)
         raise HTTPException(status_code=500, detail="Erro ao gerar token")
     
-    logger.info("POST /auth/register sucesso user_id=%s", user.id)
+    logger.info("POST /auth/register sucesso user_id=%s", user.id_usuario)
     return {"access_token": token}
 
 @router.get("/me")
