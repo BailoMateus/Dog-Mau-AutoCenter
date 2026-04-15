@@ -1,7 +1,7 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Path, status
+from fastapi import APIRouter, Depends, HTTPException, Path, status, Header
 from sqlalchemy.orm import Session
 
 from app.core.roles import ADMIN
@@ -10,6 +10,7 @@ from app.database.database import get_db
 from app.middlewares.auth_middleware import get_current_user
 from app.schemas.user_schema import UserCreate, UserPublic, UserUpdate
 from app.services import user_service
+from app.core.roles import ADMIN, CLIENTE
 
 logger = logging.getLogger(__name__)
 
@@ -28,10 +29,10 @@ def list_users(
 def create_user(
     data: UserCreate,
     db: Session = Depends(get_db),
-    authorization: str = None,  # Header opcional
+    authorization: Annotated[str | None, Header()] = None,
 ):
-    existing_users = user_service.list_users(db)
-    if not existing_users:
+    existing_admin = user_service.get_user_by_role(db, ADMIN)
+    if not existing_admin:
         if data.role != ADMIN:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -41,6 +42,11 @@ def create_user(
         user = user_service.create_user(db, data)
         return user
     else:
+        if data.role == CLIENTE:
+            logger.info("POST /users (cliente - sem autenticação) email=%s", data.email)
+            user = user_service.create_user(db, data)
+            return user
+        
         if not authorization or not authorization.startswith("Bearer "):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
