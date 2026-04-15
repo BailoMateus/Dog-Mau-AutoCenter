@@ -65,6 +65,10 @@ def test_db_connection(db: Session = Depends(get_db)):
         logger.exception("testar-banco falhou")
         return {"status": "Erro", "detalhes": str(e)}
 
+@app.get("/")
+def root():
+    return {"message": "Dog Mau AutoCenter API - Backend", "status": "Online"}
+
 @app.get("/saude")
 def health_check():
     return {"message": "API Online"}
