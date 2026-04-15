@@ -28,7 +28,7 @@ def list_users(
 def create_user(
     data: UserCreate,
     db: Session = Depends(get_db),
-    current=Depends(get_current_user),
+    authorization: str = None,  # Header opcional
 ):
     existing_users = user_service.list_users(db)
     if not existing_users:
@@ -38,12 +38,37 @@ def create_user(
                 detail="Primeiro usuário deve ser ADMIN"
             )
         logger.info("POST /users (primeiro usuário - sem autenticação) email=%s role=%s", data.email, data.role)
+        user = user_service.create_user(db, data)
+        return user
     else:
-        user_service.assert_can_modify(current, None, admin_only=True)
+        if not authorization or not authorization.startswith("Bearer "):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Not authenticated"
+            )
+        
+        # Validação do token
+        token = authorization.replace("Bearer ", "")
+        try:
+            from app.core.config import SECRET_KEY, ALGORITHM
+            from jose import jwt
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            role = payload.get("role")
+            
+            if role != ADMIN:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Acesso não autorizado"
+                )
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token inválido"
+            )
+        
         logger.info("POST /users email=%s role=%s", data.email, data.role)
-    
-    user = user_service.create_user(db, data)
-    return user
+        user = user_service.create_user(db, data)
+        return user
 
 @router.get("/{user_id}", response_model=UserPublic)
 def get_user(
