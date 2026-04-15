@@ -1,0 +1,105 @@
+* {
+  margin: 0;
+}
+body {
+  background-color: black;
+}
+
+/* CSS do Header */
+header {
+  background-color: gray;
+  padding: 10px 0;
+}
+
+header .container > div {
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+#logo {
+  height: 90px;
+  width: auto;
+}
+
+header .nav-link {
+  position: relative;
+  transition: 0.3s;
+}
+
+header .nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0%;
+  height: 2px;
+  background: darkred;
+  transition: 0.3s;
+}
+
+header .nav-link:hover::after {
+  width: 100%;
+}
+
+.search-input {
+  width: 250px;
+  transition: width 0.3s ease;
+}
+
+/* CSS do Carrossel */
+
+#myCarousel {
+  height: 500px;
+}
+
+#myCarousel .carousel-item img {
+  height: 500px;
+  object-fit: cover;
+}
+
+.carousel-fade .carousel-item {
+  transition: opacity 0.8s ease-in-out;
+}
+
+.footer {
+  background-color: #111;
+}
+.form-signin {
+  max-width: 330px;
+  padding: 1rem;
+}
+
+.form-signin .form-floating:focus-within {
+  z-index: 2;
+}
+
+.form-signin input[type="email"] {
+  margin-bottom: -1px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.form-signin input[type="password"] {
+  margin-bottom: 10px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.btn-primary {
+  background-color: rgba(192, 37, 43);
+  border: 0;
+}
+
+.btn-primary:hover {
+  background-color: dimgray;
+}
+
+.btn:focus,
+.btn:active {
+ background-color: dimgray !important;
+}
+
+.text-body-secondary {
+  text-align: center;
+}

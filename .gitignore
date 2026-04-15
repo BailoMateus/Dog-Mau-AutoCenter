@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.py[cod]
+venv/
+
+
+*.json
+.env
+
+# IDEs
+.vscode/
+.idea/
