@@ -17,8 +17,8 @@ export const userDeslogado = `
     <span>Login</span>
   </a>
   <ul class="dropdown-menu dropdown-menu-end">
-    <li><a class="dropdown-item" href="#">Entrar</a></li>
-    <li><a class="dropdown-item" href="#">Cadastrar</a></li>
+    <li><a class="dropdown-item" href="login.html">Entrar</a></li>
+    <li><a class="dropdown-item" href="cadastro.html">Cadastrar</a></li>
   </ul>
 `;
 
