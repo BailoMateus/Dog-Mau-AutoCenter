@@ -8,3 +8,5 @@ email-validator==2.1.0.post1
 pydantic-settings==2.1.0
 python-jose==3.3.0
 passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+firebase-admin==6.4.0

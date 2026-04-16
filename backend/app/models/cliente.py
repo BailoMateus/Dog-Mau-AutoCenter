@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, Identity, Integer, String
+from sqlalchemy import Column, Date, DateTime, Identity, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -16,6 +16,8 @@ class Cliente(Base):
     nome = Column(String(100), nullable=False)
     telefone = Column(String(20), nullable=True)
     email = Column(String(100), nullable=True)
+    cpf_cnpj = Column(String(18), nullable=True)
+    data_nascimento = Column(Date, nullable=True)
 
     created_at = Column(DateTime(timezone=True), nullable=True, server_default=func.now())
     updated_at = Column(

@@ -43,6 +43,11 @@ def get_user_or_404(db: Session, user_id: int) -> User:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado")
     return user
 
+def get_user_by_role(db, role: str):
+    from app.models.user import User
+    
+    return db.query(User).filter(User.role == role).first()
+
 def assert_can_read(actor: dict, target_id: int):
     if actor["role"] == ADMIN:
         return

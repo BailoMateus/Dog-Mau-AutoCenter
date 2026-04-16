@@ -23,6 +23,9 @@ class Endereco(Base):
     numero = Column(String(10), nullable=True)
     cep = Column(String(9), nullable=True)
     complemento = Column(String(100), nullable=True)
+    bairro = Column(String(100), nullable=True)
+    cidade = Column(String(100), nullable=True)
+    estado = Column(String(2), nullable=True)
 
     created_at = Column(DateTime(timezone=True), nullable=True, server_default=func.now())
     updated_at = Column(
