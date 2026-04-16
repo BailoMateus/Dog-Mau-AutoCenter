@@ -107,6 +107,46 @@ header .nav-link:hover::after {
   text-align: center;
 }
 
+
+.features {
+  background-color: black;
+  color: white;
+}
+
+.feature-card {
+  padding: 30px 20px;
+  border-radius: 12px;
+  transition: 0.3s;
+}
+
+.feature-card i {
+  font-size: 40px;
+  color: red;
+  border: 1px solid red;
+  padding: 20px;
+  border-radius: 12px;
+  display: inline-block;
+  margin-bottom: 20px;
+  transition: 0.3s;
+}
+
+.feature-card h5 {
+  font-weight: bold;
+}
+
+.feature-card p {
+  color: #aaa;
+}
+
+.feature-card:hover {
+  transform: translateY(-8px);
+}
+
+.feature-card:hover i {
+  background-color: red;
+  color: white;
+  box-shadow: 0 0 15px red;
+}
 #login {
   background-image: radial-gradient(rgb(0, 0, 0), rgb(38, 0, 0));
   background-repeat: no-repeat;
