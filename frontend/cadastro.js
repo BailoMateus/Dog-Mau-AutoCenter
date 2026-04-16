@@ -1,7 +1,6 @@
 // Arquivo: frontend/cadastro.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-const BASE_URL = window.BASE_URL;
 
 const firebaseConfig = {
     apiKey: "AIzaSyBLY-5JOkHA6YP4viYw5SFB3H1VmoKXzNo",
@@ -36,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.log("Firebase SignIn Realizado. Token:", idToken);
 
                 // Envia token ao backend centralizado
-                const response = await fetch(`${BASE_URL}/auth/google`, {
+                const response = await fetch(`${window.BASE_URL}/auth/google`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ id_token: idToken })
@@ -113,19 +112,19 @@ document.addEventListener("DOMContentLoaded", () => {
             if (/^(\d)\1+$/.test(doc)) return false;
             let soma = 0;
             let resto;
-            for (let i = 1; i <= 9; i++) soma = soma + parseInt(doc.substring(i-1, i)) * (11 - i);
+            for (let i = 1; i <= 9; i++) soma = soma + parseInt(doc.substring(i - 1, i)) * (11 - i);
             resto = (soma * 10) % 11 % 10;
             if (resto !== parseInt(doc.substring(9, 10))) return false;
 
             soma = 0;
-            for (let i = 1; i <= 10; i++) soma = soma + parseInt(doc.substring(i-1, i)) * (12 - i);
+            for (let i = 1; i <= 10; i++) soma = soma + parseInt(doc.substring(i - 1, i)) * (12 - i);
             resto = (soma * 10) % 11 % 10;
             if (resto !== parseInt(doc.substring(10, 11))) return false;
             return true;
         } else if (doc.length === 14) {
             if (/^(\d)\1+$/.test(doc)) return false;
             let tamanho = doc.length - 2
-            let numeros = doc.substring(0,tamanho);
+            let numeros = doc.substring(0, tamanho);
             let digitos = doc.substring(tamanho);
             let soma = 0;
             let pos = tamanho - 7;
@@ -135,9 +134,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             let resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
             if (resultado !== parseInt(digitos.charAt(0))) return false;
-                
+
             tamanho = tamanho + 1;
-            numeros = doc.substring(0,tamanho);
+            numeros = doc.substring(0, tamanho);
             soma = 0;
             pos = tamanho - 7;
             for (let i = tamanho; i >= 1; i--) {
@@ -160,8 +159,8 @@ document.addEventListener("DOMContentLoaded", () => {
             // Validação de CPF/CNPJ
             const cpfCnpjInput = document.getElementById("floatingCpf");
             const cpfCnpjValue = cpfCnpjInput.value;
-            
-            if(!validarCpfCnpj(cpfCnpjValue)) {
+
+            if (!validarCpfCnpj(cpfCnpjValue)) {
                 cpfCnpjInput.classList.add("is-invalid");
                 alert("O CPF ou CNPJ digitado é inválido. Verifique os números.");
                 return false;
@@ -201,7 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
             };
 
             try {
-                const response = await fetch(`${BASE_URL}/auth/register`, {
+                const response = await fetch(`${window.BASE_URL}/auth/register`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)

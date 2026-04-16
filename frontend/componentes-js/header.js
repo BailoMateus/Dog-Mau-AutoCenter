@@ -17,17 +17,17 @@ export const userDeslogado = `
     <span>Login</span>
   </a>
   <ul class="dropdown-menu dropdown-menu-end">
-    <li><a class="dropdown-item" href="#">Entrar</a></li>
-    <li><a class="dropdown-item" href="#">Cadastrar</a></li>
+    <li><a class="dropdown-item" href="login.html">Entrar</a></li>
+    <li><a class="dropdown-item" href="cadastro.html">Cadastrar</a></li>
   </ul>
 `;
 
 export const header = `
-<header class="py-2 border-bottom">
+<header class="py-2">
   <div class="container">
     <div class="d-flex align-items-center justify-content-between">
       <a href="index.html" class="d-flex align-items-center text-decoration-none">
-        <img src="assets/logo.png" class="me-2" id="logo">
+        <img src="assets/logo header.png" class="me-2" id="logo" alt="Dog Mau logo"style="border-radius: 50%; width: 50px; height: 50px;" />
       </a>
 
       <ul class="nav mx-auto mb-0">

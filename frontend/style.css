@@ -10,8 +10,9 @@ body {
 
 /* CSS do Header */
 header {
-  background-color: gray;
-  padding: 10px 0;
+  background-color: rgba(192, 37, 43, 1);
+  min-height: 50px;
+  padding: 0;
 }
 
 header .container > div {
@@ -21,7 +22,7 @@ header .container > div {
 }
 
 #logo {
-  height: 90px;
+  height: 50px;
   width: auto;
 }
 
