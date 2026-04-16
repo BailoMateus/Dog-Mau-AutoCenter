@@ -18,6 +18,9 @@ def add_endereco(db: Session, cliente_id: int, data: EnderecoCreate):
         numero=data.numero,
         cep=data.cep,
         complemento=data.complemento,
+        bairro=data.bairro,
+        cidade=data.cidade,
+        estado=data.estado,
     )
     return repo.create_endereco(db, endereco)
 
@@ -47,6 +50,12 @@ def update_endereco(db: Session, cliente_id: int, endereco_id: int, data: Endere
         endereco.cep = data.cep
     if data.complemento is not None:
         endereco.complemento = data.complemento
+    if data.bairro is not None:
+        endereco.bairro = data.bairro
+    if data.cidade is not None:
+        endereco.cidade = data.cidade
+    if data.estado is not None:
+        endereco.estado = data.estado
     return repo.update_endereco(db, endereco)
 
 def delete_endereco(db: Session, cliente_id: int, endereco_id: int):
