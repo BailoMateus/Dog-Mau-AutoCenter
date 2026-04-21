@@ -3,7 +3,7 @@ import os
 import time
 
 import uvicorn
-
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI, Request
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -33,6 +33,14 @@ from app.core.security import require_role
 from app.database.database import get_db
 
 app = FastAPI(title="Dog Mau AutoCenter API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(auth_router)
 app.include_router(users_router)
@@ -66,7 +74,9 @@ async def log_requests(request: Request, call_next):
 
 @app.on_event("startup")
 async def on_startup():
-    logger.info("API iniciada (FastAPI)")
+    from app.core.firebase import init_firebase
+    init_firebase()
+    logger.info("API iniciada (FastAPI) e Firebase Configurado!")
 
 
 @app.get("/testar-banco")

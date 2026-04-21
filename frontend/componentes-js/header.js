@@ -1,40 +1,26 @@
-export const userLogado = `
-  <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-    <img src="assets/perfil.png" width="32" height="32" class="rounded-circle me-2"/>
-    <span class="fw-semibold">User</span>
-  </a>
-  <ul class="dropdown-menu dropdown-menu-end">
-    <li><a class="dropdown-item" href="#">Veículo</a></li>
-    <li><a class="dropdown-item" href="#">Perfil</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="#">Sair</a></li>
-  </ul>
-`;
-
 export const userDeslogado = `
   <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-    <i class="bi bi-person-circle fs-4 me-2"></i>
-    <span>Login</span>
+    <i class="bi bi-person-circle fs-4 me-2"> <span class="fw-semibold">Login</span></i>
   </a>
   <ul class="dropdown-menu dropdown-menu-end">
-    <li><a class="dropdown-item" href="#">Entrar</a></li>
-    <li><a class="dropdown-item" href="#">Cadastrar</a></li>
+    <li><a class="dropdown-item" href="login.html">Entrar</a></li>
+    <li><a class="dropdown-item" href="cadastro.html">Cadastrar</a></li>
   </ul>
 `;
 
 export const header = `
-<header class="py-2 border-bottom">
+<header class="py-3">
   <div class="container">
     <div class="d-flex align-items-center justify-content-between">
       <a href="index.html" class="d-flex align-items-center text-decoration-none">
-        <img src="assets/logo.png" class="me-2" id="logo">
+        <img src="assets/logo.png" class="me-2" id="logo" alt="Dog Mau logo"style="border-radius: 50%; width: 50px; height: 50px;" />
       </a>
 
       <ul class="nav mx-auto mb-0">
-        <li><a href="#" class="nav-link px-4 fs-4 link-secondary">Home</a></li>
-        <li><a href="#" class="nav-link px-4 fs-4 link-body-emphasis">Produtos</a></li>
-        <li><a href="#" class="nav-link px-4 fs-4 link-body-emphasis">Serviços</a></li>
-        <li><a href="#" class="nav-link px-4 fs-4 link-body-emphasis">Sobre</a></li>
+        <li><a href="#" class="nav-link px-4 fs-4 active">Home</a></li>
+        <li><a href="#" class="nav-link px-4 fs-4">Produtos</a></li>
+        <li><a href="#" class="nav-link px-4 fs-4">Serviços</a></li>
+        <li><a href="#" class="nav-link px-4 fs-4">Sobre</a></li>
       </ul>
 
       <div class="d-flex align-items-center gap-3">
@@ -52,5 +38,19 @@ export const header = `
   </div>
 </header>
 `;
+
+export function initNavLinks() {
+  const navLinks = document.querySelectorAll('.nav .nav-link');
+  
+  navLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      
+      navLinks.forEach(l => l.classList.remove('active'));
+      
+      link.classList.add('active');
+    });
+  });
+}
 
 
