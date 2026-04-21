@@ -3,13 +3,11 @@ export const footer = `
   <div class="container">
     <div class="d-flex flex-wrap justify-content-between align-items-center">
 
-      <!-- LOGO + COPYRIGHT -->
       <div class="d-flex align-items-center gap-2">
         <img src="assets/logo.png" width="40">
         <span class="text-light small">© 2026 DogMau Auto Center</span>
       </div>
 
-      <!-- REDES SOCIAIS -->
       <div class="d-flex gap-3">
         <a href="#" class="text-light fs-5">
           <i class="bi bi-instagram"></i>

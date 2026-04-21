@@ -18,6 +18,9 @@ def add_endereco_to_user(db: Session, user_id: int, data: EnderecoCreate):
         numero=data.numero,
         cep=data.cep,
         complemento=data.complemento,
+        bairro=data.bairro,
+        cidade=data.cidade,
+        estado=data.estado,
     )
     return repo.create_endereco(db, endereco)
 
@@ -47,6 +50,12 @@ def update_endereco_by_user(db: Session, user_id: int, endereco_id: int, data: E
         endereco.cep = data.cep
     if data.complemento is not None:
         endereco.complemento = data.complemento
+    if data.bairro is not None:
+        endereco.bairro = data.bairro
+    if data.cidade is not None:
+        endereco.cidade = data.cidade
+    if data.estado is not None:
+        endereco.estado = data.estado
     return repo.update_endereco(db, endereco)
 
 def delete_endereco_by_user(db: Session, user_id: int, endereco_id: int):
