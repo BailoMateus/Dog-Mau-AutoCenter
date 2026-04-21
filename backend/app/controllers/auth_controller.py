@@ -7,8 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.schemas.auth_schema import LoginRequest, RegisterRequest, TokenResponse, FirebaseLoginRequest
 from app.services.auth_service import login
-from app.services import cliente_service, user_service, endereco_service
-from app.schemas.cliente_schema import ClienteCreate
+from app.services import user_service
 from app.schemas.user_schema import UserCreate
 from app.schemas.endereco_schema import EnderecoCreate
 from app.database.database import get_db
@@ -33,30 +32,20 @@ def login_user(data: LoginRequest, db: Session = Depends(get_db)):
 def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
     logger.info("POST /auth/register nome=%s email=%s", data.nome, data.email)
     
-    # Criar usuário como cliente
+    # Criar usuário unificado
     user_data = UserCreate(
         nome=data.nome,
         email=data.email,
         password=data.password,
         role=CLIENTE,
-        ativo=True
+        ativo=True,
+        telefone=data.telefone,
+        cpf_cnpj=data.cpf_cnpj,
+        data_nascimento=data.data_nascimento
     )
     
     try:
         user = user_service.create_user(db, user_data)
-    except HTTPException as e:
-        raise e
-    
-    # Criar perfil de cliente para o usuário recém-registrado
-    cliente_data = ClienteCreate(
-        nome=data.nome,
-        telefone=data.telefone,
-        email=data.email,
-        cpf_cnpj=data.cpf_cnpj,
-        data_nascimento=data.data_nascimento,
-    )
-    try:
-        cliente = cliente_service.create_cliente(db, cliente_data)
     except HTTPException as e:
         raise e
         

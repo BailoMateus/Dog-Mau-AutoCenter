@@ -7,19 +7,19 @@ from app.models.veiculo import Veiculo
 
 logger = logging.getLogger(__name__)
 
-def get_veiculo_by_id_for_cliente(db: Session, cliente_id: int, veiculo_id: int):
+def get_veiculo_by_id_for_user(db: Session, user_id: int, veiculo_id: int):
     row = (
         db.query(Veiculo)
         .filter(
             Veiculo.id_veiculo == veiculo_id,
-            Veiculo.id_cliente == cliente_id,
+            Veiculo.id_usuario == user_id,
             Veiculo.deleted_at.is_(None),
         )
         .first()
     )
     logger.debug(
-        "get_veiculo_by_id_for_cliente cliente=%s veiculo=%s found=%s",
-        cliente_id,
+        "get_veiculo_by_id_for_user user=%s veiculo=%s found=%s",
+        user_id,
         veiculo_id,
         row is not None,
     )
@@ -29,16 +29,16 @@ def create_veiculo(db: Session, veiculo: Veiculo):
     db.add(veiculo)
     db.commit()
     db.refresh(veiculo)
-    logger.info("veiculo criado id=%s cliente=%s", veiculo.id_veiculo, veiculo.id_cliente)
+    logger.info("veiculo criado id=%s user=%s", veiculo.id_veiculo, veiculo.id_usuario)
     return veiculo
 
-def list_veiculos_by_cliente(db: Session, cliente_id: int):
+def list_veiculos_by_user(db: Session, user_id: int):
     rows = (
         db.query(Veiculo)
-        .filter(Veiculo.id_cliente == cliente_id, Veiculo.deleted_at.is_(None))
+        .filter(Veiculo.id_usuario == user_id, Veiculo.deleted_at.is_(None))
         .all()
     )
-    logger.debug("list_veiculos_by_cliente cliente=%s count=%s", cliente_id, len(rows))
+    logger.debug("list_veiculos_by_user user=%s count=%s", user_id, len(rows))
     return rows
 
 def update_veiculo(db: Session, veiculo: Veiculo):

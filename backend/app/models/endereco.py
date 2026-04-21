@@ -13,9 +13,9 @@ class Endereco(Base):
         primary_key=True,
     )
 
-    id_cliente = Column(
+    id_usuario = Column(
         Integer,
-        ForeignKey("cliente.id_cliente", name="fk_endereco_cliente"),
+        ForeignKey("usuario.id_usuario", name="fk_endereco_usuario"),
         nullable=False,
     )
 
@@ -36,4 +36,4 @@ class Endereco(Base):
     )
     deleted_at = Column(DateTime(timezone=True), nullable=True)
 
-    cliente = relationship("Cliente", back_populates="enderecos")
+    usuario = relationship("User", back_populates="enderecos")

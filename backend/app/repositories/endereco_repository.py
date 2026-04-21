@@ -7,19 +7,19 @@ from app.models.endereco import Endereco
 
 logger = logging.getLogger(__name__)
 
-def get_endereco_by_id_for_cliente(db: Session, cliente_id: int, endereco_id: int):
+def get_endereco_by_id_for_user(db: Session, user_id: int, endereco_id: int):
     row = (
         db.query(Endereco)
         .filter(
             Endereco.id_endereco == endereco_id,
-            Endereco.id_cliente == cliente_id,
+            Endereco.id_usuario == user_id,
             Endereco.deleted_at.is_(None),
         )
         .first()
     )
     logger.debug(
-        "get_endereco_by_id_for_cliente cliente=%s endereco=%s found=%s",
-        cliente_id,
+        "get_endereco_by_id_for_user user=%s endereco=%s found=%s",
+        user_id,
         endereco_id,
         row is not None,
     )
@@ -29,16 +29,16 @@ def create_endereco(db: Session, endereco: Endereco):
     db.add(endereco)
     db.commit()
     db.refresh(endereco)
-    logger.info("endereco criado id=%s cliente=%s", endereco.id_endereco, endereco.id_cliente)
+    logger.info("endereco criado id=%s user=%s", endereco.id_endereco, endereco.id_usuario)
     return endereco
 
-def list_enderecos_by_cliente(db: Session, cliente_id: int):
+def list_enderecos_by_user(db: Session, user_id: int):
     rows = (
         db.query(Endereco)
-        .filter(Endereco.id_cliente == cliente_id, Endereco.deleted_at.is_(None))
+        .filter(Endereco.id_usuario == user_id, Endereco.deleted_at.is_(None))
         .all()
     )
-    logger.debug("list_enderecos_by_cliente cliente=%s count=%s", cliente_id, len(rows))
+    logger.debug("list_enderecos_by_user user=%s count=%s", user_id, len(rows))
     return rows
 
 def update_endereco(db: Session, endereco: Endereco):
