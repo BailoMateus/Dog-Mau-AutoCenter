@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.core.roles import ADMIN
+from app.core.roles import ADMIN, CLIENTE, MECANICO
 from app.core.security import hash_password
 from app.models.user import User
 from app.repositories import user_repository as repo
@@ -25,6 +25,9 @@ def create_user(db: Session, data: UserCreate):
         senha_hash=hash_password(data.password),
         role=data.role,
         ativo=data.ativo,
+        telefone=data.telefone,
+        cpf_cnpj=data.cpf_cnpj,
+        data_nascimento=data.data_nascimento,
     )
     try:
         return repo.create_user(db, user)
@@ -79,6 +82,19 @@ def assert_can_modify(actor: dict, target_id: int, *, admin_only: bool = False):
         return
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acesso não autorizado")
 
+def assert_can_manage_cliente_data(actor: dict, target_id: int):
+    # Verifica se o usuário pode gerenciar dados de cliente (endereços, veículos)
+    if actor["role"] == ADMIN:
+        return
+    if actor["role"] == CLIENTE and _actor_user_id(actor) == str(target_id):
+        return
+    logger.warning(
+        "acesso negado gerenciar dados cliente actor=%s target=%s",
+        actor.get("user_id"),
+        target_id,
+    )
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acesso não autorizado")
+
 def update_user(
     db: Session,
     user_id: int,
@@ -96,6 +112,12 @@ def update_user(
         user.email = data.email
     if data.password is not None:
         user.senha_hash = hash_password(data.password)
+    if data.telefone is not None:
+        user.telefone = data.telefone
+    if data.cpf_cnpj is not None:
+        user.cpf_cnpj = data.cpf_cnpj
+    if data.data_nascimento is not None:
+        user.data_nascimento = data.data_nascimento
     if data.ativo is not None and is_admin:
         user.ativo = data.ativo
     elif data.ativo is not None and not is_admin:

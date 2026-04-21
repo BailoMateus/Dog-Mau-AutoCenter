@@ -18,9 +18,9 @@ class Veiculo(Base):
     ano_fabricacao = Column(Integer, nullable=True)
     cor = Column(String(30), nullable=True)
 
-    id_cliente = Column(
+    id_usuario = Column(
         Integer,
-        ForeignKey("cliente.id_cliente", name="fk_veiculo_cliente"),
+        ForeignKey("usuario.id_usuario", name="fk_veiculo_usuario"),
         nullable=False,
     )
     id_modelo = Column(
@@ -38,5 +38,5 @@ class Veiculo(Base):
     )
     deleted_at = Column(DateTime(timezone=True), nullable=True)
 
-    cliente = relationship("Cliente", back_populates="veiculos")
+    usuario = relationship("User", back_populates="veiculos")
     modelo = relationship("Modelo", back_populates="veiculos")

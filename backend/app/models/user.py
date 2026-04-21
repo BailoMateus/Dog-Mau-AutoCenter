@@ -1,7 +1,9 @@
-from sqlalchemy import Boolean, Column, DateTime, Identity, Integer, String, text
+from sqlalchemy import Boolean, Column, Date, DateTime, Identity, Integer, String, text
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from app.database.database import Base
+
 class User(Base):
     __tablename__ = "usuario"
 
@@ -16,9 +18,13 @@ class User(Base):
     senha_hash = Column(String(255), nullable=False)
 
     # coluna reservada: nome físico "role"
-    role = Column("role", String(20), nullable=True, server_default=text("'mecanico'"))
+    role = Column("role", String(20), nullable=False, server_default=text("'CLIENTE'"))
 
     ativo = Column(Boolean, nullable=True, server_default=text("true"))
+    
+    telefone = Column(String(20), nullable=False)
+    cpf_cnpj = Column(String(18), nullable=False)
+    data_nascimento = Column(Date, nullable=False)
 
     created_at = Column(DateTime(timezone=True), nullable=True, server_default=func.now())
     updated_at = Column(
@@ -28,3 +34,6 @@ class User(Base):
         onupdate=func.now(),
     )
     deleted_at = Column(DateTime(timezone=True), nullable=True)
+    
+    enderecos = relationship("Endereco", back_populates="usuario")
+    veiculos = relationship("Veiculo", back_populates="usuario")
