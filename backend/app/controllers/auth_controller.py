@@ -3,14 +3,13 @@ import firebase_admin
 from firebase_admin import auth
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 
 from app.schemas.auth_schema import LoginRequest, RegisterRequest, TokenResponse, FirebaseLoginRequest
 from app.services.auth_service import login
 from app.services import user_service
 from app.schemas.user_schema import UserCreate
 from app.schemas.endereco_schema import EnderecoCreate
-from app.database.database import get_db
+from app.database.db import get_db
 from app.middlewares.auth_middleware import get_current_user
 from app.core.roles import CLIENTE
 
@@ -19,9 +18,9 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 @router.post("/login", response_model=TokenResponse)
-def login_user(data: LoginRequest, db: Session = Depends(get_db)):
+def login_user(data: LoginRequest):
     logger.info("POST /auth/login email=%s", data.email)
-    token = login(db, data.email, data.password)
+    token = login(data.email, data.password)
 
     if not token:
         raise HTTPException(status_code=401, detail="Credenciais incorretas")
@@ -29,7 +28,7 @@ def login_user(data: LoginRequest, db: Session = Depends(get_db)):
     return {"access_token": token}
 
 @router.post("/register", response_model=TokenResponse)
-def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
+def register_user(data: RegisterRequest):
     logger.info("POST /auth/register nome=%s email=%s", data.nome, data.email)
     
     # Criar usuário unificado
@@ -45,7 +44,7 @@ def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
     )
     
     try:
-        user = user_service.create_user(db, user_data)
+        user = user_service.create_user(user_data)
     except HTTPException as e:
         raise e
         
@@ -60,13 +59,14 @@ def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
             estado=data.estado
         )
         try:
-            endereco_service.add_endereco(db, cliente.id_cliente, endereco_data)
+            from app.services import endereco_service
+            endereco_service.add_endereco(user.id_usuario, endereco_data)
         except Exception as e:
             logger.error(f"Erro ao salvar endereco: {e}")
             # Fails silently for address, allow user login to continue
     
     # Fazer login automático
-    token = login(db, data.email, data.password)
+    token = login(data.email, data.password)
     if not token:
         logger.error("registro: falha ao gerar token user_id=%s", user.id_usuario)
         raise HTTPException(status_code=500, detail="Erro ao gerar token")
@@ -75,7 +75,7 @@ def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
     return {"access_token": token}
 
 @router.post("/google", response_model=TokenResponse)
-def login_with_google(data: FirebaseLoginRequest, db: Session = Depends(get_db)):
+def login_with_google(data: FirebaseLoginRequest):
     logger.info("POST /auth/google - Validando Token com Firebase Admin")
     
     # 1. Validação da Autenticidade no Firebase Admin
@@ -89,7 +89,7 @@ def login_with_google(data: FirebaseLoginRequest, db: Session = Depends(get_db))
 
     # 2. Lógica de Banco de Dados: Verifica se usuário já existe pelo e-mail
     from app.repositories import user_repository
-    user = user_repository.get_user_by_email(db, email)
+    user = user_repository.get_user_by_email(email)
 
     if not user:
         # Se não existe, cria o usuário e o cliente automaticamente
@@ -104,19 +104,10 @@ def login_with_google(data: FirebaseLoginRequest, db: Session = Depends(get_db))
             role=CLIENTE,
             ativo=True
         )
-        user = user_service.create_user(db, user_data)
-        
-        cliente_data = ClienteCreate(
-            nome=nome,
-            email=email,
-        )
-        try:
-            cliente_service.create_cliente(db, cliente_data)
-        except HTTPException:
-            pass
+        user = user_service.create_user(user_data)
 
         # Autentica pelo DB local agora para gerar nosso próprio JWT
-        token = login(db, email, generic_secure_password)
+        token = login(email, generic_secure_password)
     else:
         # Se já existe, geramos o token JWT da nossa API diretamente sem pedir senha
         from app.services.auth_service import create_access_token

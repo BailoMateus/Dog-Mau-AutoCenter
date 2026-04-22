@@ -1,15 +1,13 @@
 import logging
 
-from sqlalchemy.orm import Session
-
 from app.core.roles import MECANICO
 from app.core.security import create_access_token, verify_password
 from app.repositories.user_repository import get_user_by_email
 
 logger = logging.getLogger(__name__)
 
-def authenticate_user(db: Session, email: str, password: str):
-    user = get_user_by_email(db, email)
+def authenticate_user(email: str, password: str):
+    user = get_user_by_email(email)
 
     if not user:
         logger.info("login falhou: usuário não encontrado email=%s", email)
@@ -25,8 +23,8 @@ def authenticate_user(db: Session, email: str, password: str):
 
     return user
 
-def login(db: Session, email: str, password: str):
-    user = authenticate_user(db, email, password)
+def login(email: str, password: str):
+    user = authenticate_user(email, password)
 
     if not user:
         return None
