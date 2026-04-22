@@ -1,12 +1,11 @@
 import logging
 
 from fastapi import HTTPException, status
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+import psycopg2
 
 from app.core.roles import ADMIN, CLIENTE, MECANICO
 from app.core.security import hash_password
-from app.models.user import User
+from app.models.entities import User
 from app.repositories import user_repository as repo
 from app.schemas.user_schema import UserCreate, UserUpdate
 
@@ -15,10 +14,10 @@ logger = logging.getLogger(__name__)
 def _actor_user_id(actor: dict) -> str:
     return str(actor.get("user_id", ""))
 
-def list_users(db: Session):
-    return repo.get_all_users(db)
+def list_users():
+    return repo.get_all_users()
 
-def create_user(db: Session, data: UserCreate):
+def create_user(data: UserCreate):
     user = User(
         nome=data.nome,
         email=data.email,
@@ -30,26 +29,23 @@ def create_user(db: Session, data: UserCreate):
         data_nascimento=data.data_nascimento,
     )
     try:
-        return repo.create_user(db, user)
-    except IntegrityError:
-        db.rollback()
+        return repo.create_user(user)
+    except psycopg2.IntegrityError:
         logger.warning("create_user email duplicado email=%s", data.email)
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="E-mail já cadastrado",
         )
 
-def get_user_or_404(db: Session, user_id: int) -> User:
-    user = repo.get_user_by_id(db, user_id)
+def get_user_or_404(user_id: int) -> User:
+    user = repo.get_user_by_id(user_id)
     if not user:
         logger.info("usuário não encontrado id=%s", user_id)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado")
     return user
 
-def get_user_by_role(db, role: str):
-    from app.models.user import User
-    
-    return db.query(User).filter(User.role == role).first()
+def get_user_by_role(role: str):
+    return repo.get_user_by_role(role)
 
 def assert_can_read(actor: dict, target_id: int):
     if actor["role"] == ADMIN:
@@ -96,13 +92,12 @@ def assert_can_manage_cliente_data(actor: dict, target_id: int):
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acesso não autorizado")
 
 def update_user(
-    db: Session,
     user_id: int,
     data: UserUpdate,
     *,
     actor: dict,
 ):
-    user = get_user_or_404(db, user_id)
+    user = get_user_or_404(user_id)
     assert_can_modify(actor, user_id, admin_only=False)
 
     is_admin = actor["role"] == ADMIN
@@ -135,16 +130,15 @@ def update_user(
         user.role = data.role
 
     try:
-        return repo.update_user(db, user)
-    except IntegrityError:
-        db.rollback()
+        return repo.update_user(user)
+    except psycopg2.IntegrityError:
         logger.warning("update_user conflito de e-mail user_id=%s", user_id)
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="E-mail já cadastrado",
         )
 
-def delete_user(db: Session, user_id: int, *, actor: dict):
-    user = get_user_or_404(db, user_id)
+def delete_user(user_id: int, *, actor: dict):
+    user = get_user_or_404(user_id)
     assert_can_modify(actor, user_id, admin_only=True)
-    return repo.soft_delete_user(db, user)
+    return repo.soft_delete_user(user)

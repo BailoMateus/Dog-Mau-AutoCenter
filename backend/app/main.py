@@ -5,8 +5,6 @@ import time
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI, Request
-from sqlalchemy import text
-from sqlalchemy.orm import Session
 
 from app.core.settings import get_settings
 
@@ -28,7 +26,7 @@ from app.controllers.veiculo_controller import router as veiculos_router
 from app.controllers.servico_controller import router as servicos_router
 from app.core.roles import ADMIN
 from app.core.security import require_role
-from app.database.database import get_db
+from app.database.db import get_db
 
 app = FastAPI(title="Dog Mau AutoCenter API")
 
@@ -76,9 +74,10 @@ async def on_startup():
 
 
 @app.get("/testar-banco")
-def test_db_connection(db: Session = Depends(get_db)):
+def test_db_connection():
     try:
-        db.execute(text("SELECT 1"))
+        from app.database.db import execute_query
+        execute_query("SELECT 1")
         logger.info("testar-banco: SELECT 1 ok")
         return {"status": "Sucesso", "mensagem": "Conectado ao Cloud SQL!"}
     except Exception as e:
