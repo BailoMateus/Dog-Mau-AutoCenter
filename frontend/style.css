@@ -285,3 +285,45 @@ select, textarea {
 .hidden {
     display: none;
 }
+
+/* Contact & Social Section Styles */
+.transition-hover {
+    transition: all 0.3s ease-in-out;
+}
+
+.transition-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(192, 37, 43, 0.1) !important;
+}
+
+.hover-scale {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.hover-scale:hover {
+    transform: scale(1.15);
+}
+
+.contact-icon-wrapper {
+    background: rgba(192, 37, 43, 0.1);
+}
+
+.social-icon-wrapper {
+    width: 60px; 
+    height: 60px; 
+    background-color: transparent;
+    border: 1px solid rgba(192, 37, 43, 0.5);
+    color: rgba(192, 37, 43, 0.8);
+    transition: 0.3s;
+}
+
+.social-icon-wrapper:hover {
+    background-color: rgba(192, 37, 43);
+    color: white !important;
+    box-shadow: 0 0 15px rgba(192, 37, 43, 0.8);
+}
+
+.social-icon-wrapper i {
+    color: inherit;
+}
