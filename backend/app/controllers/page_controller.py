@@ -41,7 +41,7 @@ def get_page_user(request: Request):
     Lê o JWT do cookie 'access_token'. Se válido, busca o user no banco
     e retorna {user_id, role, nome}. Se inválido ou ausente, retorna None.
     """
-    token = request.cookies.get("access_token")
+    token = request.cookies.get("__session") or request.cookies.get("access_token")
     if not token:
         return None
     # Compatibilidade: remove prefixo 'Bearer ' se presente (cookies antigos)
@@ -120,5 +120,6 @@ def logout(request: Request):
     """Limpa o cookie de autenticação e redireciona para a home."""
     logger.info("GET /logout — limpando cookie")
     response = RedirectResponse(url="/", status_code=302)
-    response.delete_cookie("access_token")
+    response.delete_cookie("__session")
+    response.delete_cookie("access_token") # Por segurança, limpa o antigo também
     return response

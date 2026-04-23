@@ -35,7 +35,7 @@ def get_current_user(request: Request, token: str = Depends(oauth2_scheme)):
     # 1. Tentar header Authorization (já parseado pelo OAuth2PasswordBearer)
     if not token:
         # 2. Fallback: ler do cookie
-        token = request.cookies.get("access_token")
+        token = request.cookies.get("__session") or request.cookies.get("access_token")
 
     # Compatibilidade: remove prefixo 'Bearer ' se presente (cookies antigos)
     if token and token.startswith("Bearer "):

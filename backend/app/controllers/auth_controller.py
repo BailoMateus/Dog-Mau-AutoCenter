@@ -23,7 +23,7 @@ _IS_PRODUCTION = bool(os.environ.get("K_SERVICE"))
 def _set_auth_cookie(response, token: str):
     """Injeta o JWT como cookie HttpOnly no response."""
     response.set_cookie(
-        key="access_token",
+        key="__session",
         value=token,
         httponly=True,
         samesite="lax",
