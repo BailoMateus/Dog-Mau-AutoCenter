@@ -104,25 +104,38 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("cadastroForm");
     if (form) {
         form.addEventListener("submit", async (e) => {
+            console.log("Iniciando submissão do formulário...");
             e.preventDefault();
 
             // Validação de CPF/CNPJ
             const cpfCnpjInput = document.getElementById("floatingCpf");
-            const cpfCnpjValue = cpfCnpjInput.value;
+            const cpfCnpjValue = cpfCnpjInput ? cpfCnpjInput.value : "";
+            console.log("CPF/CNPJ capturado:", cpfCnpjValue);
 
-            if (!validarCpfCnpj(cpfCnpjValue)) {
+            if (!cpfCnpjInput) {
+                console.error("Input de CPF/CNPJ não encontrado no DOM!");
+            } else if (!validarCpfCnpj(cpfCnpjValue)) {
+                console.warn("Validação falhou: CPF/CNPJ inválido.");
                 cpfCnpjInput.classList.add("is-invalid");
                 alert("O CPF ou CNPJ digitado é inválido. Verifique os números.");
                 return false;
             } else {
+                console.log("CPF/CNPJ validado com sucesso.");
                 cpfCnpjInput.classList.remove("is-invalid");
+            }
+
+            if (!inputPassword || !inputConfirm) {
+                console.error("Inputs de senha não encontrados no DOM!");
+                return;
             }
 
             const password = inputPassword.value;
             const confirm = inputConfirm.value;
+            console.log("Validando senhas...");
 
             // Validação de Confirmação de Senha
             if (password !== confirm) {
+                console.warn("Validação falhou: senhas não coincidem.");
                 alert("As senhas não coincidem!");
                 return;
             }
@@ -130,19 +143,32 @@ document.addEventListener("DOMContentLoaded", () => {
             // Validar senha forte
             const strongRegex = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\\$%\\^&\\*])(?=.{8,})");
             if (!strongRegex.test(password)) {
+                console.warn("Validação falhou: senha fraca.");
                 alert("Sua senha é fraca. Ela precisa ter ao menos:\n- 8 Caracteres\n- 1 Letra Maiúscula\n- 1 Letra Minúscula\n- 1 Número\n- 1 Caractere Especial (!@#$%)");
                 return;
             }
+            console.log("Senha validada e forte.");
 
-            // Limpar máscara dos campos CPF/CNPJ e CEP antes do envio nativo
-            cpfCnpjInput.value = cpfCnpjValue.replace(/\D/g, '');
-            const cepInput = document.getElementById("floatingCep");
-            if (cepInput) {
-                cepInput.value = cepInput.value.replace(/\D/g, '');
+            try {
+                // Limpar máscara dos campos CPF/CNPJ e CEP antes do envio nativo
+                cpfCnpjInput.value = cpfCnpjValue.replace(/\D/g, '');
+                const cepInput = document.getElementById("floatingCep");
+                if (cepInput) {
+                    cepInput.value = cepInput.value.replace(/\D/g, '');
+                }
+                console.log("Máscaras removidas. CPF e CEP limpos.");
+            } catch (err) {
+                console.error("Erro ao limpar máscaras:", err);
             }
 
-            // Envia o formulário nativamente (SSR POST redirect)
-            form.submit();
+            console.log("Acionando envio nativo (form.submit())...");
+            try {
+                // Envia o formulário nativamente (SSR POST redirect)
+                form.submit();
+                console.log("form.submit() disparado com sucesso!");
+            } catch (err) {
+                console.error("Erro fatal ao tentar enviar via form.submit():", err);
+            }
         });
     }
 
