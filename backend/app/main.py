@@ -5,8 +5,6 @@ import time
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI, Request
-from sqlalchemy import text
-from sqlalchemy.orm import Session
 
 from app.core.settings import get_settings
 
@@ -19,18 +17,16 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 from app.controllers.auth_controller import router as auth_router
-from app.controllers.cliente_controller import router as clientes_router
 from app.controllers.me_controller import router as me_router
 from app.controllers.user_controller import router as users_router
 from app.controllers.endereco_controller import router as enderecos_router
 from app.controllers.marca_controller import router as marcas_router
 from app.controllers.modelo_controller import router as modelos_router
 from app.controllers.veiculo_controller import router as veiculos_router
-from app.controllers.mecanico_controller import router as mecanicos_router
 from app.controllers.servico_controller import router as servicos_router
 from app.core.roles import ADMIN
 from app.core.security import require_role
-from app.database.database import get_db
+from app.database.db import get_db
 
 app = FastAPI(title="Dog Mau AutoCenter API")
 
@@ -44,13 +40,11 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(users_router)
-app.include_router(clientes_router)
 app.include_router(me_router)
 app.include_router(enderecos_router)
 app.include_router(marcas_router)
 app.include_router(modelos_router)
 app.include_router(veiculos_router)
-app.include_router(mecanicos_router)
 app.include_router(servicos_router)
 
 @app.middleware("http")
@@ -80,9 +74,10 @@ async def on_startup():
 
 
 @app.get("/testar-banco")
-def test_db_connection(db: Session = Depends(get_db)):
+def test_db_connection():
     try:
-        db.execute(text("SELECT 1"))
+        from app.database.db import execute_query
+        execute_query("SELECT 1")
         logger.info("testar-banco: SELECT 1 ok")
         return {"status": "Sucesso", "mensagem": "Conectado ao Cloud SQL!"}
     except Exception as e:

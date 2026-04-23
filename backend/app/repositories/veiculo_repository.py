@@ -1,55 +1,77 @@
 import logging
 from datetime import datetime, timezone
 
-from sqlalchemy.orm import Session
-
-from app.models.veiculo import Veiculo
+from app.database.db import execute_query, execute_command, execute_insert
+from app.models.entities import Veiculo, dict_to_veiculo, veiculo_to_dict
 
 logger = logging.getLogger(__name__)
 
-def get_veiculo_by_id_for_cliente(db: Session, cliente_id: int, veiculo_id: int):
-    row = (
-        db.query(Veiculo)
-        .filter(
-            Veiculo.id_veiculo == veiculo_id,
-            Veiculo.id_cliente == cliente_id,
-            Veiculo.deleted_at.is_(None),
-        )
-        .first()
-    )
+def get_veiculo_by_id_for_user(user_id: int, veiculo_id: int):
+    """Busca veículo por ID para um usuário específico."""
+    query = """
+    SELECT id_veiculo, placa, ano_fabricacao, cor, id_usuario, id_modelo, 
+           created_at, updated_at, deleted_at
+    FROM veiculo 
+    WHERE id_veiculo = %s AND id_usuario = %s AND deleted_at IS NULL
+    """
+    result = execute_query(query, (veiculo_id, user_id), fetch="one")
+    veiculo = dict_to_veiculo(result)
     logger.debug(
-        "get_veiculo_by_id_for_cliente cliente=%s veiculo=%s found=%s",
-        cliente_id,
+        "get_veiculo_by_id_for_user user=%s veiculo=%s found=%s",
+        user_id,
         veiculo_id,
-        row is not None,
+        veiculo is not None,
     )
-    return row
-
-def create_veiculo(db: Session, veiculo: Veiculo):
-    db.add(veiculo)
-    db.commit()
-    db.refresh(veiculo)
-    logger.info("veiculo criado id=%s cliente=%s", veiculo.id_veiculo, veiculo.id_cliente)
     return veiculo
 
-def list_veiculos_by_cliente(db: Session, cliente_id: int):
-    rows = (
-        db.query(Veiculo)
-        .filter(Veiculo.id_cliente == cliente_id, Veiculo.deleted_at.is_(None))
-        .all()
-    )
-    logger.debug("list_veiculos_by_cliente cliente=%s count=%s", cliente_id, len(rows))
-    return rows
+def create_veiculo(veiculo: Veiculo):
+    """Cria um novo veículo."""
+    query = """
+    INSERT INTO veiculo (placa, ano_fabricacao, cor, id_usuario, id_modelo)
+    VALUES (%s, %s, %s, %s, %s)
+    RETURNING id_veiculo
+    """
+    params = (veiculo.placa, veiculo.ano_fabricacao, veiculo.cor, veiculo.id_usuario, veiculo.id_modelo)
+    veiculo_id = execute_insert(query, params)
+    veiculo.id_veiculo = veiculo_id
+    logger.info("veiculo criado id=%s user=%s", veiculo.id_veiculo, veiculo.id_usuario)
+    return veiculo
 
-def update_veiculo(db: Session, veiculo: Veiculo):
-    db.commit()
-    db.refresh(veiculo)
+def list_veiculos_by_user(user_id: int):
+    """Lista todos os veículos de um usuário."""
+    query = """
+    SELECT id_veiculo, placa, ano_fabricacao, cor, id_usuario, id_modelo, 
+           created_at, updated_at, deleted_at
+    FROM veiculo 
+    WHERE id_usuario = %s AND deleted_at IS NULL
+    ORDER BY created_at DESC
+    """
+    results = execute_query(query, (user_id,))
+    veiculos = [dict_to_veiculo(row) for row in results]
+    logger.debug("list_veiculos_by_user user=%s count=%s", user_id, len(veiculos))
+    return veiculos
+
+def update_veiculo(veiculo: Veiculo):
+    """Atualiza um veículo."""
+    query = """
+    UPDATE veiculo 
+    SET placa = %s, ano_fabricacao = %s, cor = %s, id_modelo = %s, updated_at = CURRENT_TIMESTAMP
+    WHERE id_veiculo = %s AND deleted_at IS NULL
+    """
+    params = (veiculo.placa, veiculo.ano_fabricacao, veiculo.cor, veiculo.id_modelo, veiculo.id_veiculo)
+    execute_command(query, params)
     logger.info("veiculo atualizado id=%s", veiculo.id_veiculo)
     return veiculo
 
-def soft_delete_veiculo(db: Session, veiculo: Veiculo):
+def soft_delete_veiculo(veiculo: Veiculo):
+    """Soft delete de veículo."""
+    query = """
+    UPDATE veiculo 
+    SET deleted_at = %s, updated_at = CURRENT_TIMESTAMP
+    WHERE id_veiculo = %s
+    """
+    params = (datetime.now(timezone.utc), veiculo.id_veiculo)
+    execute_command(query, params)
     veiculo.deleted_at = datetime.now(timezone.utc)
-    db.commit()
-    db.refresh(veiculo)
     logger.info("veiculo soft-delete id=%s", veiculo.id_veiculo)
     return veiculo
