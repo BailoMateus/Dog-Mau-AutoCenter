@@ -134,51 +134,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            const payload = {
-                nome: document.getElementById("floatingNome").value,
-                email: document.getElementById("floatingInput").value,
-                cpf_cnpj: document.getElementById("floatingCpf").value.replace(/\D/g, ''),
-                data_nascimento: document.getElementById("floatingNascimento").value,
-                password: password,
-                cep: document.getElementById("floatingCep").value.replace(/\D/g, ''),
-                logradouro: document.getElementById("floatingRua").value,
-                numero: document.getElementById("floatingNumero").value,
-                bairro: document.getElementById("floatingBairro").value,
-                cidade: document.getElementById("floatingCidade").value,
-                estado: document.getElementById("floatingEstado").value,
-                telefone: null
-            };
-
-            try {
-                const response = await fetch("/auth/register", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    credentials: "same-origin",
-                    body: JSON.stringify(payload)
-                });
-
-                // IMPORTANTE: checar response.ok ANTES de .json()
-                // Se o servidor retorna 500 com corpo HTML, .json() estouraria
-                if (response.redirected) {
-                    window.location.href = response.url;
-                    return;
-                }
-
-                if (!response.ok) {
-                    // Tentar ler JSON de erro, mas proteger contra corpo não-JSON
-                    const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.detail || "Erro no cadastro (status " + response.status + ")");
-                }
-
-                // Sucesso — cookie HttpOnly já foi setado pelo servidor
-                console.log("Cadastro bem-sucedido! Cookie HttpOnly setado pelo servidor.");
-                alert("Cadastro realizado com sucesso!");
-                window.location.href = "/";
-
-            } catch (err) {
-                console.error(err);
-                alert("Ops! " + err.message);
+            // Limpar máscara dos campos CPF/CNPJ e CEP antes do envio nativo
+            cpfCnpjInput.value = cpfCnpjValue.replace(/\D/g, '');
+            const cepInput = document.getElementById("floatingCep");
+            if (cepInput) {
+                cepInput.value = cepInput.value.replace(/\D/g, '');
             }
+
+            // Envia o formulário nativamente (SSR POST redirect)
+            form.submit();
         });
     }
 

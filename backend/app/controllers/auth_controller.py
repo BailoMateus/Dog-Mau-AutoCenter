@@ -1,10 +1,10 @@
 import logging
 import os
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
+from fastapi.responses import JSONResponse, RedirectResponse
 
-from app.schemas.auth_schema import LoginRequest, RegisterRequest, TokenResponse, FirebaseLoginRequest
+from app.schemas.auth_schema import FirebaseLoginRequest
 from app.services.auth_service import login
 from app.services import user_service
 from app.schemas.user_schema import UserCreate
@@ -17,16 +17,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 # Detecta se estamos em produção (HTTPS) ou local (HTTP)
-# Cloud Run sempre seta a env var K_SERVICE
 _IS_PRODUCTION = bool(os.environ.get("K_SERVICE"))
 
 
-def _set_auth_cookie(response: JSONResponse, token: str) -> JSONResponse:
-    """Injeta o JWT como cookie HttpOnly no response.
-    
-    secure=True apenas em produção (HTTPS). Em dev local (HTTP),
-    secure=False é necessário para o navegador aceitar o cookie.
-    """
+def _set_auth_cookie(response, token: str):
+    """Injeta o JWT como cookie HttpOnly no response."""
     response.set_cookie(
         key="access_token",
         value=token,
@@ -38,89 +33,138 @@ def _set_auth_cookie(response: JSONResponse, token: str) -> JSONResponse:
     return response
 
 
+# ---------------------------------------------------------------------------
+# SSR: Login via formulário HTML (POST direto, sem JS/fetch)
+# ---------------------------------------------------------------------------
 @router.post("/login")
-def login_user(data: LoginRequest):
-    logger.info("POST /auth/login email=%s", data.email)
-    token = login(data.email, data.password)
+def login_user(request: Request, email: str = Form(...), password: str = Form(...)):
+    """Login SSR: recebe dados do formulário, seta cookie e redireciona."""
+    logger.info("POST /auth/login email=%s", email)
+    token = login(email, password)
 
     if not token:
-        raise HTTPException(status_code=401, detail="Credenciais incorretas")
+        # Re-renderiza a página de login com mensagem de erro
+        from app.controllers.page_controller import templates
+        return templates.TemplateResponse("pages/login.html", {
+            "request": request,
+            "user": None,
+            "error": "Usuário ou senha incorretos.",
+            "firebase_api_key": os.environ.get("FIREBASE_WEB_API_KEY", ""),
+        }, status_code=401)
 
-    # Retorna JSON e seta o cookie HttpOnly no mesmo response
-    response = JSONResponse(content={"access_token": token, "token_type": "bearer"})
+    # Sucesso: redireciona para / com cookie setado (303 = POST → GET)
+    response = RedirectResponse(url="/", status_code=303)
     _set_auth_cookie(response, token)
-    logger.info("POST /auth/login sucesso — cookie setado (secure=%s)", _IS_PRODUCTION)
+    logger.info("POST /auth/login sucesso — cookie setado, redirect 303")
     return response
 
 
+# ---------------------------------------------------------------------------
+# SSR: Cadastro via formulário HTML (POST direto, sem JS/fetch)
+# ---------------------------------------------------------------------------
 @router.post("/register")
-def register_user(data: RegisterRequest):
-    logger.info("POST /auth/register nome=%s email=%s", data.nome, data.email)
-    
-    # Criar usuário unificado
+def register_user(
+    request: Request,
+    nome: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(...),
+    cpf_cnpj: str = Form(""),
+    data_nascimento: str = Form(""),
+    telefone: str = Form(""),
+    cep: str = Form(""),
+    logradouro: str = Form(""),
+    numero: str = Form(""),
+    bairro: str = Form(""),
+    cidade: str = Form(""),
+    estado: str = Form(""),
+):
+    """Cadastro SSR: recebe dados do formulário, cria user, seta cookie e redireciona."""
+    logger.info("POST /auth/register nome=%s email=%s", nome, email)
+
+    # Preparar dados do usuário
+    from datetime import date as date_type
+    parsed_date = None
+    if data_nascimento:
+        try:
+            parsed_date = date_type.fromisoformat(data_nascimento)
+        except ValueError:
+            parsed_date = None
+
     user_data = UserCreate(
-        nome=data.nome,
-        email=data.email,
-        password=data.password,
+        nome=nome,
+        email=email,
+        password=password,
         role=CLIENTE,
         ativo=True,
-        telefone=data.telefone,
-        cpf_cnpj=data.cpf_cnpj,
-        data_nascimento=data.data_nascimento
+        telefone=telefone or None,
+        cpf_cnpj=cpf_cnpj or None,
+        data_nascimento=parsed_date,
     )
-    
+
     try:
         user = user_service.create_user(user_data)
     except HTTPException as e:
-        raise e
+        # Re-renderiza a página de cadastro com erro
+        from app.controllers.page_controller import templates
+        return templates.TemplateResponse("pages/cadastro.html", {
+            "request": request,
+            "user": None,
+            "error": e.detail,
+            "firebase_api_key": os.environ.get("FIREBASE_WEB_API_KEY", ""),
+        }, status_code=e.status_code)
     except Exception as e:
         logger.error("Erro inesperado ao criar usuário: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail="Erro interno ao criar conta")
-        
+        from app.controllers.page_controller import templates
+        return templates.TemplateResponse("pages/cadastro.html", {
+            "request": request,
+            "user": None,
+            "error": "Erro interno ao criar conta. Tente novamente.",
+            "firebase_api_key": os.environ.get("FIREBASE_WEB_API_KEY", ""),
+        }, status_code=500)
+
     # Salvar Endereço se fornecido
-    if data.logradouro or data.cep:
+    if logradouro or cep:
         endereco_data = EnderecoCreate(
-            logradouro=data.logradouro or "",
-            numero=data.numero,
-            cep=data.cep,
-            bairro=data.bairro,
-            cidade=data.cidade,
-            estado=data.estado
+            logradouro=logradouro or "",
+            numero=numero or None,
+            cep=cep or None,
+            bairro=bairro or None,
+            cidade=cidade or None,
+            estado=estado or None,
         )
         try:
             from app.services import endereco_service
             endereco_service.add_endereco_to_user(user.id_usuario, endereco_data)
         except Exception as e:
             logger.error("Erro ao salvar endereco: %s", e, exc_info=True)
-            # Fails silently for address, allow user login to continue
-    
-    # Fazer login automático
-    token = login(data.email, data.password)
+
+    # Login automático e redirect
+    token = login(email, password)
     if not token:
         logger.error("registro: falha ao gerar token user_id=%s", user.id_usuario)
-        raise HTTPException(status_code=500, detail="Erro ao gerar token")
-    
-    logger.info("POST /auth/register sucesso user_id=%s — cookie setado", user.id_usuario)
-    response = JSONResponse(
-        content={"access_token": token, "token_type": "bearer"},
-        status_code=201,
-    )
+        response = RedirectResponse(url="/login", status_code=303)
+        return response
+
+    response = RedirectResponse(url="/", status_code=303)
     _set_auth_cookie(response, token)
+    logger.info("POST /auth/register sucesso user_id=%s — redirect 303", user.id_usuario)
     return response
 
 
+# ---------------------------------------------------------------------------
+# API JSON: Login com Google (Firebase Auth) — mantém fetch/JSON
+# porque o popup do Google é client-side por natureza
+# ---------------------------------------------------------------------------
 @router.post("/google")
 def login_with_google(data: FirebaseLoginRequest):
     logger.info("POST /auth/google - Validando Token com Firebase Admin")
-    
-    # 1. Importação lazy do Firebase (evita crash no import do módulo inteiro)
+
     try:
         from firebase_admin import auth as firebase_auth
     except ImportError:
         logger.error("firebase-admin não instalado")
         raise HTTPException(status_code=500, detail="Serviço Google indisponível")
 
-    # 2. Validação da Autenticidade no Firebase Admin
     try:
         decoded_token = firebase_auth.verify_id_token(data.id_token)
         email = decoded_token.get("email")
@@ -129,15 +173,13 @@ def login_with_google(data: FirebaseLoginRequest):
         logger.error("Falha na validação do Firebase Token: %s", str(e))
         raise HTTPException(status_code=401, detail="Token do Google inválido ou expirado")
 
-    # 3. Lógica de Banco de Dados: Verifica se usuário já existe pelo e-mail
     from app.repositories import user_repository
     user = user_repository.get_user_by_email(email)
 
     if not user:
-        # Se não existe, cria o usuário automaticamente
         import uuid
         generic_secure_password = str(uuid.uuid4()) + "A1@"
-        
+
         user_data = UserCreate(
             nome=nome,
             email=email,
@@ -153,31 +195,19 @@ def login_with_google(data: FirebaseLoginRequest):
             logger.error("Erro ao criar usuário Google: %s", e, exc_info=True)
             raise HTTPException(status_code=500, detail="Erro ao criar conta Google")
 
-        # Autentica pelo DB local para gerar nosso JWT
         token = login(email, generic_secure_password)
         if not token:
-            logger.error("Google login: falha ao gerar token para novo user email=%s", email)
             raise HTTPException(status_code=500, detail="Erro ao gerar token")
     else:
-        # Se já existe, geramos o token JWT diretamente sem pedir senha
         from app.core.security import create_access_token
-        
         token = create_access_token(
             {"sub": str(user.id_usuario), "role": user.role}
         )
-    
-    # Setar cookie HttpOnly e retornar
-    response = JSONResponse(content={"access_token": token, "token_type": "bearer"})
+
+    # Sucesso: redireciona para / com cookie setado (303 = POST → GET)
+    response = RedirectResponse(url="/", status_code=303)
     _set_auth_cookie(response, token)
     logger.info("POST /auth/google sucesso — cookie setado")
-    return response
-
-
-@router.post("/logout")
-def logout_user():
-    """Remove o cookie de autenticação."""
-    response = JSONResponse(content={"detail": "Logout realizado"})
-    response.delete_cookie(key="access_token", path="/")
     return response
 
 
