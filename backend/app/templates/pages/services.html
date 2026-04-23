@@ -3,84 +3,131 @@
 {% block title %}DogMau Auto Center - Serviços{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container my-5 py-4" style="max-width: 800px;">
     
-    <h1>Contrate um Serviço</h1>
-    <p class="subtitle">Selecione seu veículo e serviço</p>
+    <div class="text-center mb-5">
+        <h1 class="text-white">CONTRATE UM SERVIÇO</h1>
+        <p class="subtitle fs-5">Siga os passos abaixo para agendar a manutenção do seu veículo</p>
+    </div>
 
-    <div class="steps">
-        <div class="step active" id="step1">1</div>
-        <div class="step" id="step2">2</div>
-        <div class="step" id="step3">3</div>
+    <div class="steps mb-5">
+        <div class="step active transition-hover shadow-sm" id="step1">1</div>
+        <div class="step transition-hover shadow-sm" id="step2">2</div>
+        <div class="step transition-hover shadow-sm" id="step3">3</div>
     </div>
 
     <!-- STEP 1 -->
-    <div class="card" id="screen1">
-        <h2>Selecionar Veículo</h2>
+    <div class="card text-white shadow-sm" id="screen1">
+        <h2 class="mb-4 pb-2 border-bottom border-secondary">1. Selecionar Veículo</h2>
 
-        <label>Marca</label>
-        <select>
-            <option>Ford</option>
-            <option>Toyota</option>
-            <option>Honda</option>
-        </select>
+        <div class="mb-4">
+            <label class="form-label text-secondary fw-bold">Marca</label>
+            <select id="brandSelect" class="form-select bg-dark text-white border-secondary shadow-none p-3" onchange="updateModels()">
+                <option value="Ford">Ford</option>
+                <option value="Toyota">Toyota</option>
+                <option value="Honda">Honda</option>
+                <option value="Volkswagen">Volkswagen</option>
+                <option value="Chevrolet">Chevrolet</option>
+            </select>
+        </div>
 
-        <label>Modelo</label>
-        <select>
-            <option>Mustang (2018-2024)</option>
-            <option>Corolla</option>
-        </select>
+        <div class="mb-4">
+            <label class="form-label text-secondary fw-bold">Modelo</label>
+            <select id="modelSelect" class="form-select bg-dark text-white border-secondary shadow-none p-3">
+                <option value="Mustang">Mustang</option>
+                <option value="Ranger">Ranger</option>
+                <option value="EcoSport">EcoSport</option>
+            </select>
+        </div>
 
-        <button class="btn btn-primary" onclick="nextStep(2)">Continuar</button>
+        <div class="text-end mt-2">
+            <button class="btn btn-primary px-4 py-2 rounded-3 transition-hover" onclick="nextStep(2)">Continuar <i class="bi bi-arrow-right ms-2"></i></button>
+        </div>
     </div>
 
     <!-- STEP 2 -->
-    <div class="card hidden" id="screen2">
-        <h2>Selecionar Serviço</h2>
+    <div class="card hidden text-white shadow-sm" id="screen2">
+        <h2 class="mb-4 pb-2 border-bottom border-secondary">2. Selecionar Serviço</h2>
 
-        <div class="services">
-            <div class="service" onclick="selectService('Troca de óleo', '$79.99')">
-                Troca de óleo <span class="price">$79.99</span>
-                <p>Troca de óleo completa</p>
+        <div class="services g-4">
+            <div class="service transition-hover" onclick="selectService(this, 'Troca de Óleo Completa', 'R$ 150,00')">
+                <strong class="fs-5">Troca de Óleo</strong> <span class="price fs-5 fw-bold">R$ 150,00</span>
+                <p class="text-secondary mt-2 mb-0">Troca de óleo sintético + filtro de óleo</p>
             </div>
 
-            <div class="service" onclick="selectService('Reparo de freios', '$149.99')">
-                Reparo de freios <span class="price">$149.99</span>
-                <p>Reparo completo de freios</p>
+            <div class="service transition-hover" onclick="selectService(this, 'Revisão de Freios', 'R$ 450,00')">
+                <strong class="fs-5">Revisão de Freios</strong> <span class="price fs-5 fw-bold">R$ 450,00</span>
+                <p class="text-secondary mt-2 mb-0">Substituição de pastilhas e discos dianteiros</p>
             </div>
 
-            <div class="service" onclick="selectService('Diagnóstico de motor', '$99.99')">
-                Diagnóstico de motor <span class="price">$99.99</span>
-                <p>Diagnóstico completo do motor</p>
+            <div class="service transition-hover" onclick="selectService(this, 'Diagnóstico Computadorizado', 'R$ 200,00')">
+                <strong class="fs-5">Diagnóstico</strong> <span class="price fs-5 fw-bold">R$ 200,00</span>
+                <p class="text-secondary mt-2 mb-0">Escaneamento e leitura de falhas no motor</p>
             </div>
 
-            <div class="service" onclick="selectService('Reparo ar-condicionado', '$129.99')">
-                Reparo de ar-condicionado <span class="price">$129.99</span>
-                <p>Reparo de ar-condicionado</p>
+            <div class="service transition-hover" onclick="selectService(this, 'Alinhamento e Balanceamento', 'R$ 120,00')">
+                <strong class="fs-5">Geometria</strong> <span class="price fs-5 fw-bold">R$ 120,00</span>
+                <p class="text-secondary mt-2 mb-0">Alinhamento 3D e balanceamento nas 4 rodas</p>
             </div>
         </div>
 
-        <br>
-        <button class="btn btn-secondary" onclick="nextStep(1)">Voltar</button>
-        <button class="btn btn-primary" onclick="nextStep(3)">Continuar</button>
+        <div class="d-flex justify-content-between mt-5">
+            <button class="btn btn-secondary px-4 py-2 rounded-3 transition-hover" onclick="nextStep(1)"><i class="bi bi-arrow-left me-2"></i> Voltar</button>
+            <button class="btn btn-primary px-4 py-2 rounded-3 transition-hover" onclick="nextStep(3)">Continuar <i class="bi bi-arrow-right ms-2"></i></button>
+        </div>
     </div>
 
     <!-- STEP 3 -->
-    <div class="card hidden" id="screen3">
-        <h2>Resumo</h2>
+    <div class="card hidden text-white shadow-sm" id="screen3">
+        <h2 class="mb-4 pb-2 border-bottom border-secondary">3. Resumo do Pedido</h2>
 
-        <p style="color: white;"><strong>Veículo:</strong> <span id="vehicle">Ford Mustang</span></p>
-        <p style="color: white;"><strong>Serviço:</strong> <span id="serviceName">-</span></p>
-        <p style="color: white;"><strong>Preço:</strong> <span id="price" style="color:#e31b1b;"></span></p>
+        <div class="p-4 mb-4 rounded-4 shadow-sm" style="background-color: rgba(192, 37, 43, 0.05); border: 1px solid rgba(192, 37, 43, 0.3);">
+            <p class="mb-3 fs-5 d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-car-front text-danger me-2"></i> <strong>Veículo:</strong></span>
+                <span id="vehicle" class="text-light"></span>
+            </p>
+            <p class="mb-3 fs-5 d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-tools text-danger me-2"></i> <strong>Serviço:</strong></span>
+                <span id="serviceName" class="text-light">-</span>
+            </p>
+            <hr style="border-color: rgba(192, 37, 43, 0.3);">
+            <p class="mb-0 fs-4 d-flex justify-content-between align-items-center">
+                <span><strong>Total:</strong></span>
+                <span id="price" class="text-danger fw-bold"></span>
+            </p>
+        </div>
 
-        <label>Observações</label>
-        <textarea placeholder="Alguma observação..."></textarea>
+        <div class="mb-4">
+            <label class="form-label text-secondary fw-bold">Observações (Opcional)</label>
+            <textarea id="observacoes" class="form-control bg-dark text-white border-secondary shadow-none p-3" rows="3" placeholder="Descreva problemas específicos, barulhos, ou detalhes adicionais..."></textarea>
+        </div>
 
-        <br>
-        <button class="btn btn-secondary" onclick="nextStep(2)">Voltar</button>
-        <button class="btn btn-primary">Enviar Solicitação</button>
+        <div class="d-flex justify-content-between mt-2">
+            <button class="btn btn-secondary px-4 py-2 rounded-3 transition-hover" onclick="nextStep(2)"><i class="bi bi-arrow-left me-2"></i> Voltar</button>
+            <button class="btn btn-primary px-4 py-2 rounded-3 transition-hover fw-bold" onclick="enviarSolicitacao()"><i class="bi bi-check2-circle me-2"></i> Confirmar Agendamento</button>
+        </div>
     </div>
 
+</div>
+
+<!-- Modal de Sucesso -->
+<div class="modal fade" id="sucessoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-white border-danger">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title"><i class="bi bi-check-circle-fill text-success me-2"></i> Sucesso!</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <i class="bi bi-calendar-check text-danger" style="font-size: 4rem;"></i>
+        <h4 class="mt-3">Agendamento Solicitado</h4>
+        <p class="text-secondary mt-2">Sua solicitação foi enviada para a nossa equipe. Entraremos em contato em breve para confirmar o horário.</p>
+      </div>
+      <div class="modal-footer border-secondary justify-content-center">
+        <button type="button" class="btn btn-primary px-4 py-2" data-bs-dismiss="modal" onclick="resetForm()">Voltar para o início</button>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
