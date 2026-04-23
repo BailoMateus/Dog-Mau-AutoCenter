@@ -125,16 +125,29 @@ def logout(request: Request):
     response.delete_cookie("access_token") # Por segurança, limpa o antigo também
     return response
 
-@router.get("/admin/usuarios", include_in_schema=False)
-def admin_usuarios_page(request: Request, user=Depends(get_page_user)):
-    """Página de administração de usuários — apenas para ADMIN."""
-    if not user or user.get("role") != "admin":
-        return RedirectResponse(url="/", status_code=302)
+@router.get("/painel", include_in_schema=False)
+def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
+    """Painel de Controle Centralizado (Tabs)."""
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
     
-    usuarios = list_users()
-    return templates.TemplateResponse("pages/admin_usuarios.html", {
+    # Determinar a aba padrão com base na role se não for fornecida
+    if not tab:
+        if user["role"] in ["admin", "mecanico"]:
+            tab = "usuarios"
+        else:
+            tab = "pedidos"
+            
+    context = {
         "request": request,
         "user": user,
-        "usuarios": usuarios,
-        "page": "admin",
-    })
+        "page": "painel",
+        "tab": tab,
+    }
+    
+    # Injetar dados adicionais dependendo da aba e da role
+    if tab == "usuarios" and user["role"] in ["admin", "mecanico"]:
+        usuarios = list_users()
+        context["usuarios"] = usuarios
+
+    return templates.TemplateResponse("pages/painel.html", context)

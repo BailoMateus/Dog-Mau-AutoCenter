@@ -19,31 +19,29 @@
                 <i class="bi bi-search"></i>
             </button>
         </form>
-        <div class="dropdown">
+        <div class="d-flex align-items-center gap-3 ms-2">
           {% if user %}
-          <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-            <i class="bi bi-person-circle fs-4 me-2"></i>
-            <span class="fw-semibold">Olá, {{ user.nome.split(' ')[0] }}</span>
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end">
+          <div class="d-flex align-items-center gap-2">
             {% if user.role == 'admin' %}
-            <li><a class="dropdown-item" href="/admin/usuarios"><i class="bi bi-people-fill me-2"></i>Gerenciar Usuários</a></li>
-            <li><hr class="dropdown-divider"></li>
+            <a href="/painel" class="btn btn-primary"><i class="bi bi-speedometer2 me-1"></i>Painel de Gestão</a>
+            {% elif user.role == 'mecanico' %}
+            <a href="/painel" class="btn btn-warning text-dark"><i class="bi bi-tools me-1"></i>Painel Operacional</a>
+            {% else %}
+            <a href="/painel" class="btn btn-outline-primary"><i class="bi bi-person-fill me-1"></i>Minha Área</a>
             {% endif %}
-            <li><a class="dropdown-item" href="#">Veículo</a></li>
-            <li><a class="dropdown-item" href="#">Perfil</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item text-danger" href="/logout">Sair</a></li>
-          </ul>
+            <a href="/logout" class="btn btn-outline-danger" title="Sair"><i class="bi bi-box-arrow-right"></i> Sair</a>
+          </div>
           {% else %}
-          <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-            <i class="bi bi-person-circle fs-4 me-2"></i>
-            <span class="fw-semibold">Login</span>
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" href="/login">Entrar</a></li>
-            <li><a class="dropdown-item" href="/cadastro">Cadastrar</a></li>
-          </ul>
+          <div class="dropdown">
+            <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+              <i class="bi bi-person-circle fs-4 me-2"></i>
+              <span class="fw-semibold">Login</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="/login">Entrar</a></li>
+              <li><a class="dropdown-item" href="/cadastro">Cadastrar</a></li>
+            </ul>
+          </div>
           {% endif %}
         </div>
       </div>
