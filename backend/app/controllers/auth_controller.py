@@ -1,6 +1,4 @@
 import logging
-import firebase_admin
-from firebase_admin import auth
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
@@ -26,7 +24,7 @@ def _set_auth_cookie(response: JSONResponse, token: str) -> JSONResponse:
         httponly=True,
         samesite="lax",
         path="/",
-        secure=True,  
+        secure=True,
     )
     return response
 
@@ -84,7 +82,7 @@ def register_user(data: RegisterRequest):
             from app.services import endereco_service
             endereco_service.add_endereco_to_user(user.id_usuario, endereco_data)
         except Exception as e:
-            logger.error(f"Erro ao salvar endereco: {e}")
+            logger.error("Erro ao salvar endereco: %s", e, exc_info=True)
             # Fails silently for address, allow user login to continue
     
     # Fazer login automático
@@ -102,26 +100,33 @@ def register_user(data: RegisterRequest):
     return response
 
 
-@router.post("/google", response_model=TokenResponse)
+@router.post("/google")
 def login_with_google(data: FirebaseLoginRequest):
     logger.info("POST /auth/google - Validando Token com Firebase Admin")
     
-    # 1. Validação da Autenticidade no Firebase Admin
+    # 1. Importação lazy do Firebase (evita crash no import do módulo inteiro)
     try:
-        decoded_token = auth.verify_id_token(data.id_token)
+        from firebase_admin import auth as firebase_auth
+    except ImportError:
+        logger.error("firebase-admin não instalado")
+        raise HTTPException(status_code=500, detail="Serviço Google indisponível")
+
+    # 2. Validação da Autenticidade no Firebase Admin
+    try:
+        decoded_token = firebase_auth.verify_id_token(data.id_token)
         email = decoded_token.get("email")
         nome = decoded_token.get("name", "Usuário Google")
     except Exception as e:
         logger.error("Falha na validação do Firebase Token: %s", str(e))
         raise HTTPException(status_code=401, detail="Token do Google inválido ou expirado")
 
-    # 2. Lógica de Banco de Dados: Verifica se usuário já existe pelo e-mail
+    # 3. Lógica de Banco de Dados: Verifica se usuário já existe pelo e-mail
     from app.repositories import user_repository
     user = user_repository.get_user_by_email(email)
 
     if not user:
-        # Se não existe, cria o usuário e o cliente automaticamente
-        # Geramos uma senha aleatória de alta segurança (bypassando a senha)
+        # Se não existe, cria o usuário automaticamente
+        # Senha aleatória de alta segurança (usuário Google nunca usa essa senha)
         import uuid
         generic_secure_password = str(uuid.uuid4()) + "A1@"
         
@@ -130,14 +135,24 @@ def login_with_google(data: FirebaseLoginRequest):
             email=email,
             password=generic_secure_password,
             role=CLIENTE,
-            ativo=True
+            ativo=True,
+            # telefone, cpf_cnpj, data_nascimento ficam None (opcionais agora)
         )
-        user = user_service.create_user(user_data)
+        try:
+            user = user_service.create_user(user_data)
+        except HTTPException as e:
+            raise e
+        except Exception as e:
+            logger.error("Erro ao criar usuário Google: %s", e, exc_info=True)
+            raise HTTPException(status_code=500, detail="Erro ao criar conta Google")
 
-        # Autentica pelo DB local agora para gerar nosso próprio JWT
+        # Autentica pelo DB local para gerar nosso JWT
         token = login(email, generic_secure_password)
+        if not token:
+            logger.error("Google login: falha ao gerar token para novo user email=%s", email)
+            raise HTTPException(status_code=500, detail="Erro ao gerar token")
     else:
-        # Se já existe, geramos o token JWT da nossa API diretamente sem pedir senha
+        # Se já existe, geramos o token JWT diretamente sem pedir senha
         from app.core.security import create_access_token
         
         token = create_access_token(
@@ -147,6 +162,7 @@ def login_with_google(data: FirebaseLoginRequest):
     # Setar cookie HttpOnly e retornar
     response = JSONResponse(content={"access_token": token, "token_type": "bearer"})
     _set_auth_cookie(response, token)
+    logger.info("POST /auth/google sucesso — cookie setado")
     return response
 
 

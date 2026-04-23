@@ -20,7 +20,7 @@ def create_veiculo_for_user(user_id: int, data: VeiculoCreate):
     user_service.get_user_or_404(user_id)
     get_modelo_or_404(data.id_modelo)
     veiculo = Veiculo(
-        id_usuario=user_id,
+        id_cliente=user_id,
         placa=data.placa,
         ano_fabricacao=data.ano_fabricacao,
         cor=data.cor,

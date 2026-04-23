@@ -1,5 +1,7 @@
 import logging
 
+from fastapi import HTTPException, status
+
 from app.models.entities import Endereco
 from app.repositories import endereco_repository as repo
 from app.schemas.endereco_schema import EnderecoCreate, EnderecoUpdate
@@ -10,7 +12,7 @@ logger = logging.getLogger(__name__)
 def add_endereco_to_user(user_id: int, data: EnderecoCreate):
     user_service.get_user_or_404(user_id)
     endereco = Endereco(
-        id_usuario=user_id,
+        id_cliente=user_id,
         logradouro=data.logradouro,
         numero=data.numero,
         cep=data.cep,
