@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}DogMau Auto Center - Serviços{% endblock %}
+
+{% block content %}
+<div class="container">
+    
+    <h1>Contrate um Serviço</h1>
+    <p class="subtitle">Selecione seu veículo e serviço</p>
+
+    <div class="steps">
+        <div class="step active" id="step1">1</div>
+        <div class="step" id="step2">2</div>
+        <div class="step" id="step3">3</div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div class="card" id="screen1">
+        <h2>Selecionar Veículo</h2>
+
+        <label>Marca</label>
+        <select>
+            <option>Ford</option>
+            <option>Toyota</option>
+            <option>Honda</option>
+        </select>
+
+        <label>Modelo</label>
+        <select>
+            <option>Mustang (2018-2024)</option>
+            <option>Corolla</option>
+        </select>
+
+        <button class="btn btn-primary" onclick="nextStep(2)">Continuar</button>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="card hidden" id="screen2">
+        <h2>Selecionar Serviço</h2>
+
+        <div class="services">
+            <div class="service" onclick="selectService('Troca de óleo', '$79.99')">
+                Troca de óleo <span class="price">$79.99</span>
+                <p>Troca de óleo completa</p>
+            </div>
+
+            <div class="service" onclick="selectService('Reparo de freios', '$149.99')">
+                Reparo de freios <span class="price">$149.99</span>
+                <p>Reparo completo de freios</p>
+            </div>
+
+            <div class="service" onclick="selectService('Diagnóstico de motor', '$99.99')">
+                Diagnóstico de motor <span class="price">$99.99</span>
+                <p>Diagnóstico completo do motor</p>
+            </div>
+
+            <div class="service" onclick="selectService('Reparo ar-condicionado', '$129.99')">
+                Reparo de ar-condicionado <span class="price">$129.99</span>
+                <p>Reparo de ar-condicionado</p>
+            </div>
+        </div>
+
+        <br>
+        <button class="btn btn-secondary" onclick="nextStep(1)">Voltar</button>
+        <button class="btn btn-primary" onclick="nextStep(3)">Continuar</button>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="card hidden" id="screen3">
+        <h2>Resumo</h2>
+
+        <p style="color: white;"><strong>Veículo:</strong> <span id="vehicle">Ford Mustang</span></p>
+        <p style="color: white;"><strong>Serviço:</strong> <span id="serviceName">-</span></p>
+        <p style="color: white;"><strong>Preço:</strong> <span id="price" style="color:#e31b1b;"></span></p>
+
+        <label>Observações</label>
+        <textarea placeholder="Alguma observação..."></textarea>
+
+        <br>
+        <button class="btn btn-secondary" onclick="nextStep(2)">Voltar</button>
+        <button class="btn btn-primary">Enviar Solicitação</button>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+    <script src="/static/js/services.js"></script>
+{% endblock %}
