@@ -68,12 +68,12 @@ def update_user(user: User):
     query = """
     UPDATE usuario 
     SET nome = %s, email = %s, role = %s, ativo = %s, telefone = %s, 
-        cpf_cnpj = %s, data_nascimento = %s, senha_hash = %s, updated_at = CURRENT_TIMESTAMP
+        cpf_cnpj = %s, data_nascimento = %s, updated_at = CURRENT_TIMESTAMP
     WHERE id_usuario = %s AND deleted_at IS NULL
     """
     params = (
         user.nome, user.email, user.role, user.ativo, user.telefone,
-        user.cpf_cnpj, user.data_nascimento, user.senha_hash, user.id_usuario
+        user.cpf_cnpj, user.data_nascimento, user.id_usuario
     )
     execute_command(query, params)
     logger.info("usuário atualizado id=%s", user.id_usuario)
