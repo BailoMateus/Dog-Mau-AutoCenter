@@ -2,7 +2,8 @@ import logging
 import firebase_admin
 from firebase_admin import auth
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.responses import JSONResponse
 
 from app.schemas.auth_schema import LoginRequest, RegisterRequest, TokenResponse, FirebaseLoginRequest
 from app.services.auth_service import login
@@ -16,7 +17,21 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
-@router.post("/login", response_model=TokenResponse)
+
+def _set_auth_cookie(response: JSONResponse, token: str) -> JSONResponse:
+    """Injeta o JWT como cookie HttpOnly no response."""
+    response.set_cookie(
+        key="access_token",
+        value=token,
+        httponly=True,
+        samesite="lax",
+        path="/",
+        secure=True,  
+    )
+    return response
+
+
+@router.post("/login")
 def login_user(data: LoginRequest):
     logger.info("POST /auth/login email=%s", data.email)
     token = login(data.email, data.password)
@@ -24,9 +39,14 @@ def login_user(data: LoginRequest):
     if not token:
         raise HTTPException(status_code=401, detail="Credenciais incorretas")
 
-    return {"access_token": token}
+    # Retorna JSON e seta o cookie HttpOnly no mesmo response
+    response = JSONResponse(content={"access_token": token, "token_type": "bearer"})
+    _set_auth_cookie(response, token)
+    logger.info("POST /auth/login sucesso — cookie setado")
+    return response
 
-@router.post("/register", response_model=TokenResponse)
+
+@router.post("/register")
 def register_user(data: RegisterRequest):
     logger.info("POST /auth/register nome=%s email=%s", data.nome, data.email)
     
@@ -46,6 +66,9 @@ def register_user(data: RegisterRequest):
         user = user_service.create_user(user_data)
     except HTTPException as e:
         raise e
+    except Exception as e:
+        logger.error("Erro inesperado ao criar usuário: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Erro interno ao criar conta")
         
     # Salvar Endereço se fornecido
     if data.logradouro or data.cep:
@@ -59,7 +82,7 @@ def register_user(data: RegisterRequest):
         )
         try:
             from app.services import endereco_service
-            endereco_service.add_endereco(user.id_usuario, endereco_data)
+            endereco_service.add_endereco_to_user(user.id_usuario, endereco_data)
         except Exception as e:
             logger.error(f"Erro ao salvar endereco: {e}")
             # Fails silently for address, allow user login to continue
@@ -70,8 +93,14 @@ def register_user(data: RegisterRequest):
         logger.error("registro: falha ao gerar token user_id=%s", user.id_usuario)
         raise HTTPException(status_code=500, detail="Erro ao gerar token")
     
-    logger.info("POST /auth/register sucesso user_id=%s", user.id_usuario)
-    return {"access_token": token}
+    logger.info("POST /auth/register sucesso user_id=%s — cookie setado", user.id_usuario)
+    response = JSONResponse(
+        content={"access_token": token, "token_type": "bearer"},
+        status_code=201,
+    )
+    _set_auth_cookie(response, token)
+    return response
+
 
 @router.post("/google", response_model=TokenResponse)
 def login_with_google(data: FirebaseLoginRequest):
@@ -109,17 +138,16 @@ def login_with_google(data: FirebaseLoginRequest):
         token = login(email, generic_secure_password)
     else:
         # Se já existe, geramos o token JWT da nossa API diretamente sem pedir senha
-        from app.services.auth_service import create_access_token
-        from datetime import timedelta
-        from app.core.config import ACCESS_TOKEN_EXPIRE_MINUTES
+        from app.core.security import create_access_token
         
-        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         token = create_access_token(
-            data={"sub": user.email, "role": user.role, "user_id": user.id_usuario},
-            expires_delta=access_token_expires
+            {"sub": str(user.id_usuario), "role": user.role}
         )
-        
-    return {"access_token": token}
+    
+    # Setar cookie HttpOnly e retornar
+    response = JSONResponse(content={"access_token": token, "token_type": "bearer"})
+    _set_auth_cookie(response, token)
+    return response
 
 
 @router.get("/me")

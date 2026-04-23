@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 _STAFF = [ADMIN, MECANICO]
 
-router = APIRouter(prefix="/servicos", tags=["Servicos"])
+router = APIRouter(prefix="/api/servicos", tags=["Servicos"])
 
 @router.get("", response_model=list[ServicoPublic])
 def list_servicos(

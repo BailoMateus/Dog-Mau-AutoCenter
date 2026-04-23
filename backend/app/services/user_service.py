@@ -36,6 +36,12 @@ def create_user(data: UserCreate):
             status_code=status.HTTP_409_CONFLICT,
             detail="E-mail já cadastrado",
         )
+    except Exception as e:
+        logger.error("create_user erro inesperado email=%s: %s", data.email, e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro interno ao criar conta. Tente novamente.",
+        )
 
 def get_user_or_404(user_id: int) -> User:
     user = repo.get_user_by_id(user_id)

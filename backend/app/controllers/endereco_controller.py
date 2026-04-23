@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 _STAFF = [ADMIN, MECANICO]
 
-router = APIRouter(prefix="/clientes/{cliente_id}/enderecos", tags=["Enderecos"])
+router = APIRouter(prefix="/api/clientes/{cliente_id}/enderecos", tags=["Enderecos"])
 
 
 @router.get("", response_model=list[EnderecoPublic])

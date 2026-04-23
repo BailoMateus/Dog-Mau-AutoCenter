@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 _STAFF = [ADMIN, MECANICO]
 
-router = APIRouter(prefix="/clientes/{cliente_id}/veiculos", tags=["Veiculos"])
+router = APIRouter(prefix="/api/clientes/{cliente_id}/veiculos", tags=["Veiculos"])
 
 
 @router.get("", response_model=list[VeiculoPublic])
