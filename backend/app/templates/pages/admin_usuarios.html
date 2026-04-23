@@ -6,23 +6,25 @@
 
 {% block main %}
 <div class="container my-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Gerenciamento de Usuários</h2>
-        <button class="btn btn-primary" onclick="openModal('create', null)">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <h2 class="fw-bold m-0" style="color: rgba(192, 37, 43); font-family: 'Orbitron', sans-serif;">
+            <i class="bi bi-people-fill me-2"></i>Gerenciamento de Usuários
+        </h2>
+        <button class="btn btn-primary px-4 py-2" onclick="openModal('create', null)">
             <i class="bi bi-person-plus-fill me-2"></i>Novo Usuário
         </button>
     </div>
 
-    <div class="table-responsive bg-body-tertiary rounded shadow-sm border">
-        <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
+    <div class="table-responsive rounded shadow card p-0 border-0" style="background-color: #111;">
+        <table class="table table-dark table-hover align-middle mb-0" style="background-color: transparent;">
+            <thead class="table-dark text-uppercase small" style="border-bottom: 2px solid #222;">
                 <tr>
-                    <th>ID</th>
-                    <th>Nome</th>
-                    <th>Email</th>
-                    <th>Cargo</th>
-                    <th>Status</th>
-                    <th class="text-end">Ações</th>
+                    <th class="py-3">ID</th>
+                    <th class="py-3">Nome</th>
+                    <th class="py-3">Email</th>
+                    <th class="py-3">Cargo</th>
+                    <th class="py-3">Status</th>
+                    <th class="text-end py-3">Ações</th>
                 </tr>
             </thead>
             <tbody>
@@ -70,47 +72,57 @@
 
 <!-- Modal Formulário (Criar/Editar) -->
 <div id="formModal" class="custom-modal d-none">
-    <div class="custom-modal-content rounded shadow">
-        <div class="custom-modal-header border-bottom p-3 d-flex justify-content-between align-items-center">
-            <h5 class="m-0" id="modalTitle">Novo Usuário</h5>
-            <button type="button" class="btn-close" onclick="closeModal('formModal')"></button>
+    <div class="custom-modal-content rounded shadow card p-0" style="background-color: #111; border: 1px solid #222; max-width: 500px;">
+        <div class="custom-modal-header border-bottom border-secondary p-3 d-flex justify-content-between align-items-center">
+            <h5 class="m-0 fw-bold" id="modalTitle" style="color: rgba(192, 37, 43);">Novo Usuário</h5>
+            <button type="button" class="btn-close btn-close-white" onclick="closeModal('formModal')"></button>
         </div>
         <div class="custom-modal-body p-4">
-            <form id="userForm">
+            <form id="userForm" class="form-signin w-100 m-auto" style="max-width: 100%;">
                 <input type="hidden" id="userId" name="id" />
-                <div class="mb-3">
-                    <label class="form-label">Nome Completo</label>
-                    <input type="text" class="form-control" id="userName" name="nome" required>
+                
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="userName" name="nome" placeholder="Nome Completo" required>
+                    <label for="userName" class="text-white-50">Nome Completo</label>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-control" id="userEmail" name="email" required>
+                
+                <div class="form-floating mb-3">
+                    <input type="email" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="userEmail" name="email" placeholder="name@example.com" required>
+                    <label for="userEmail" class="text-white-50">Email</label>
                 </div>
+                
                 <div class="mb-3" id="passwordGroup">
-                    <label class="form-label">Senha</label>
-                    <input type="password" class="form-control" id="userPassword" name="password">
-                    <div class="form-text" id="passwordHelp">Deixe em branco para não alterar a senha atual.</div>
+                    <div class="form-floating">
+                        <input type="password" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="userPassword" name="password" placeholder="Senha">
+                        <label for="userPassword" class="text-white-50">Senha</label>
+                    </div>
+                    <div class="form-text text-muted small mt-1" id="passwordHelp">Deixe em branco para não alterar a senha atual.</div>
                 </div>
+                
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Cargo (Role)</label>
-                        <select class="form-select" id="userRole" name="role" required>
-                            <option value="cliente">Cliente</option>
-                            <option value="mecanico">Mecânico</option>
-                            <option value="admin">Admin</option>
-                        </select>
+                        <div class="form-floating">
+                            <select class="form-select text-white" style="background-color: #0b0b0b; border-color: #333; height: 58px; padding-top: 1.625rem; padding-bottom: 0.625rem;" id="userRole" name="role" required>
+                                <option value="cliente">Cliente</option>
+                                <option value="mecanico">Mecânico</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                            <label for="userRole" class="text-white-50">Cargo (Role)</label>
+                        </div>
                     </div>
-                    <div class="col-md-6 mb-3 d-flex align-items-end pb-2">
-                        <div class="form-check form-switch">
+                    <div class="col-md-6 mb-3 d-flex align-items-center justify-content-center">
+                        <div class="form-check form-switch fs-5">
                             <input class="form-check-input" type="checkbox" role="switch" id="userAtivo" name="ativo" checked>
-                            <label class="form-check-label" for="userAtivo">Usuário Ativo</label>
+                            <label class="form-check-label ms-2 text-white" for="userAtivo">Usuário Ativo</label>
                         </div>
                     </div>
                 </div>
+                
                 <div id="formError" class="alert alert-danger d-none small"></div>
-                <div class="d-flex justify-content-end gap-2 mt-4">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('formModal')">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" id="saveButton">Salvar</button>
+                
+                <div class="d-flex justify-content-between gap-2 mt-4">
+                    <button type="button" class="btn btn-outline-secondary w-50 py-2" onclick="closeModal('formModal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary w-50 py-2" id="saveButton">Salvar</button>
                 </div>
             </form>
         </div>
@@ -119,19 +131,20 @@
 
 <!-- Modal Confirmação de Exclusão -->
 <div id="deleteModal" class="custom-modal d-none">
-    <div class="custom-modal-content rounded shadow" style="max-width: 400px;">
-        <div class="custom-modal-header border-bottom p-3">
-            <h5 class="m-0 text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Atenção</h5>
+    <div class="custom-modal-content rounded shadow card p-0" style="max-width: 400px; background-color: #111; border: 1px solid #222;">
+        <div class="custom-modal-header border-bottom border-secondary p-3 text-center position-relative">
+            <h5 class="m-0 text-danger w-100 fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Atenção</h5>
+            <button type="button" class="btn-close btn-close-white position-absolute top-50 end-0 translate-middle-y me-3" onclick="closeModal('deleteModal')"></button>
         </div>
         <div class="custom-modal-body p-4 text-center">
-            <p class="mb-0">Tem certeza que deseja excluir o usuário <br><strong id="deleteUserName"></strong>?</p>
+            <p class="mb-0 text-white">Tem certeza que deseja excluir o usuário <br><strong id="deleteUserName" style="color: rgba(192, 37, 43);"></strong>?</p>
             <p class="text-muted small mt-2">Esta ação desativará a conta do usuário (Soft Delete).</p>
             <input type="hidden" id="deleteUserId">
             <div id="deleteError" class="alert alert-danger d-none small mt-3"></div>
         </div>
-        <div class="custom-modal-footer border-top p-3 d-flex justify-content-end gap-2">
-            <button type="button" class="btn btn-secondary" onclick="closeModal('deleteModal')">Cancelar</button>
-            <button type="button" class="btn btn-danger" onclick="confirmDelete()" id="btnConfirmDelete">Confirmar Exclusão</button>
+        <div class="custom-modal-footer border-top border-secondary p-3 d-flex justify-content-between gap-2">
+            <button type="button" class="btn btn-outline-secondary w-50 py-2" onclick="closeModal('deleteModal')">Cancelar</button>
+            <button type="button" class="btn btn-danger w-50 py-2" onclick="confirmDelete()" id="btnConfirmDelete">Confirmar Exclusão</button>
         </div>
     </div>
 </div>
