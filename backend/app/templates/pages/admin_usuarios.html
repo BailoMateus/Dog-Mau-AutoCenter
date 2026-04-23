@@ -53,7 +53,7 @@
                                 data-user-ativo="{{ u.ativo }}">
                             <i class="bi bi-pencil"></i> Editar
                         </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="openDeleteModal({{ u.id_usuario }}, '{{ u.nome }}')">
+                        <button class="btn btn-sm btn-outline-danger" onclick="openDeleteModal(this)" data-user-id="{{ u.id_usuario }}" data-user-nome="{{ u.nome }}">
                             <i class="bi bi-trash"></i> Excluir
                         </button>
                     </td>
@@ -202,7 +202,9 @@
         document.getElementById('formModal').classList.remove('d-none');
     }
 
-    function openDeleteModal(id, nome) {
+    function openDeleteModal(btnElement) {
+        const id = btnElement.getAttribute('data-user-id');
+        const nome = btnElement.getAttribute('data-user-nome');
         document.getElementById('deleteUserId').value = id;
         document.getElementById('deleteUserName').textContent = nome;
         document.getElementById('deleteError').classList.add('d-none');
