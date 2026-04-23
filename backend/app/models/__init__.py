@@ -1,6 +1,20 @@
-from .marca import Marca
-from .modelo import Modelo
-from .endereco import Endereco
-from .servico import Servico
-from .user import User
-from .veiculo import Veiculo
+from .entities import (
+    Marca,
+    Modelo,
+    Endereco,
+    Servico,
+    User,
+    Veiculo,
+    dict_to_user,
+    dict_to_endereco,
+    dict_to_marca,
+    dict_to_modelo,
+    dict_to_veiculo,
+    dict_to_servico,
+    user_to_dict,
+    endereco_to_dict,
+    marca_to_dict,
+    modelo_to_dict,
+    veiculo_to_dict,
+    servico_to_dict
+)
