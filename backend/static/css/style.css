@@ -21,6 +21,13 @@ h1 {
   font-style: normal;
 }
 
+@media (max-width: 768px) {
+  h1 {
+    font-size: 28px;
+    letter-spacing: 1px;
+  }
+}
+
 /* CSS do Header */
 header {
   background-color: black;
@@ -93,6 +100,12 @@ header .nav-link.active {
 #myCarousel .carousel-item img {
   height: 500px;
   object-fit: cover;
+}
+
+@media (max-width: 768px) {
+  #myCarousel, #myCarousel .carousel-item img {
+    height: 350px;
+  }
 }
 
 .carousel-fade .carousel-item {
