@@ -21,6 +21,7 @@ from jose import jwt, JWTError
 from app.core.config import SECRET_KEY, ALGORITHM
 from app.core.settings import get_settings
 from app.database.db import execute_query
+from app.services.user_service import list_users
 
 logger = logging.getLogger(__name__)
 
@@ -123,3 +124,17 @@ def logout(request: Request):
     response.delete_cookie("__session")
     response.delete_cookie("access_token") # Por segurança, limpa o antigo também
     return response
+
+@router.get("/admin/usuarios", include_in_schema=False)
+def admin_usuarios_page(request: Request, user=Depends(get_page_user)):
+    """Página de administração de usuários — apenas para ADMIN."""
+    if not user or user.get("role") != "admin":
+        return RedirectResponse(url="/", status_code=302)
+    
+    usuarios = list_users()
+    return templates.TemplateResponse("pages/admin_usuarios.html", {
+        "request": request,
+        "user": user,
+        "usuarios": usuarios,
+        "page": "admin",
+    })
