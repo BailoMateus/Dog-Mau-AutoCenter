@@ -21,7 +21,7 @@ def create_user(data: UserCreate):
     user = User(
         nome=data.nome,
         email=data.email,
-        senha_hash=hash_password(data.password),
+        senha_hash=hash_password(data.password.strip()),
         role=data.role,
         ativo=data.ativo,
         telefone=data.telefone,
@@ -112,7 +112,7 @@ def update_user(
     if data.email is not None:
         user.email = data.email
     if data.password is not None:
-        user.senha_hash = hash_password(data.password)
+        user.senha_hash = hash_password(data.password.strip())
     if data.telefone is not None:
         user.telefone = data.telefone
     if data.cpf_cnpj is not None:
