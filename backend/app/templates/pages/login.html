@@ -70,5 +70,23 @@
 {% endblock %}
 
 {% block extra_scripts %}
+    <!-- Firebase Auth SDK (compat - para funcionar com firebase.auth()) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script>
+        // Inicializa Firebase client-side (só Auth, sem Admin)
+        // IMPORTANTE: Substituir apiKey pela Web API Key do console Firebase
+        const firebaseConfig = {
+            apiKey: "{{ firebase_api_key | default('') }}",
+            authDomain: "dog-mau-autocenter.firebaseapp.com",
+            projectId: "dog-mau-autocenter",
+        };
+        if (firebaseConfig.apiKey) {
+            firebase.initializeApp(firebaseConfig);
+            console.log("Firebase Auth client inicializado");
+        } else {
+            console.warn("Firebase API Key não configurada — login Google indisponível");
+        }
+    </script>
     <script src="/static/js/login.js"></script>
 {% endblock %}

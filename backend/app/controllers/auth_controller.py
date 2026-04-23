@@ -1,4 +1,5 @@
 import logging
+import os
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
@@ -15,16 +16,24 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
+# Detecta se estamos em produção (HTTPS) ou local (HTTP)
+# Cloud Run sempre seta a env var K_SERVICE
+_IS_PRODUCTION = bool(os.environ.get("K_SERVICE"))
+
 
 def _set_auth_cookie(response: JSONResponse, token: str) -> JSONResponse:
-    """Injeta o JWT como cookie HttpOnly no response."""
+    """Injeta o JWT como cookie HttpOnly no response.
+    
+    secure=True apenas em produção (HTTPS). Em dev local (HTTP),
+    secure=False é necessário para o navegador aceitar o cookie.
+    """
     response.set_cookie(
         key="access_token",
         value=token,
         httponly=True,
         samesite="lax",
         path="/",
-        secure=True,
+        secure=_IS_PRODUCTION,
     )
     return response
 
@@ -40,7 +49,7 @@ def login_user(data: LoginRequest):
     # Retorna JSON e seta o cookie HttpOnly no mesmo response
     response = JSONResponse(content={"access_token": token, "token_type": "bearer"})
     _set_auth_cookie(response, token)
-    logger.info("POST /auth/login sucesso — cookie setado")
+    logger.info("POST /auth/login sucesso — cookie setado (secure=%s)", _IS_PRODUCTION)
     return response
 
 
@@ -126,7 +135,6 @@ def login_with_google(data: FirebaseLoginRequest):
 
     if not user:
         # Se não existe, cria o usuário automaticamente
-        # Senha aleatória de alta segurança (usuário Google nunca usa essa senha)
         import uuid
         generic_secure_password = str(uuid.uuid4()) + "A1@"
         
@@ -136,7 +144,6 @@ def login_with_google(data: FirebaseLoginRequest):
             password=generic_secure_password,
             role=CLIENTE,
             ativo=True,
-            # telefone, cpf_cnpj, data_nascimento ficam None (opcionais agora)
         )
         try:
             user = user_service.create_user(user_data)
@@ -163,6 +170,14 @@ def login_with_google(data: FirebaseLoginRequest):
     response = JSONResponse(content={"access_token": token, "token_type": "bearer"})
     _set_auth_cookie(response, token)
     logger.info("POST /auth/google sucesso — cookie setado")
+    return response
+
+
+@router.post("/logout")
+def logout_user():
+    """Remove o cookie de autenticação."""
+    response = JSONResponse(content={"detail": "Logout realizado"})
+    response.delete_cookie(key="access_token", path="/")
     return response
 
 

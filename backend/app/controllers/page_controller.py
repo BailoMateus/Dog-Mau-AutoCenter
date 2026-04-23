@@ -19,6 +19,7 @@ from fastapi.templating import Jinja2Templates
 from jose import jwt, JWTError
 
 from app.core.config import SECRET_KEY, ALGORITHM
+from app.core.settings import get_settings
 from app.database.db import execute_query
 
 logger = logging.getLogger(__name__)
@@ -82,10 +83,12 @@ def login_page(request: Request, user=Depends(get_page_user)):
     """Página de login — redireciona para / se já logado."""
     if user:
         return RedirectResponse(url="/", status_code=302)
+    _s = get_settings()
     return templates.TemplateResponse("pages/login.html", {
         "request": request,
         "user": None,
         "error": None,
+        "firebase_api_key": _s.firebase_web_api_key,
     })
 
 
@@ -94,9 +97,11 @@ def cadastro_page(request: Request, user=Depends(get_page_user)):
     """Página de cadastro — redireciona para / se já logado."""
     if user:
         return RedirectResponse(url="/", status_code=302)
+    _s = get_settings()
     return templates.TemplateResponse("pages/cadastro.html", {
         "request": request,
         "user": None,
+        "firebase_api_key": _s.firebase_web_api_key,
     })
 
 

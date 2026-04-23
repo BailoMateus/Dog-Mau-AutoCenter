@@ -131,5 +131,18 @@
 {% endblock %}
 
 {% block extra_scripts %}
+    <!-- Firebase Auth SDK (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "{{ firebase_api_key | default('') }}",
+            authDomain: "dog-mau-autocenter.firebaseapp.com",
+            projectId: "dog-mau-autocenter",
+        };
+        if (firebaseConfig.apiKey) {
+            firebase.initializeApp(firebaseConfig);
+        }
+    </script>
     <script src="/static/js/cadastro.js"></script>
 {% endblock %}
