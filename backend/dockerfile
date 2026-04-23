@@ -23,4 +23,4 @@ ENV PYTHONPATH=/backend
 
 WORKDIR /backend
 
-CMD ["python", "-m", "app.main"]
+CMD ["python", "app/main.py"]

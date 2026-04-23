@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("features").innerHTML = features;
     document.getElementById("footer").innerHTML = footer;
 
-    document.getElementById("carrosselItem1").src = "assets/navbar.png"
-    document.getElementById("carrosselItem2").src = "assets/navbar.png"
-    document.getElementById("carrosselItem3").src = "assets/navbar.png"
+    document.getElementById("carrosselItem1").src = "assets/carrosselItem1.jpeg"
+    document.getElementById("carrosselItem2").src = "assets/carrosselItem2.jpeg"
+    document.getElementById("carrosselItem3").src = "assets/carrosselItem3.jpeg"
 })

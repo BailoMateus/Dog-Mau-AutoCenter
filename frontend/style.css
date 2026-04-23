@@ -1,24 +1,38 @@
 @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap");
 * {
   margin: 0;
-}
-html,
+} 
+
 body {
-  min-height: 100vh;
-  background-color: black;
+    background-color: black;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    min-height: 100vh;
+}
+
+h1 {
+  text-align: center;
+  font-size: 40px;
+  letter-spacing: 2px;
+  font-family: "Orbitron", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
 }
 
 /* CSS do Header */
 header {
-  background-color: rgba(192, 37, 43, 1);
-  min-height: 50px;
-  padding: 0;
+  background-color: black;
+  padding: 10px 0;
 }
 
 header .container > div {
-  height: 100%;
-  display: flex;
   align-items: center;
+  font-family: "Orbitron", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
 }
 
 #logo {
@@ -29,6 +43,7 @@ header .container > div {
 header .nav-link {
   position: relative;
   transition: 0.3s;
+  color: white !important;
 }
 
 header .nav-link::after {
@@ -38,17 +53,35 @@ header .nav-link::after {
   bottom: 0;
   width: 0%;
   height: 2px;
-  background: darkred;
+  background: darkred;;
   transition: 0.3s;
 }
 
 header .nav-link:hover::after {
   width: 100%;
+  color: darkred !important;
+}
+
+header .nav-link:hover {
+  color: darkred !important;
+}
+
+header .nav-link.active {
+  color: darkred !important;
 }
 
 .search-input {
   width: 250px;
   transition: width 0.3s ease;
+}
+
+.bi, .fw-semibold, .dropdown-toggle {
+  font-size: 15px;
+  color: white;
+  transition: color 0.3s; 
+}
+.bi:hover, .fw-semibold:hover, .dropdown-toggle:hover {
+  color: crimson;
 }
 
 /* CSS do Carrossel */
@@ -155,34 +188,8 @@ header .nav-link:hover::after {
   background-position: center;
 }
 
-h1 {
-  font-family: "Orbitron", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 700;
-  font-style: normal;
-}
-
 label {
   color: white;
-}
-
-body {
-    background: #0b0b0b;
-    color: #fff;
-    font-family: Arial, sans-serif;
-    margin: 0;
-}
-
-.container {
-    max-width: 900px;
-    margin: 60px auto;
-    padding: 20px;
-}
-
-h1 {
-    text-align: center;
-    font-size: 40px;
-    letter-spacing: 2px;
 }
 
 .subtitle {
