@@ -3,7 +3,7 @@ import logging
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.models.endereco import Endereco
+from app.models.entities import Endereco
 from app.repositories import endereco_repository as repo
 from app.schemas.endereco_schema import EnderecoCreate, EnderecoUpdate
 from app.services import user_service

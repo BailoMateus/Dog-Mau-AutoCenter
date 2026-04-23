@@ -3,7 +3,7 @@ import logging
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.models.servico import Servico
+from app.models.entities import Servico
 from app.repositories import servico_repository as repo
 from app.schemas.servico_schema import ServicoCreate, ServicoUpdate
 
