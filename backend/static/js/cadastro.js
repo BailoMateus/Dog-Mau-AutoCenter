@@ -134,50 +134,62 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            const payload = {
-                nome: document.getElementById("floatingNome").value,
-                email: document.getElementById("floatingInput").value,
-                cpf_cnpj: document.getElementById("floatingCpf").value.replace(/\D/g, ''),
-                data_nascimento: document.getElementById("floatingNascimento").value,
-                password: password,
-                cep: document.getElementById("floatingCep").value.replace(/\D/g, ''),
-                logradouro: document.getElementById("floatingRua").value,
-                numero: document.getElementById("floatingNumero").value,
-                bairro: document.getElementById("floatingBairro").value,
-                cidade: document.getElementById("floatingCidade").value,
-                estado: document.getElementById("floatingEstado").value,
-                telefone: null
-            };
+            // Limpar máscara dos campos CPF/CNPJ e CEP antes do envio nativo
+            cpfCnpjInput.value = cpfCnpjValue.replace(/\D/g, '');
+            const cepInput = document.getElementById("floatingCep");
+            if (cepInput) {
+                cepInput.value = cepInput.value.replace(/\D/g, '');
+            }
+
+            // Envia o formulário nativamente (SSR POST redirect)
+            form.submit();
+        });
+    }
+
+    // ==========================================
+    // 6. Login com Google (Firebase Auth)
+    // ==========================================
+    const btnGoogle = document.getElementById("btnGoogleLogin");
+
+    if (btnGoogle) {
+        btnGoogle.addEventListener("click", async () => {
+            console.log("Botão Google clicado (cadastro)");
+
+            if (typeof firebase === "undefined" || !firebase.auth) {
+                alert("Serviço Google indisponível. Tente novamente mais tarde.");
+                console.error("Firebase Auth SDK não carregado");
+                return;
+            }
+
+            const provider = new firebase.auth.GoogleAuthProvider();
 
             try {
-                const response = await fetch("/auth/register", {
+                const result = await firebase.auth().signInWithPopup(provider);
+                const idToken = await result.user.getIdToken();
+
+                console.log("Google Auth OK, enviando token ao backend...");
+
+                const response = await fetch("/auth/google", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     credentials: "same-origin",
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({ id_token: idToken })
                 });
 
-                // IMPORTANTE: checar response.ok ANTES de .json()
-                // Se o servidor retorna 500 com corpo HTML, .json() estouraria
-                if (response.redirected) {
-                    window.location.href = response.url;
+                if (response.ok) {
+                    console.log("Login Google OK — redirecionando...");
+                    window.location.href = "/";
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    alert("Falha no login Google: " + (errorData.detail || "Erro desconhecido"));
+                }
+            } catch (error) {
+                if (error.code === "auth/popup-closed-by-user") {
+                    console.log("Popup Google fechado pelo usuário");
                     return;
                 }
-
-                if (!response.ok) {
-                    // Tentar ler JSON de erro, mas proteger contra corpo não-JSON
-                    const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.detail || "Erro no cadastro (status " + response.status + ")");
-                }
-
-                // Sucesso — cookie HttpOnly já foi setado pelo servidor
-                console.log("Cadastro bem-sucedido! Cookie HttpOnly setado pelo servidor.");
-                alert("Cadastro realizado com sucesso!");
-                window.location.href = "/";
-
-            } catch (err) {
-                console.error(err);
-                alert("Ops! " + err.message);
+                console.error("Erro no login Google:", error);
+                alert("Erro no login com Google: " + error.message);
             }
         });
     }

@@ -39,32 +39,32 @@
     </div>
 
     <main class="form-signin w-100 m-auto">
-      <form id="cadastroForm">
+      <form id="cadastroForm" action="/auth/register" method="POST">
         <img class="mb-4 d-block mx-auto" src="/static/assets/nome.png" alt="DogMau Logo" height="72" />
         <h1 class="h3 mb-3 fw-normal text-center" style="color: rgba(192, 37, 43);">Crie sua conta</h1>
 
         <div class="form-floating">
-          <input type="text" class="form-control" id="floatingNome" placeholder="Nome completo" required minlength="5" />
+          <input type="text" class="form-control" id="floatingNome" name="nome" placeholder="Nome completo" required minlength="5" />
           <label for="floatingNome">Nome completo <span class="text-danger">*</span></label>
         </div>
 
         <div class="form-floating mt-2">
-          <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com" required />
+          <input type="email" class="form-control" id="floatingInput" name="email" placeholder="name@example.com" required />
           <label for="floatingInput">Email <span class="text-danger">*</span></label>
         </div>
 
         <div class="form-floating mt-2">
-          <input type="text" class="form-control" id="floatingCpf" placeholder="CPF ou CNPJ" required />
+          <input type="text" class="form-control" id="floatingCpf" name="cpf_cnpj" placeholder="CPF ou CNPJ" required />
           <label for="floatingCpf">CPF / CNPJ <span class="text-danger">*</span></label>
         </div>
 
         <div class="form-floating mt-2">
-          <input type="date" class="form-control" id="floatingNascimento" required />
+          <input type="date" class="form-control" id="floatingNascimento" name="data_nascimento" required />
           <label for="floatingNascimento">Data de nascimento <span class="text-danger">*</span></label>
         </div>
 
         <div class="form-floating mt-2 position-relative">
-          <input type="password" class="form-control pe-5" id="floatingPassword" placeholder="Senha" required minlength="8" />
+          <input type="password" class="form-control pe-5" id="floatingPassword" name="password" placeholder="Senha" required minlength="8" />
           <label for="floatingPassword">Senha <span class="text-danger">*</span></label>
           <i class="bi bi-eye position-absolute top-50 end-0 translate-middle-y me-3" id="togglePassword" style="cursor: pointer;"></i>
         </div>
@@ -80,35 +80,35 @@
         <h5 class="mb-3">Endereço</h5>
 
         <div class="form-floating">
-          <input type="text" class="form-control" id="floatingCep" placeholder="CEP" required />
+          <input type="text" class="form-control" id="floatingCep" name="cep" placeholder="CEP" required />
           <label for="floatingCep">CEP <span class="text-danger">*</span></label>
         </div>
 
         <div class="form-floating mt-2">
-          <input type="text" class="form-control" id="floatingRua" placeholder="Rua" required />
+          <input type="text" class="form-control" id="floatingRua" name="logradouro" placeholder="Rua" required />
           <label for="floatingRua">Rua <span class="text-danger">*</span></label>
         </div>
 
         <div class="form-floating mt-2">
-          <input type="text" class="form-control" id="floatingNumero" placeholder="Número" />
+          <input type="text" class="form-control" id="floatingNumero" name="numero" placeholder="Número" />
           <label for="floatingNumero">Número</label>
         </div>
         
         <div class="form-floating mt-2">
-          <input type="text" class="form-control" id="floatingBairro" placeholder="Bairro" />
+          <input type="text" class="form-control" id="floatingBairro" name="bairro" placeholder="Bairro" />
           <label for="floatingBairro">Bairro</label>
         </div>
         
         <div class="row mt-2 g-2">
           <div class="col-8">
             <div class="form-floating">
-              <input type="text" class="form-control" id="floatingCidade" placeholder="Cidade" />
+              <input type="text" class="form-control" id="floatingCidade" name="cidade" placeholder="Cidade" />
               <label for="floatingCidade">Cidade</label>
             </div>
           </div>
           <div class="col-4">
             <div class="form-floating">
-              <input type="text" class="form-control" id="floatingEstado" placeholder="Estado" maxlength="2" />
+              <input type="text" class="form-control" id="floatingEstado" name="estado" placeholder="Estado" maxlength="2" />
               <label for="floatingEstado">Estado</label>
             </div>
           </div>
@@ -131,5 +131,18 @@
 {% endblock %}
 
 {% block extra_scripts %}
+    <!-- Firebase Auth SDK (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "{{ firebase_api_key | default('') }}",
+            authDomain: "dog-mau-autocenter.firebaseapp.com",
+            projectId: "dog-mau-autocenter",
+        };
+        if (firebaseConfig.apiKey) {
+            firebase.initializeApp(firebaseConfig);
+        }
+    </script>
     <script src="/static/js/cadastro.js"></script>
 {% endblock %}

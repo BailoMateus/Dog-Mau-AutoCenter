@@ -19,6 +19,7 @@ from fastapi.templating import Jinja2Templates
 from jose import jwt, JWTError
 
 from app.core.config import SECRET_KEY, ALGORITHM
+from app.core.settings import get_settings
 from app.database.db import execute_query
 
 logger = logging.getLogger(__name__)
@@ -40,7 +41,7 @@ def get_page_user(request: Request):
     Lê o JWT do cookie 'access_token'. Se válido, busca o user no banco
     e retorna {user_id, role, nome}. Se inválido ou ausente, retorna None.
     """
-    token = request.cookies.get("access_token")
+    token = request.cookies.get("__session") or request.cookies.get("access_token")
     if not token:
         return None
     # Compatibilidade: remove prefixo 'Bearer ' se presente (cookies antigos)
@@ -82,10 +83,12 @@ def login_page(request: Request, user=Depends(get_page_user)):
     """Página de login — redireciona para / se já logado."""
     if user:
         return RedirectResponse(url="/", status_code=302)
+    _s = get_settings()
     return templates.TemplateResponse("pages/login.html", {
         "request": request,
         "user": None,
         "error": None,
+        "firebase_api_key": _s.firebase_web_api_key,
     })
 
 
@@ -94,9 +97,11 @@ def cadastro_page(request: Request, user=Depends(get_page_user)):
     """Página de cadastro — redireciona para / se já logado."""
     if user:
         return RedirectResponse(url="/", status_code=302)
+    _s = get_settings()
     return templates.TemplateResponse("pages/cadastro.html", {
         "request": request,
         "user": None,
+        "firebase_api_key": _s.firebase_web_api_key,
     })
 
 
@@ -115,5 +120,6 @@ def logout(request: Request):
     """Limpa o cookie de autenticação e redireciona para a home."""
     logger.info("GET /logout — limpando cookie")
     response = RedirectResponse(url="/", status_code=302)
-    response.delete_cookie("access_token")
+    response.delete_cookie("__session")
+    response.delete_cookie("access_token") # Por segurança, limpa o antigo também
     return response

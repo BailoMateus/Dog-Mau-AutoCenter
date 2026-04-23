@@ -24,7 +24,7 @@ class User:
 @dataclass
 class Endereco:
     id_endereco: Optional[int] = None
-    id_usuario: int = 0
+    id_cliente: int = 0
     logradouro: str = ""
     numero: Optional[str] = None
     cep: Optional[str] = None
@@ -65,7 +65,7 @@ class Veiculo:
     placa: str = ""
     ano_fabricacao: Optional[int] = None
     cor: Optional[str] = None
-    id_usuario: int = 0
+    id_cliente: int = 0
     id_modelo: int = 0
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
@@ -136,7 +136,7 @@ def user_to_dict(user: User, exclude_password: bool = False) -> dict:
 def endereco_to_dict(endereco: Endereco) -> dict:
     """Converte entidade Endereco para dicionário."""
     return {
-        'id_usuario': endereco.id_usuario,
+        'id_cliente': endereco.id_cliente,
         'logradouro': endereco.logradouro,
         'numero': endereco.numero,
         'cep': endereco.cep,
@@ -171,7 +171,7 @@ def veiculo_to_dict(veiculo: Veiculo) -> dict:
         'placa': veiculo.placa,
         'ano_fabricacao': veiculo.ano_fabricacao,
         'cor': veiculo.cor,
-        'id_usuario': veiculo.id_usuario,
+        'id_cliente': veiculo.id_cliente,
         'id_modelo': veiculo.id_modelo
     }
 
