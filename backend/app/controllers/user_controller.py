@@ -1,7 +1,7 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Path, status, Header
+from fastapi import APIRouter, Depends, HTTPException, Path, status, Header, Request
 
 from app.core.roles import ADMIN, CLIENTE
 from app.core.security import require_role
@@ -11,7 +11,7 @@ from app.services import user_service
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/users", tags=["Usuários"])
+router = APIRouter(prefix="/api/users", tags=["Usuários"])
 
 @router.get("", response_model=list[UserPublic])
 def list_users(
@@ -24,6 +24,7 @@ def list_users(
 @router.post("", response_model=UserPublic, status_code=201)
 def create_user(
     data: UserCreate,
+    request: Request,
     authorization: Annotated[str | None, Header()] = None,
 ):
     existing_admin = user_service.get_user_by_role(ADMIN)
@@ -42,14 +43,23 @@ def create_user(
             user = user_service.create_user(data)
             return user
         
-        if not authorization or not authorization.startswith("Bearer "):
+        # Fallback para o cookie
+        token = None
+        if authorization and authorization.startswith("Bearer "):
+            token = authorization.replace("Bearer ", "")
+        else:
+            token = request.cookies.get("__session") or request.cookies.get("access_token")
+
+        if not token:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Not authenticated"
             )
+
+        if token.startswith("Bearer "):
+            token = token.replace("Bearer ", "")
         
         # Validação do token
-        token = authorization.replace("Bearer ", "")
         try:
             from app.core.config import SECRET_KEY, ALGORITHM
             from jose import jwt

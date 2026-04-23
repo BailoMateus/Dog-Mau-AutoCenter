@@ -1,60 +1,10 @@
-// Arquivo: frontend/cadastro.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-
-const firebaseConfig = {
-    apiKey: "AIzaSyBLY-5JOkHA6YP4viYw5SFB3H1VmoKXzNo",
-    authDomain: "dog-mau-autocenter.firebaseapp.com",
-    projectId: "dog-mau-autocenter",
-    storageBucket: "dog-mau-autocenter.firebasestorage.app",
-    messagingSenderId: "210021860949",
-    appId: "1:210021860949:web:e7ce12df0e9adad49536dc",
-    measurementId: "G-HMRJC0BJXL"
-};
-
-
-// Inicializa o Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
+// cadastro.js — Lógica do formulário de cadastro (versão SSR)
+// O cookie HttpOnly é setado pelo servidor na resposta do POST /auth/register.
+// O JS apenas valida client-side e redireciona após sucesso.
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    // 1. Lógica do botão Google Auth com Firebase
-    const btnGoogleLogin = document.getElementById("btnGoogleLogin");
-    if (btnGoogleLogin) {
-        btnGoogleLogin.addEventListener("click", async () => {
-            try {
-                const result = await signInWithPopup(auth, provider);
-                const credential = GoogleAuthProvider.credentialFromResult(result);
-                const token = credential.accessToken;
-                const user = result.user;
-
-                // Obtém o JWT Token retornado pelo Firebase para validar no backend
-                const idToken = await user.getIdToken();
-                console.log("Firebase SignIn Realizado. Token:", idToken);
-
-                // Envia token ao backend centralizado
-                const response = await fetch(`${window.BASE_URL}/auth/google`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ id_token: idToken })
-                });
-
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.detail || "Erro ao conectar com servidor");
-
-                alert("Acesso Google efetuado com sucesso!");
-                localStorage.setItem("access_token", data.access_token);
-                window.location.href = "index.html";
-            } catch (error) {
-                console.error("Erro no fluxo do Google Login", error);
-                alert("Falha no login social. Verifique o console.");
-            }
-        });
-    }
-
-    // 2. Trava de Idade: Setar data máxima no HTML para 18 anos atrás
+    // 1. Trava de Idade: data máxima 18 anos atrás
     const inputDate = document.getElementById("floatingNascimento");
     if (inputDate) {
         const today = new Date();
@@ -63,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
         inputDate.setAttribute("max", maxDateString);
     }
 
-    // 3. Olhinho - Mostrar/Esconder Senhas
+    // 2. Olhinho - Mostrar/Esconder Senhas
     const togglePassword = document.getElementById("togglePassword");
     const inputPassword = document.getElementById("floatingPassword");
     const toggleConfirm = document.getElementById("toggleConfirmPassword");
@@ -82,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setupToggle(togglePassword, inputPassword);
     setupToggle(toggleConfirm, inputConfirm);
 
-    // 4. Integração ViaCEP
+    // 3. Integração ViaCEP
     const inputCep = document.getElementById("floatingCep");
     if (inputCep) {
         inputCep.addEventListener("blur", async (e) => {
@@ -105,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Função de Validação Matemática de CPF e CNPJ (Módulo 11)
+    // 4. Validação Matemática de CPF e CNPJ (Módulo 11)
     function validarCpfCnpj(doc) {
         doc = doc.replace(/\D/g, "");
         if (doc.length === 11) {
@@ -123,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return true;
         } else if (doc.length === 14) {
             if (/^(\d)\1+$/.test(doc)) return false;
-            let tamanho = doc.length - 2
+            let tamanho = doc.length - 2;
             let numeros = doc.substring(0, tamanho);
             let digitos = doc.substring(tamanho);
             let soma = 0;
@@ -150,8 +100,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return false;
     }
 
-    // 5. Submit do Formulário de Cadastro Normal
-    const form = document.querySelector("form");
+    // 5. Submit do Formulário de Cadastro
+    const form = document.getElementById("cadastroForm");
     if (form) {
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
@@ -171,53 +121,75 @@ document.addEventListener("DOMContentLoaded", () => {
             const password = inputPassword.value;
             const confirm = inputConfirm.value;
 
-            // Validação local de Confirmação de Senha
+            // Validação de Confirmação de Senha
             if (password !== confirm) {
                 alert("As senhas não coincidem!");
                 return;
             }
 
-            // Validar senha forte no front preventivamente
-            const strongRegex = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})");
+            // Validar senha forte
+            const strongRegex = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\\$%\\^&\\*])(?=.{8,})");
             if (!strongRegex.test(password)) {
                 alert("Sua senha é fraca. Ela precisa ter ao menos:\n- 8 Caracteres\n- 1 Letra Maiúscula\n- 1 Letra Minúscula\n- 1 Número\n- 1 Caractere Especial (!@#$%)");
                 return;
             }
 
-            const payload = {
-                nome: document.getElementById("floatingNome").value,
-                email: document.getElementById("floatingInput").value,
-                cpf_cnpj: document.getElementById("floatingCpf").value.replace(/\D/g, ''),
-                data_nascimento: document.getElementById("floatingNascimento").value,
-                password: password,
-                cep: document.getElementById("floatingCep").value.replace(/\D/g, ''),
-                logradouro: document.getElementById("floatingRua").value,
-                numero: document.getElementById("floatingNumero").value,
-                bairro: document.getElementById("floatingBairro").value,
-                cidade: document.getElementById("floatingCidade").value,
-                estado: document.getElementById("floatingEstado").value,
-                telefone: null
-            };
+            // Limpar máscara dos campos CPF/CNPJ e CEP antes do envio nativo
+            cpfCnpjInput.value = cpfCnpjValue.replace(/\D/g, '');
+            const cepInput = document.getElementById("floatingCep");
+            if (cepInput) {
+                cepInput.value = cepInput.value.replace(/\D/g, '');
+            }
+
+            // Envia o formulário nativamente (SSR POST redirect)
+            form.submit();
+        });
+    }
+
+    // ==========================================
+    // 6. Login com Google (Firebase Auth)
+    // ==========================================
+    const btnGoogle = document.getElementById("btnGoogleLogin");
+
+    if (btnGoogle) {
+        btnGoogle.addEventListener("click", async () => {
+            console.log("Botão Google clicado (cadastro)");
+
+            if (typeof firebase === "undefined" || !firebase.auth) {
+                alert("Serviço Google indisponível. Tente novamente mais tarde.");
+                console.error("Firebase Auth SDK não carregado");
+                return;
+            }
+
+            const provider = new firebase.auth.GoogleAuthProvider();
 
             try {
-                const response = await fetch(`${window.BASE_URL}/auth/register`, {
+                const result = await firebase.auth().signInWithPopup(provider);
+                const idToken = await result.user.getIdToken();
+
+                console.log("Google Auth OK, enviando token ao backend...");
+
+                const response = await fetch("/auth/google", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
+                    credentials: "same-origin",
+                    body: JSON.stringify({ id_token: idToken })
                 });
 
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.detail || "Erro genérico no cadastro");
+                if (response.ok) {
+                    console.log("Login Google OK — redirecionando...");
+                    window.location.href = "/";
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    alert("Falha no login Google: " + (errorData.detail || "Erro desconhecido"));
                 }
-
-                alert("Cadastro realizado com sucesso!");
-                localStorage.setItem("access_token", data.access_token);
-                window.location.href = "index.html"; // Redireciona
-            } catch (err) {
-                console.error(err);
-                alert("Ops! " + err.message);
+            } catch (error) {
+                if (error.code === "auth/popup-closed-by-user") {
+                    console.log("Popup Google fechado pelo usuário");
+                    return;
+                }
+                console.error("Erro no login Google:", error);
+                alert("Erro no login com Google: " + error.message);
             }
         });
     }

@@ -17,7 +17,10 @@ def authenticate_user(email: str, password: str):
         logger.info("login falhou: usuário inativo email=%s", email)
         return None
 
-    if not verify_password(password, user.senha_hash):
+    is_valid = verify_password(password, user.senha_hash)
+    logger.warning("DEBUG LOGIN: verify_password=%s | plain='%s' | hash='%s' | type_hash='%s'", is_valid, password, user.senha_hash, type(user.senha_hash))
+    
+    if not is_valid:
         logger.info("login falhou: senha incorreta email=%s", email)
         return None
 

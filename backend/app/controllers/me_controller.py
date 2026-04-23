@@ -12,7 +12,7 @@ from app.services import endereco_service, veiculo_service, user_service
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/me", tags=["Minha Conta"])
+router = APIRouter(prefix="/api/me", tags=["Minha Conta"])
 
 # Middleware para garantir que é cliente
 def require_cliente(current=Depends(get_current_user)):

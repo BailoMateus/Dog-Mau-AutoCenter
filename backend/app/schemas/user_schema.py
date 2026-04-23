@@ -10,9 +10,9 @@ class UserCreate(BaseModel):
     password: str = Field(..., min_length=6)
     role: str = CLIENTE
     ativo: bool = True
-    telefone: str = Field(..., max_length=20)
-    cpf_cnpj: str = Field(..., max_length=18)
-    data_nascimento: date = Field(...)
+    telefone: str | None = Field(None, max_length=20)
+    cpf_cnpj: str | None = Field(None, max_length=18)
+    data_nascimento: date | None = Field(None)
 
     @field_validator("email")
     @classmethod
@@ -63,8 +63,8 @@ class UserPublic(BaseModel):
     email: str
     role: str | None
     ativo: bool | None
-    telefone: str
-    cpf_cnpj: str
-    data_nascimento: date
+    telefone: str | None = None
+    cpf_cnpj: str | None = None
+    data_nascimento: date | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None

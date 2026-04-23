@@ -21,7 +21,7 @@ def create_user(data: UserCreate):
     user = User(
         nome=data.nome,
         email=data.email,
-        senha_hash=hash_password(data.password),
+        senha_hash=hash_password(data.password.strip()),
         role=data.role,
         ativo=data.ativo,
         telefone=data.telefone,
@@ -35,6 +35,12 @@ def create_user(data: UserCreate):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="E-mail já cadastrado",
+        )
+    except Exception as e:
+        logger.error("create_user erro inesperado email=%s: %s", data.email, e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro interno ao criar conta. Tente novamente.",
         )
 
 def get_user_or_404(user_id: int) -> User:
@@ -106,7 +112,7 @@ def update_user(
     if data.email is not None:
         user.email = data.email
     if data.password is not None:
-        user.senha_hash = hash_password(data.password)
+        user.senha_hash = hash_password(data.password.strip())
     if data.telefone is not None:
         user.telefone = data.telefone
     if data.cpf_cnpj is not None:
