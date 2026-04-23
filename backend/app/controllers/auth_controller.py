@@ -9,7 +9,6 @@ from app.services.auth_service import login
 from app.services import user_service
 from app.schemas.user_schema import UserCreate
 from app.schemas.endereco_schema import EnderecoCreate
-from app.database.db import get_db
 from app.middlewares.auth_middleware import get_current_user
 from app.core.roles import CLIENTE
 
