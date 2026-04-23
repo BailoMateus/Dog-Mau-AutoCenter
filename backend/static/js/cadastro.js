@@ -1,5 +1,6 @@
-// cadastro.js — Lógica do formulário de cadastro (versão Jinja2)
-// O token JWT é salvo como cookie para controle de acesso server-side.
+// cadastro.js — Lógica do formulário de cadastro (versão SSR)
+// O cookie HttpOnly é setado pelo servidor na resposta do POST /auth/register.
+// O JS apenas valida client-side e redireciona após sucesso.
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -152,21 +153,28 @@ document.addEventListener("DOMContentLoaded", () => {
                 const response = await fetch("/auth/register", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
+                    credentials: "same-origin",
                     body: JSON.stringify(payload)
                 });
 
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.detail || "Erro genérico no cadastro");
+                // IMPORTANTE: checar response.ok ANTES de .json()
+                // Se o servidor retorna 500 com corpo HTML, .json() estouraria
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return;
                 }
 
+                if (!response.ok) {
+                    // Tentar ler JSON de erro, mas proteger contra corpo não-JSON
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.detail || "Erro no cadastro (status " + response.status + ")");
+                }
+
+                // Sucesso — cookie HttpOnly já foi setado pelo servidor
+                console.log("Cadastro bem-sucedido! Cookie HttpOnly setado pelo servidor.");
                 alert("Cadastro realizado com sucesso!");
-
-                // Salva token como cookie para controle de acesso server-side
-                document.cookie = `access_token=${data.access_token}; path=/; SameSite=Lax`;
-
                 window.location.href = "/";
+
             } catch (err) {
                 console.error(err);
                 alert("Ops! " + err.message);

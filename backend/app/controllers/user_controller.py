@@ -11,7 +11,7 @@ from app.services import user_service
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/users", tags=["Usuários"])
+router = APIRouter(prefix="/api/users", tags=["Usuários"])
 
 @router.get("", response_model=list[UserPublic])
 def list_users(

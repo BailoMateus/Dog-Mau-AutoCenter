@@ -106,10 +106,13 @@ def execute_command(query: str, params: Optional[Tuple] = None) -> int:
 
 def execute_insert(query: str, params: Optional[Tuple] = None) -> int:
     """
-    Executa uma query INSERT e retorna o ID gerado.
+    Executa uma query INSERT com RETURNING e retorna o ID gerado.
+    
+    A query DEVE conter uma cláusula RETURNING (ex: RETURNING id_usuario).
+    Usa fetchone() no mesmo cursor para ler o valor retornado.
     
     Args:
-        query: Query SQL INSERT com placeholders %s
+        query: Query SQL INSERT com placeholders %s e cláusula RETURNING
         params: Tupla de parâmetros para a query
         
     Returns:
@@ -118,12 +121,10 @@ def execute_insert(query: str, params: Optional[Tuple] = None) -> int:
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(query, params or ())
-            if cur.lastrowid:
-                return cur.lastrowid
-            else:
-                # Para PostgreSQL, usar RETURNING id
-                cur.execute("SELECT lastval()")
-                return cur.fetchone()[0]
+            row = cur.fetchone()
+            if row:
+                return row[0]
+            raise RuntimeError("INSERT não retornou ID. Verifique a cláusula RETURNING na query.")
 
 def execute_batch(query: str, params_list: List[Tuple]) -> int:
     """

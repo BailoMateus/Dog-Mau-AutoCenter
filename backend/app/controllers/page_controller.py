@@ -43,6 +43,9 @@ def get_page_user(request: Request):
     token = request.cookies.get("access_token")
     if not token:
         return None
+    # Compatibilidade: remove prefixo 'Bearer ' se presente (cookies antigos)
+    if token.startswith("Bearer "):
+        token = token[7:]
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("sub")
@@ -56,7 +59,7 @@ def get_page_user(request: Request):
         if not user:
             return None
         return {"user_id": user_id, "role": payload.get("role"), "nome": user["nome"]}
-    except (JWTError, Exception):
+    except Exception:
         return None
 
 

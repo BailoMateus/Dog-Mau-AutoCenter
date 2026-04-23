@@ -1,5 +1,6 @@
-// login.js — Lógica do formulário de login (versão Jinja2)
-// O token JWT é salvo como cookie para que o servidor possa ler nas próximas requests.
+// login.js — Lógica do formulário de login (versão SSR)
+// O cookie HttpOnly é setado pelo servidor na resposta do POST /auth/login.
+// O JS só precisa redirecionar após sucesso.
 
 document.addEventListener("DOMContentLoaded", () => {
     const loginForm = document.getElementById("loginForm");
@@ -24,19 +25,20 @@ document.addEventListener("DOMContentLoaded", () => {
                     headers: {
                         "Content-Type": "application/json"
                     },
+                    credentials: "same-origin",
                     body: JSON.stringify(payload)
                 });
 
                 console.log("Retorno do fetch (status):", response.status);
 
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return;
+                }
+
                 if (response.ok) {
-                    const data = await response.json();
-
-                    // Salva o token como cookie para o servidor ler (controle de acesso Jinja2)
-                    document.cookie = `access_token=${data.access_token}; path=/; SameSite=Lax`;
-                    console.log("Login bem-sucedido! Cookie setado.");
-
-                    // Redireciona para a home
+                    // Cookie HttpOnly já foi setado pelo servidor no response
+                    console.log("Login bem-sucedido! Cookie HttpOnly setado pelo servidor.");
                     window.location.href = "/";
                 } else {
                     const errorData = await response.json().catch(() => ({}));
