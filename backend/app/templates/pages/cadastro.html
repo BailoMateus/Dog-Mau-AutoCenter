@@ -39,40 +39,46 @@
     </div>
 
     <main class="form-signin w-100 m-auto">
-      <form id="cadastroForm" action="/auth/register" method="POST">
+      <form id="cadastroForm" action="/auth/register" method="POST" novalidate>
         <img class="mb-4 d-block mx-auto" src="/static/assets/nome.png" alt="DogMau Logo" height="72" />
         <h1 class="h3 mb-3 fw-normal text-center" style="color: rgba(192, 37, 43);">Crie sua conta</h1>
 
         <div class="form-floating">
           <input type="text" class="form-control" id="floatingNome" name="nome" placeholder="Nome completo" required minlength="5" />
           <label for="floatingNome">Nome completo <span class="text-danger">*</span></label>
+          <div class="invalid-feedback">O nome é obrigatório e precisa ter no mínimo 5 caracteres.</div>
         </div>
 
         <div class="form-floating mt-2">
           <input type="email" class="form-control" id="floatingInput" name="email" placeholder="name@example.com" required />
           <label for="floatingInput">Email <span class="text-danger">*</span></label>
+          <div class="invalid-feedback">Informe um e-mail válido.</div>
         </div>
 
         <div class="form-floating mt-2">
           <input type="text" class="form-control" id="floatingCpf" name="cpf_cnpj" placeholder="CPF ou CNPJ" required />
           <label for="floatingCpf">CPF / CNPJ <span class="text-danger">*</span></label>
+          <div class="invalid-feedback" id="feedbackCpf">CPF ou CNPJ inválido ou não preenchido.</div>
         </div>
 
         <div class="form-floating mt-2">
           <input type="date" class="form-control" id="floatingNascimento" name="data_nascimento" required />
           <label for="floatingNascimento">Data de nascimento <span class="text-danger">*</span></label>
+          <div class="invalid-feedback">Você precisa ser maior de idade para se cadastrar e informar a data.</div>
         </div>
 
         <div class="form-floating mt-2 position-relative">
           <input type="password" class="form-control pe-5" id="floatingPassword" name="password" placeholder="Senha" required minlength="8" />
           <label for="floatingPassword">Senha <span class="text-danger">*</span></label>
-          <i class="bi bi-eye position-absolute top-50 end-0 translate-middle-y me-3" id="togglePassword" style="cursor: pointer;"></i>
+          <i class="bi bi-eye position-absolute top-50 end-0 translate-middle-y me-3" id="togglePassword" style="cursor: pointer; z-index: 10;"></i>
+          <div class="invalid-feedback" id="feedbackPassword">Sua senha deve ter no mínimo 8 caracteres.</div>
         </div>
 
         <div class="form-floating mt-2 position-relative">
           <input type="password" class="form-control pe-5" id="floatingConfirmPassword" placeholder="Confirmar senha" required minlength="8" />
           <label for="floatingConfirmPassword">Confirmar senha <span class="text-danger">*</span></label>
-          <i class="bi bi-eye position-absolute top-50 end-0 translate-middle-y me-3" id="toggleConfirmPassword" style="cursor: pointer;"></i>
+          <i class="bi bi-eye position-absolute top-50 end-0 translate-middle-y me-3" id="toggleConfirmPassword" style="cursor: pointer; z-index: 10;"></i>
+          <div class="invalid-feedback" id="feedbackConfirmPassword">As senhas não coincidem ou campo não preenchido.</div>
         </div>
 
         <hr class="my-4" />
@@ -82,11 +88,13 @@
         <div class="form-floating">
           <input type="text" class="form-control" id="floatingCep" name="cep" placeholder="CEP" required />
           <label for="floatingCep">CEP <span class="text-danger">*</span></label>
+          <div class="invalid-feedback">CEP é obrigatório.</div>
         </div>
 
         <div class="form-floating mt-2">
           <input type="text" class="form-control" id="floatingRua" name="logradouro" placeholder="Rua" required />
           <label for="floatingRua">Rua <span class="text-danger">*</span></label>
+          <div class="invalid-feedback">Nome da rua é obrigatório.</div>
         </div>
 
         <div class="form-floating mt-2">

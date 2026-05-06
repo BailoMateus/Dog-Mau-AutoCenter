@@ -104,45 +104,94 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("cadastroForm");
     if (form) {
         form.addEventListener("submit", async (e) => {
+            console.log("Iniciando submissão do formulário...");
             e.preventDefault();
+            
+            let isValid = true;
+            
+            // Dispara validação visual nativa dos campos com 'required', 'minlength', 'max' no HTML
+            if (!form.checkValidity()) {
+                isValid = false;
+                console.warn("Validação nativa falhou (campos vazios ou curtos).");
+            }
+            form.classList.add("was-validated");
 
-            // Validação de CPF/CNPJ
+            // Validação de CPF/CNPJ Manualmente
             const cpfCnpjInput = document.getElementById("floatingCpf");
-            const cpfCnpjValue = cpfCnpjInput.value;
-
-            if (!validarCpfCnpj(cpfCnpjValue)) {
+            const cpfCnpjValue = cpfCnpjInput ? cpfCnpjInput.value : "";
+            const feedbackCpf = document.getElementById("feedbackCpf");
+            
+            if (cpfCnpjValue && !validarCpfCnpj(cpfCnpjValue)) {
+                cpfCnpjInput.classList.remove("is-valid");
                 cpfCnpjInput.classList.add("is-invalid");
-                alert("O CPF ou CNPJ digitado é inválido. Verifique os números.");
-                return false;
-            } else {
+                if (feedbackCpf) feedbackCpf.textContent = "Dígitos verificadores do CPF/CNPJ inválidos.";
+                isValid = false;
+                console.warn("CPF/CNPJ inválido.");
+            } else if (cpfCnpjInput) {
+                // Remove custom is-invalid forces if valid (rely on native was-validated)
                 cpfCnpjInput.classList.remove("is-invalid");
+            }
+
+            if (!inputPassword || !inputConfirm) {
+                console.error("Inputs de senha não encontrados no DOM!");
+                return;
             }
 
             const password = inputPassword.value;
             const confirm = inputConfirm.value;
+            const feedbackPassword = document.getElementById("feedbackPassword");
+            const feedbackConfirm = document.getElementById("feedbackConfirmPassword");
 
             // Validação de Confirmação de Senha
             if (password !== confirm) {
-                alert("As senhas não coincidem!");
-                return;
+                inputConfirm.classList.remove("is-valid");
+                inputConfirm.classList.add("is-invalid");
+                if (feedbackConfirm) feedbackConfirm.textContent = "As senhas não coincidem.";
+                isValid = false;
+                console.warn("Validação falhou: senhas não coincidem.");
+            } else {
+                inputConfirm.classList.remove("is-invalid");
             }
 
             // Validar senha forte
             const strongRegex = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\\$%\\^&\\*])(?=.{8,})");
-            if (!strongRegex.test(password)) {
-                alert("Sua senha é fraca. Ela precisa ter ao menos:\n- 8 Caracteres\n- 1 Letra Maiúscula\n- 1 Letra Minúscula\n- 1 Número\n- 1 Caractere Especial (!@#$%)");
-                return;
+            if (password && !strongRegex.test(password)) {
+                inputPassword.classList.remove("is-valid");
+                inputPassword.classList.add("is-invalid");
+                if (feedbackPassword) feedbackPassword.innerHTML = "Senha fraca. Deve ter mínimo 8 caracteres com uma <b>letra maiúscula</b>, <b>minúscula</b>, <b>número</b> e <b>caractere especial (!@#$%)</b>.";
+                isValid = false;
+                console.warn("Validação falhou: senha fraca.");
+            } else {
+                inputPassword.classList.remove("is-invalid");
             }
 
-            // Limpar máscara dos campos CPF/CNPJ e CEP antes do envio nativo
-            cpfCnpjInput.value = cpfCnpjValue.replace(/\D/g, '');
-            const cepInput = document.getElementById("floatingCep");
-            if (cepInput) {
-                cepInput.value = cepInput.value.replace(/\D/g, '');
+            if (!isValid) {
+                console.warn("Formulário bloqueado por erros validacao em tela.");
+                return; // Bloqueia submissão silenciosamente mostrando erros na interface
             }
 
-            // Envia o formulário nativamente (SSR POST redirect)
-            form.submit();
+            console.log("Validações concluídas com sucesso.");
+
+            try {
+                // Limpar máscara dos campos CPF/CNPJ e CEP antes do envio nativo
+                cpfCnpjInput.value = cpfCnpjValue.replace(/\D/g, '');
+                const cepInput = document.getElementById("floatingCep");
+                if (cepInput) {
+                    cepInput.value = cepInput.value.replace(/\D/g, '');
+                }
+                console.log("Máscaras removidas. CPF e CEP limpos.");
+            } catch (err) {
+                console.error("Erro ao limpar máscaras:", err);
+            }
+
+            console.log("Acionando envio nativo (form.submit())...");
+            try {
+                // Envia o formulário nativamente bypassing interceptors
+                form.submit();
+                console.log("form.submit() disparado com sucesso!");
+            } catch (err) {
+                console.error("Erro fatal ao tentar enviar via form.submit():", err);
+            }
         });
     }
 
