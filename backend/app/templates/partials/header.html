@@ -19,6 +19,14 @@
         <li class="nav-item"><a href="#" class="nav-link px-3 fs-5 {% if page == 'produtos' %}active{% endif %}">Produtos</a></li>
         <li class="nav-item"><a href="/servicos" class="nav-link px-3 fs-5 {% if page == 'servicos' %}active{% endif %}">Serviços</a></li>
         <li class="nav-item"><a href="#" class="nav-link px-3 fs-5 {% if page == 'sobre' %}active{% endif %}">Sobre</a></li>
+        {% if user %}
+        <li class="nav-item">
+          <a href="/painel" class="nav-link px-3 fs-5 {% if page == 'painel' %}active{% endif %}">
+            <i class="bi bi-grid-fill me-1"></i>
+            {% if user.role == 'admin' %}Painel de Gestão{% elif user.role == 'mecanico' %}Painel Operacional{% else %}Minha Área{% endif %}
+          </a>
+        </li>
+        {% endif %}
       </ul>
 
       <!-- Action Area: Search and Profile -->
@@ -35,14 +43,18 @@
         <div class="dropdown text-center text-lg-start mt-2 mt-lg-0">
           {% if user %}
           <a href="#" class="d-flex align-items-center justify-content-center justify-content-lg-start text-decoration-none dropdown-toggle text-white" data-bs-toggle="dropdown">
-            <i class="bi bi-person-circle fs-4 me-2"></i>
+            {% if user.avatar %}
+              <img src="{{ user.avatar }}" alt="Avatar" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
+            {% else %}
+              <i class="bi bi-person-circle fs-4 me-2"></i>
+            {% endif %}
             <span class="fw-semibold">Olá, {{ user.nome.split(' ')[0] }}</span>
+            <span class="badge bg-secondary ms-2" style="font-size: 0.7em;">
+              {{ user.role | upper }}
+            </span>
           </a>
           <ul class="dropdown-menu dropdown-menu-lg-end text-center text-lg-start shadow mt-2">
-            {% if user.role == 'admin' %}
-            <li><a class="dropdown-item" href="/admin/usuarios"><i class="bi bi-people-fill me-2 text-danger"></i>Gerenciar Usuários</a></li>
-            <li><hr class="dropdown-divider"></li>
-            {% endif %}
+
             <li><a class="dropdown-item" href="#"><i class="bi bi-car-front me-2"></i>Veículo</a></li>
             <li><a class="dropdown-item" href="#"><i class="bi bi-person-vcard me-2"></i>Perfil</a></li>
             <li><hr class="dropdown-divider"></li>

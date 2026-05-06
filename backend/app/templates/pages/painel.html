@@ -1,191 +1,109 @@
 {% extends "base.html" %}
 
-{% block title %}Painel - Dog Mau AutoCenter{% endblock %}
+{% block title %}
+{% if user.role == 'admin' %}Painel de Gestão{% elif user.role == 'mecanico' %}Painel Operacional{% else %}Minha Área{% endif %} - Dog Mau AutoCenter
+{% endblock %}
 
 {% block content %}
 <div class="container py-5">
-    <div class="row mb-4">
+    <!-- Cabeçalho do Painel -->
+    <div class="row mb-4 align-items-center">
         <div class="col">
-            <h1 class="display-6 fw-bold">
-                {% if user.role == 'admin' %}
-                Painel de Gestão
-                {% elif user.role == 'mecanico' %}
-                Painel Operacional
-                {% else %}
-                Minha Área
+            <h1 class="fw-bold m-0" style="color: rgba(192, 37, 43); font-family: 'Orbitron', sans-serif;">
+                <i class="bi bi-grid-fill me-2"></i>
+                {% if user.role == 'admin' %}Painel de Gestão
+                {% elif user.role == 'mecanico' %}Painel Operacional
+                {% else %}Minha Área
                 {% endif %}
             </h1>
-            <p class="text-muted">Bem-vindo de volta, {{ user.nome }}!</p>
+            <p class="text-muted mt-2 mb-0">Bem-vindo de volta, <strong>{{ user.nome.split(' ')[0] }}</strong>!</p>
         </div>
     </div>
 
     <!-- Navegação em Abas -->
-    <ul class="nav nav-tabs mb-4" id="painelTabs" role="tablist">
+    <ul class="nav nav-tabs mb-4" id="painelTabs" role="tablist" style="border-bottom-color: #333;">
         {% if user.role in ['admin', 'mecanico'] %}
         <li class="nav-item" role="presentation">
-            <a class="nav-link {% if tab == 'usuarios' %}active{% endif %}" id="usuarios-tab" href="?tab=usuarios" role="tab">Usuários</a>
-        </li>
-        {% endif %}
-        
-        <li class="nav-item" role="presentation">
-            <a class="nav-link {% if tab == 'produtos' %}active{% endif %}" id="produtos-tab" href="?tab=produtos" role="tab">Produtos</a>
-        </li>
-        
-        <li class="nav-item" role="presentation">
-            <a class="nav-link {% if tab == 'pedidos' %}active{% endif %}" id="pedidos-tab" href="?tab=pedidos" role="tab">
-                {% if user.role in ['admin', 'mecanico'] %}Pedidos{% else %}Meus Pedidos{% endif %}
+            <a class="nav-link {% if tab == 'usuarios' %}active{% endif %}" href="?tab=usuarios" role="tab"
+               style="{% if tab == 'usuarios' %}background-color: #111; color: rgba(192, 37, 43); border-color: #333 #333 #111;{% else %}color: #aaa;{% endif %}">
+                <i class="bi bi-people-fill me-1"></i>Usuários
             </a>
         </li>
-        
+        {% endif %}
+
         <li class="nav-item" role="presentation">
-            <a class="nav-link {% if tab == 'os' %}active{% endif %}" id="os-tab" href="?tab=os" role="tab">
-                {% if user.role in ['admin', 'mecanico'] %}Ordens de Serviço{% else %}Minhas OS{% endif %}
+            <a class="nav-link {% if tab == 'produtos' %}active{% endif %}" href="?tab=produtos" role="tab"
+               style="{% if tab == 'produtos' %}background-color: #111; color: rgba(192, 37, 43); border-color: #333 #333 #111;{% else %}color: #aaa;{% endif %}">
+                <i class="bi bi-box-seam me-1"></i>Produtos
+            </a>
+        </li>
+
+        <li class="nav-item" role="presentation">
+            <a class="nav-link {% if tab == 'servicos' %}active{% endif %}" href="?tab=servicos" role="tab"
+               style="{% if tab == 'servicos' %}background-color: #111; color: rgba(192, 37, 43); border-color: #333 #333 #111;{% else %}color: #aaa;{% endif %}">
+                <i class="bi bi-tools me-1"></i>
+                {% if user.role in ['admin', 'mecanico'] %}Serviços{% else %}Meus Serviços{% endif %}
+            </a>
+        </li>
+
+        <li class="nav-item" role="presentation">
+            <a class="nav-link {% if tab == 'pedidos' %}active{% endif %}" href="?tab=pedidos" role="tab"
+               style="{% if tab == 'pedidos' %}background-color: #111; color: rgba(192, 37, 43); border-color: #333 #333 #111;{% else %}color: #aaa;{% endif %}">
+                <i class="bi bi-cart3 me-1"></i>
+                {% if user.role in ['admin', 'mecanico'] %}Pedidos{% else %}Meus Pedidos{% endif %}
             </a>
         </li>
     </ul>
 
     <!-- Conteúdo das Abas -->
     <div class="tab-content" id="painelTabsContent">
-        
-        <!-- Aba de Usuários -->
-        {% if user.role in ['admin', 'mecanico'] %}
-        <div class="tab-pane fade {% if tab == 'usuarios' %}show active{% endif %}" id="usuarios" role="tabpanel">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold">Lista de Usuários</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Nome</th>
-                                    <th>E-mail</th>
-                                    <th>Cargo</th>
-                                    <th>Status</th>
-                                    {% if user.role == 'admin' %}
-                                    <th class="text-end">Ações</th>
-                                    {% endif %}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for u in usuarios|default([]) %}
-                                <tr>
-                                    <td>{{ u.id_usuario }}</td>
-                                    <td>{{ u.nome }}</td>
-                                    <td>{{ u.email }}</td>
-                                    <td>
-                                        <span class="badge {% if u.role == 'admin' %}bg-danger{% elif u.role == 'mecanico' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
-                                            {{ u.role | upper if u.role else 'CLIENTE' }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        {% if u.ativo %}
-                                        <span class="badge bg-success">Ativo</span>
-                                        {% else %}
-                                        <span class="badge bg-danger">Inativo</span>
-                                        {% endif %}
-                                    </td>
-                                    {% if user.role == 'admin' %}
-                                    <td class="text-end">
-                                        <button onclick="updateRole('{{ u.id_usuario }}', '{{ u.role }}')" class="btn btn-sm btn-outline-primary" title="Editar Papel"><i class="bi bi-pencil"></i></button>
-                                        <button onclick="deleteUser('{{ u.id_usuario }}')" class="btn btn-sm btn-outline-danger ms-1" title="Excluir"><i class="bi bi-trash"></i></button>
-                                    </td>
-                                    {% endif %}
-                                </tr>
-                                {% else %}
-                                <tr>
-                                    <td colspan="{% if user.role == 'admin' %}6{% else %}5{% endif %}" class="text-center py-4 text-muted">Nenhum usuário encontrado.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+
+        {# ── Aba de Usuários (Admin/Mecânico) ── #}
+        {% if user.role in ['admin', 'mecanico'] and tab == 'usuarios' %}
+        <div class="tab-pane fade show active" id="usuarios" role="tabpanel">
+            {% include "partials/UserPanel.html" %}
+        </div>
+        {% endif %}
+
+        {# ── Aba de Produtos ── #}
+        {% if tab == 'produtos' %}
+        <div class="tab-pane fade show active" id="produtos" role="tabpanel">
+            <div class="card border-0 shadow rounded" style="background-color: #111;">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-box-seam display-1 mb-3" style="color: #444;"></i>
+                    <h4 class="fw-bold text-white">Módulo em Desenvolvimento</h4>
+                    <p class="text-muted">Em breve você poderá gerenciar Produtos aqui.</p>
                 </div>
             </div>
         </div>
         {% endif %}
 
-        <!-- Aba de Produtos -->
-        <div class="tab-pane fade {% if tab == 'produtos' %}show active{% endif %}" id="produtos" role="tabpanel">
-            <div class="card border-0 shadow-sm text-center py-5">
-                <div class="card-body">
-                    <i class="bi bi-box-seam display-1 text-muted mb-3"></i>
-                    <h4 class="fw-bold">Módulo em desenvolvimento</h4>
-                    <p class="text-muted">Em breve você poderá gerenciar Produtos aqui.</p>
+        {# ── Aba de Serviços ── #}
+        {% if tab == 'servicos' %}
+        <div class="tab-pane fade show active" id="servicos" role="tabpanel">
+            <div class="card border-0 shadow rounded" style="background-color: #111;">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-tools display-1 mb-3" style="color: #444;"></i>
+                    <h4 class="fw-bold text-white">Módulo em Desenvolvimento</h4>
+                    <p class="text-muted">Em breve você poderá gerenciar Serviços aqui.</p>
                 </div>
             </div>
         </div>
+        {% endif %}
 
-        <!-- Aba de Pedidos -->
-        <div class="tab-pane fade {% if tab == 'pedidos' %}show active{% endif %}" id="pedidos" role="tabpanel">
-            <div class="card border-0 shadow-sm text-center py-5">
-                <div class="card-body">
-                    <i class="bi bi-cart3 display-1 text-muted mb-3"></i>
-                    <h4 class="fw-bold">Módulo em desenvolvimento</h4>
+        {# ── Aba de Pedidos ── #}
+        {% if tab == 'pedidos' %}
+        <div class="tab-pane fade show active" id="pedidos" role="tabpanel">
+            <div class="card border-0 shadow rounded" style="background-color: #111;">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-cart3 display-1 mb-3" style="color: #444;"></i>
+                    <h4 class="fw-bold text-white">Módulo em Desenvolvimento</h4>
                     <p class="text-muted">Em breve você poderá gerenciar Pedidos aqui.</p>
                 </div>
             </div>
         </div>
-
-        <!-- Aba de Ordens de Serviço (OS) -->
-        <div class="tab-pane fade {% if tab == 'os' %}show active{% endif %}" id="os" role="tabpanel">
-            <div class="card border-0 shadow-sm text-center py-5">
-                <div class="card-body">
-                    <i class="bi bi-tools display-1 text-muted mb-3"></i>
-                    <h4 class="fw-bold">Módulo em desenvolvimento</h4>
-                    <p class="text-muted">Em breve você poderá gerenciar Ordens de Serviço aqui.</p>
-                </div>
-            </div>
-        </div>
+        {% endif %}
 
     </div>
 </div>
-
-<script>
-    async function updateRole(userId, currentRole) {
-        const newRole = prompt("Digite o novo cargo (admin, mecanico, cliente):", currentRole);
-        if (!newRole || newRole === currentRole) return;
-        
-        if (!['admin', 'mecanico', 'cliente'].includes(newRole.toLowerCase())) {
-            alert("Cargo inválido. Use: admin, mecanico ou cliente.");
-            return;
-        }
-
-        try {
-            const response = await fetch(`/api/users/${userId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ role: newRole.toLowerCase() })
-            });
-            if (response.ok) {
-                location.reload();
-            } else {
-                const err = await response.json();
-                alert("Erro: " + (err.detail || "Não foi possível atualizar o cargo"));
-            }
-        } catch (e) {
-            alert("Erro na requisição.");
-        }
-    }
-
-    async function deleteUser(userId) {
-        if (!confirm("Tem certeza que deseja desativar/excluir este usuário?")) return;
-        
-        try {
-            const response = await fetch(`/api/users/${userId}`, {
-                method: 'DELETE'
-            });
-            if (response.ok) {
-                location.reload();
-            } else {
-                const err = await response.json();
-                alert("Erro: " + (err.detail || "Não foi possível excluir o usuário"));
-            }
-        } catch (e) {
-            alert("Erro na requisição.");
-        }
-    }
-</script>
 {% endblock %}
