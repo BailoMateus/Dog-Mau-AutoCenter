@@ -1,0 +1,334 @@
+{# ──────────────────────────────────────────────────────────────────
+   Partial: UserPanel.html
+   Conteúdo reutilizável de gerenciamento de usuários.
+   Pode ser incluído tanto em admin_usuarios.html (página isolada)
+   quanto dentro de uma aba do painel.html.
+
+   Requer no contexto:
+     - user      (dict com .role)
+     - usuarios  (lista de dicts de usuários)
+   ────────────────────────────────────────────────────────────────── #}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <h2 class="fw-bold m-0" style="color: rgba(192, 37, 43); font-family: 'Orbitron', sans-serif;">
+        <i class="bi bi-people-fill me-2"></i>Gerenciamento de Usuários
+    </h2>
+    {% if user.role == 'admin' %}
+    <button class="btn btn-primary px-4 py-2" onclick="openModal('create', null)">
+        <i class="bi bi-person-plus-fill me-2"></i>Novo Usuário
+    </button>
+    {% endif %}
+</div>
+
+<div class="table-responsive rounded shadow card p-0 border-0" style="background-color: #111;">
+    <table class="table table-dark table-hover align-middle mb-0" style="background-color: transparent;">
+        <thead class="table-dark text-uppercase small" style="border-bottom: 2px solid #222;">
+            <tr>
+                <th class="py-3">ID</th>
+                <th class="py-3">Nome</th>
+                <th class="py-3">Email</th>
+                <th class="py-3">Cargo</th>
+                <th class="py-3">Status</th>
+                {% if user.role == 'admin' %}
+                <th class="text-end py-3">Ações</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in usuarios %}
+            <tr>
+                <td>{{ u.id_usuario }}</td>
+                <td>{{ u.nome }}</td>
+                <td>{{ u.email }}</td>
+                <td>
+                    <span class="badge {% if u.role == 'admin' %}bg-danger{% elif u.role == 'mecanico' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">
+                        {{ u.role | upper }}
+                    </span>
+                </td>
+                <td>
+                    {% if u.ativo %}
+                        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> Ativo</span>
+                    {% else %}
+                        <span class="badge bg-secondary"><i class="bi bi-x-circle me-1"></i> Inativo</span>
+                    {% endif %}
+                </td>
+                {% if user.role == 'admin' %}
+                <td class="text-end">
+                    <button class="btn btn-sm btn-outline-primary me-2" 
+                            onclick="openModal('edit', this)" 
+                            data-user-id="{{ u.id_usuario }}" 
+                            data-user-nome="{{ u.nome }}" 
+                            data-user-email="{{ u.email }}" 
+                            data-user-role="{{ u.role }}" 
+                            data-user-ativo="{{ u.ativo }}">
+                        <i class="bi bi-pencil"></i> Editar
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="openDeleteModal(this)" data-user-id="{{ u.id_usuario }}" data-user-nome="{{ u.nome }}">
+                        <i class="bi bi-trash"></i> Excluir
+                    </button>
+                </td>
+                {% endif %}
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="{% if user.role == 'admin' %}6{% else %}5{% endif %}" class="text-center py-4 text-muted">Nenhum usuário encontrado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if user.role == 'admin' %}
+<!-- Modal Formulário (Criar/Editar) -->
+<div id="formModal" class="custom-modal d-none">
+    <div class="custom-modal-content rounded shadow card p-0" style="background-color: #111; border: 1px solid #222; max-width: 500px;">
+        <div class="custom-modal-header border-bottom border-secondary p-3 d-flex justify-content-between align-items-center">
+            <h5 class="m-0 fw-bold" id="modalTitle" style="color: rgba(192, 37, 43);">Novo Usuário</h5>
+            <button type="button" class="btn-close btn-close-white" onclick="closeModal('formModal')"></button>
+        </div>
+        <div class="custom-modal-body p-4">
+            <form id="userForm" class="form-signin w-100 m-auto" style="max-width: 100%;">
+                <input type="hidden" id="userId" name="id" />
+                
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="userName" name="nome" placeholder="Nome Completo" required>
+                    <label for="userName" class="text-white-50">Nome Completo</label>
+                </div>
+                
+                <div class="form-floating mb-3">
+                    <input type="email" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="userEmail" name="email" placeholder="name@example.com" required>
+                    <label for="userEmail" class="text-white-50">Email</label>
+                </div>
+                
+                <div class="mb-3" id="passwordGroup">
+                    <div class="form-floating">
+                        <input type="password" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="userPassword" name="password" placeholder="Senha">
+                        <label for="userPassword" class="text-white-50">Senha</label>
+                    </div>
+                    <div class="form-text text-muted small mt-1" id="passwordHelp">Deixe em branco para não alterar a senha atual.</div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="form-floating">
+                            <select class="form-select text-white" style="background-color: #0b0b0b; border-color: #333; height: 58px; padding-top: 1.625rem; padding-bottom: 0.625rem;" id="userRole" name="role" required>
+                                <option value="cliente">Cliente</option>
+                                <option value="mecanico">Mecânico</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                            <label for="userRole" class="text-white-50">Cargo (Role)</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3 d-flex align-items-center justify-content-center">
+                        <div class="form-check form-switch fs-5">
+                            <input class="form-check-input" type="checkbox" role="switch" id="userAtivo" name="ativo" checked>
+                            <label class="form-check-label ms-2 text-white" for="userAtivo">Usuário Ativo</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="formError" class="alert alert-danger d-none small"></div>
+                
+                <div class="d-flex justify-content-between gap-2 mt-4">
+                    <button type="button" class="btn btn-outline-secondary w-50 py-2" onclick="closeModal('formModal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary w-50 py-2" id="saveButton">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmação de Exclusão -->
+<div id="deleteModal" class="custom-modal d-none">
+    <div class="custom-modal-content rounded shadow card p-0" style="max-width: 400px; background-color: #111; border: 1px solid #222;">
+        <div class="custom-modal-header border-bottom border-secondary p-3 text-center position-relative">
+            <h5 class="m-0 text-danger w-100 fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Atenção</h5>
+            <button type="button" class="btn-close btn-close-white position-absolute top-50 end-0 translate-middle-y me-3" onclick="closeModal('deleteModal')"></button>
+        </div>
+        <div class="custom-modal-body p-4 text-center">
+            <p class="mb-0 text-white">Tem certeza que deseja excluir o usuário <br><strong id="deleteUserName" style="color: rgba(192, 37, 43);"></strong>?</p>
+            <p class="text-muted small mt-2">Esta ação desativará a conta do usuário (Soft Delete).</p>
+            <input type="hidden" id="deleteUserId">
+            <div id="deleteError" class="alert alert-danger d-none small mt-3"></div>
+        </div>
+        <div class="custom-modal-footer border-top border-secondary p-3 d-flex justify-content-between gap-2">
+            <button type="button" class="btn btn-outline-secondary w-50 py-2" onclick="closeModal('deleteModal')">Cancelar</button>
+            <button type="button" class="btn btn-danger w-50 py-2" onclick="confirmDelete()" id="btnConfirmDelete">Confirmar Exclusão</button>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{# ── Estilos e Scripts (embutidos no partial para portabilidade) ── #}
+<style>
+/* Estilos Customizados para Modais In-Page (Evitando alert nativo) */
+.custom-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 1055;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(3px);
+}
+.custom-modal-content {
+    background-color: var(--bs-body-bg);
+    width: 100%;
+    max-width: 500px;
+    margin: 1rem;
+    animation: modalFadeIn 0.2s ease-out;
+}
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+{% if user.role == 'admin' %}
+<script>
+    let currentMode = 'create';
+
+    function openModal(mode, btnElement) {
+        currentMode = mode;
+        const form = document.getElementById('userForm');
+        form.reset();
+        document.getElementById('formError').classList.add('d-none');
+
+        const title = document.getElementById('modalTitle');
+        const passHelp = document.getElementById('passwordHelp');
+        const passInput = document.getElementById('userPassword');
+
+        if (mode === 'create') {
+            title.textContent = 'Novo Usuário';
+            passHelp.classList.add('d-none');
+            passInput.required = true;
+            document.getElementById('userId').value = '';
+            document.getElementById('userAtivo').checked = true;
+            document.getElementById('userRole').value = 'cliente';
+        } else if (mode === 'edit' && btnElement) {
+            title.textContent = 'Editar Usuário';
+            passHelp.classList.remove('d-none');
+            passInput.required = false;
+
+            document.getElementById('userId').value = btnElement.getAttribute('data-user-id');
+            document.getElementById('userName').value = btnElement.getAttribute('data-user-nome');
+            document.getElementById('userEmail').value = btnElement.getAttribute('data-user-email');
+            document.getElementById('userRole').value = btnElement.getAttribute('data-user-role');
+            document.getElementById('userAtivo').checked = btnElement.getAttribute('data-user-ativo') === 'True';
+        }
+
+        document.getElementById('formModal').classList.remove('d-none');
+    }
+
+    function openDeleteModal(btnElement) {
+        const id = btnElement.getAttribute('data-user-id');
+        const nome = btnElement.getAttribute('data-user-nome');
+        document.getElementById('deleteUserId').value = id;
+        document.getElementById('deleteUserName').textContent = nome;
+        document.getElementById('deleteError').classList.add('d-none');
+        document.getElementById('deleteModal').classList.remove('d-none');
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.add('d-none');
+    }
+
+    // Fechar modal ao clicar fora dele
+    document.querySelectorAll('.custom-modal').forEach(modal => {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal(this.id);
+            }
+        });
+    });
+
+    // Submit Form (Create / Edit)
+    document.getElementById('userForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const saveBtn = document.getElementById('saveButton');
+        const errBox = document.getElementById('formError');
+        errBox.classList.add('d-none');
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Salvando...';
+
+        const id = document.getElementById('userId').value;
+        const nome = document.getElementById('userName').value;
+        const email = document.getElementById('userEmail').value;
+        const role = document.getElementById('userRole').value;
+        const ativo = document.getElementById('userAtivo').checked;
+        const password = document.getElementById('userPassword').value;
+
+        const payload = { nome, email, role, ativo };
+        if (password) {
+            payload.password = password;
+        }
+
+        const url = currentMode === 'create' ? '/api/users' : `/api/users/${id}`;
+        const method = currentMode === 'create' ? 'POST' : 'PATCH';
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                errBox.textContent = data.detail || 'Erro ao salvar o usuário. Verifique os dados.';
+                errBox.classList.remove('d-none');
+            }
+        } catch (error) {
+            console.error(error);
+            errBox.textContent = 'Erro de rede ao se comunicar com o servidor.';
+            errBox.classList.remove('d-none');
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = 'Salvar';
+        }
+    });
+
+    // Confirm Delete
+    async function confirmDelete() {
+        const id = document.getElementById('deleteUserId').value;
+        const btn = document.getElementById('btnConfirmDelete');
+        const errBox = document.getElementById('deleteError');
+        
+        errBox.classList.add('d-none');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Excluindo...';
+
+        try {
+            const response = await fetch(`/api/users/${id}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                errBox.textContent = data.detail || 'Usuário não pôde ser excluído.';
+                errBox.classList.remove('d-none');
+            }
+        } catch (error) {
+            console.error(error);
+            errBox.textContent = 'Erro de rede ao se comunicar com o servidor.';
+            errBox.classList.remove('d-none');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Confirmar Exclusão';
+        }
+    }
+</script>
+{% endif %}

@@ -125,6 +125,34 @@ def logout(request: Request):
     response.delete_cookie("access_token") # Por segurança, limpa o antigo também
     return response
 
+@router.get("/painel", include_in_schema=False)
+def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
+    """Painel unificado — requer autenticação.
+
+    Admin/Mecânico veem abas de gestão (Usuários, Produtos, OS).
+    Cliente vê sua própria área (Meus Pedidos, Minhas OS).
+    """
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
+
+    # Define a aba padrão conforme o role
+    if not tab:
+        tab = "usuarios" if user.get("role") in ("admin", "mecanico") else "pedidos"
+
+    # Carrega lista de usuários apenas para roles que precisam
+    usuarios = []
+    if user.get("role") in ("admin", "mecanico"):
+        usuarios = list_users()
+
+    return templates.TemplateResponse("pages/painel.html", {
+        "request": request,
+        "user": user,
+        "usuarios": usuarios,
+        "tab": tab,
+        "page": "painel",
+    })
+
+
 @router.get("/admin/usuarios", include_in_schema=False)
 def admin_usuarios_page(request: Request, user=Depends(get_page_user)):
     """Página de administração de usuários — apenas para ADMIN."""
