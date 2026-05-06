@@ -4,6 +4,21 @@
 {% if user.role == 'admin' %}Painel de Gestão{% elif user.role == 'mecanico' %}Painel Operacional{% else %}Minha Área{% endif %} - Dog Mau AutoCenter
 {% endblock %}
 
+{% block extra_scripts %}
+<style>
+    .painel-nav-tabs { border-bottom-color: #333 !important; }
+    .nav-tab-item { transition: all 0.2s ease; }
+    .nav-tab-link { color: #aaa !important; border: 1px solid transparent !important; }
+    .nav-tab-link:hover { color: rgba(192, 37, 43) !important; background-color: #0a0a0a !important; }
+    .nav-tab-link.active { 
+        background-color: #111 !important; 
+        color: rgba(192, 37, 43) !important; 
+        border-color: #333 #333 #111 !important;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-5">
     <!-- Cabeçalho do Painel -->
@@ -21,34 +36,37 @@
     </div>
 
     <!-- Navegação em Abas -->
-    <ul class="nav nav-tabs mb-4" id="painelTabs" role="tablist" style="border-bottom-color: #333;">
+    <ul class="nav nav-tabs mb-4 painel-nav-tabs" id="painelTabs" role="tablist">
         {% if user.role in ['admin', 'mecanico'] %}
         <li class="nav-item" role="presentation">
-            <a class="nav-link {% if tab == 'usuarios' %}active{% endif %}" href="?tab=usuarios" role="tab"
-               style="{% if tab == 'usuarios' %}background-color: #111; color: rgba(192, 37, 43); border-color: #333 #333 #111;{% else %}color: #aaa;{% endif %}">
+            <a class="nav-link nav-tab-link {% if tab == 'usuarios' %}active{% endif %}" href="?tab=usuarios" role="tab">
                 <i class="bi bi-people-fill me-1"></i>Usuários
+            </a>
+        </li>
+        {% else %}
+        <li class="nav-item" role="presentation">
+            <a class="nav-link nav-tab-link {% if tab == 'meu_usuario' %}active{% endif %}" href="?tab=meu_usuario" role="tab">
+                <i class="bi bi-person-badge me-1"></i>Meu Usuário
             </a>
         </li>
         {% endif %}
 
         <li class="nav-item" role="presentation">
-            <a class="nav-link {% if tab == 'produtos' %}active{% endif %}" href="?tab=produtos" role="tab"
-               style="{% if tab == 'produtos' %}background-color: #111; color: rgba(192, 37, 43); border-color: #333 #333 #111;{% else %}color: #aaa;{% endif %}">
-                <i class="bi bi-box-seam me-1"></i>Produtos
+            <a class="nav-link nav-tab-link {% if tab == 'produtos' %}active{% endif %}" href="?tab=produtos" role="tab">
+                <i class="bi bi-box-seam me-1"></i>
+                {% if user.role in ['admin', 'mecanico'] %}Produtos{% else %}Meus Produtos{% endif %}
             </a>
         </li>
 
         <li class="nav-item" role="presentation">
-            <a class="nav-link {% if tab == 'servicos' %}active{% endif %}" href="?tab=servicos" role="tab"
-               style="{% if tab == 'servicos' %}background-color: #111; color: rgba(192, 37, 43); border-color: #333 #333 #111;{% else %}color: #aaa;{% endif %}">
+            <a class="nav-link nav-tab-link {% if tab == 'servicos' %}active{% endif %}" href="?tab=servicos" role="tab">
                 <i class="bi bi-tools me-1"></i>
                 {% if user.role in ['admin', 'mecanico'] %}Serviços{% else %}Meus Serviços{% endif %}
             </a>
         </li>
 
         <li class="nav-item" role="presentation">
-            <a class="nav-link {% if tab == 'pedidos' %}active{% endif %}" href="?tab=pedidos" role="tab"
-               style="{% if tab == 'pedidos' %}background-color: #111; color: rgba(192, 37, 43); border-color: #333 #333 #111;{% else %}color: #aaa;{% endif %}">
+            <a class="nav-link nav-tab-link {% if tab == 'pedidos' %}active{% endif %}" href="?tab=pedidos" role="tab">
                 <i class="bi bi-cart3 me-1"></i>
                 {% if user.role in ['admin', 'mecanico'] %}Pedidos{% else %}Meus Pedidos{% endif %}
             </a>
@@ -62,6 +80,33 @@
         {% if user.role in ['admin', 'mecanico'] and tab == 'usuarios' %}
         <div class="tab-pane fade show active" id="usuarios" role="tabpanel">
             {% include "partials/UserPanel.html" %}
+        </div>
+        {% endif %}
+
+        {# ── Aba de Perfil (Cliente) ── #}
+        {% if user.role == 'cliente' and tab == 'meu_usuario' %}
+        <div class="tab-pane fade show active" id="perfil" role="tabpanel">
+            <div class="card border-0 shadow rounded" style="background-color: #111;">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold text-white mb-4"><i class="bi bi-person-badge me-2"></i>Meus Dados</h4>
+                    <div class="row text-white">
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small d-block">Nome</label>
+                            <span class="fs-5">{{ user.nome }}</span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small d-block">E-mail</label>
+                            <span class="fs-5">{{ user.email }}</span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small d-block">Cargo</label>
+                            <span class="badge bg-info text-dark">{{ user.role | upper }}</span>
+                        </div>
+                    </div>
+                    <hr class="border-secondary my-4">
+                    <p class="text-muted small">Para alterar seus dados, entre em contato com o suporte ou use a opção "Perfil" no menu superior.</p>
+                </div>
+            </div>
         </div>
         {% endif %}
 

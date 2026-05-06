@@ -137,7 +137,7 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
 
     # Define a aba padrão conforme o role
     if not tab:
-        tab = "usuarios" if user.get("role") in ("admin", "mecanico") else "pedidos"
+        tab = "usuarios" if user.get("role") in ("admin", "mecanico") else "meu_usuario"
 
     # Carrega lista de usuários apenas para roles que precisam
     usuarios = []
