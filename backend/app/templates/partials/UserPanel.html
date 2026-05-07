@@ -30,7 +30,7 @@
                 <th class="py-3">Cargo</th>
                 <th class="py-3">Status</th>
                 {% if user.role == 'admin' %}
-                <th class="text-end py-3">Ações</th>
+                <th class="text-center py-3">Ações</th>
                 {% endif %}
             </tr>
         </thead>
@@ -53,7 +53,7 @@
                     {% endif %}
                 </td>
                 {% if user.role == 'admin' %}
-                <td class="text-end">
+                <td class="text-center">
                     <button class="btn btn-sm btn-outline-primary me-2" 
                             onclick="openModal('edit', this)" 
                             data-user-id="{{ u.id_usuario }}" 

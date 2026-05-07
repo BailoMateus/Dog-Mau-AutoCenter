@@ -22,6 +22,7 @@ from app.core.config import SECRET_KEY, ALGORITHM
 from app.core.settings import get_settings
 from app.database.db import execute_query
 from app.services.user_service import list_users
+from app.services import servico_service
 
 logger = logging.getLogger(__name__)
 
@@ -139,15 +140,18 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
     if not tab:
         tab = "usuarios" if user.get("role") in ("admin", "mecanico") else "meu_usuario"
 
-    # Carrega lista de usuários apenas para roles que precisam
+    # Carrega dados apenas para roles que precisam
     usuarios = []
+    servicos = []
     if user.get("role") in ("admin", "mecanico"):
         usuarios = list_users()
+        servicos = servico_service.list_servicos()
 
     return templates.TemplateResponse("pages/painel.html", {
         "request": request,
         "user": user,
         "usuarios": usuarios,
+        "servicos": servicos,
         "tab": tab,
         "page": "painel",
     })
