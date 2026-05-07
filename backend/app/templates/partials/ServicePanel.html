@@ -184,7 +184,7 @@
         document.getElementById(modalId).classList.add('d-none');
     }
 
-    // Fechar modal ao clicar fora
+    // Fechar modal ao clicar fora dele (apenas para modais de serviço)
     document.querySelectorAll('#serviceFormModal, #deleteServiceModal').forEach(modal => {
         modal.addEventListener('click', function(e) {
             if (e.target === this) {
