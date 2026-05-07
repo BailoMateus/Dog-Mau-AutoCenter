@@ -126,13 +126,7 @@
         {# ── Aba de Serviços ── #}
         {% if tab == 'servicos' %}
         <div class="tab-pane fade show active" id="servicos" role="tabpanel">
-            <div class="card border-0 shadow rounded" style="background-color: #111;">
-                <div class="card-body text-center py-5">
-                    <i class="bi bi-tools display-1 mb-3" style="color: #444;"></i>
-                    <h4 class="fw-bold text-white">Módulo em Desenvolvimento</h4>
-                    <p class="text-muted">Em breve você poderá gerenciar Serviços aqui.</p>
-                </div>
-            </div>
+            {% include "partials/ServicePanel.html" %}
         </div>
         {% endif %}
 
