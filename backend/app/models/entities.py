@@ -182,6 +182,15 @@ class Mecanico:
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
 
+@dataclass
+class MovimentacaoEstoque:
+    id_movimentacao: Optional[int] = None
+    id_peca: int = 0
+    tipo_movimentacao: str = ""  # 'saida' ou 'entrada'
+    quantidade: int = 0
+    motivo: str = ""
+    created_at: Optional[datetime] = None
+
 # Funções auxiliares para converter dicionários do banco para entidades
 def dict_to_user(data: dict) -> User:
     """Converte dicionário do banco para entidade User."""
@@ -284,6 +293,12 @@ def dict_to_mecanico(data: dict) -> Mecanico:
     if not data:
         return None
     return Mecanico(**data)
+
+def dict_to_movimentacao_estoque(data: dict) -> MovimentacaoEstoque:
+    """Converte dicionário do banco para entidade MovimentacaoEstoque."""
+    if not data:
+        return None
+    return MovimentacaoEstoque(**data)
 
 # Funções para converter entidades para dicionários (para INSERT/UPDATE)
 def user_to_dict(user: User, exclude_password: bool = False) -> dict:
@@ -445,4 +460,13 @@ def mecanico_to_dict(mecanico: Mecanico) -> dict:
         'telefone': mecanico.telefone,
         'email': mecanico.email,
         'ativo': mecanico.ativo
+    }
+
+def movimentacao_estoque_to_dict(movimentacao: MovimentacaoEstoque) -> dict:
+    """Converte entidade MovimentacaoEstoque para dicionário."""
+    return {
+        'id_peca': movimentacao.id_peca,
+        'tipo_movimentacao': movimentacao.tipo_movimentacao,
+        'quantidade': movimentacao.quantidade,
+        'motivo': movimentacao.motivo
     }
