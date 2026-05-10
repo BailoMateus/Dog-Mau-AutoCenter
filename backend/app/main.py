@@ -29,6 +29,7 @@ from app.controllers.peca_controller import router as pecas_router
 from app.controllers.pedido_controller import router as pedidos_router
 from app.controllers.pedido_produto_controller import router as pedido_itens_router
 from app.controllers.agendamento_controller import router as agendamentos_router
+from app.controllers.orcamento_controller import router as orcamentos_router
 from app.core.roles import ADMIN
 from app.core.security import require_role
 from app.database.db import get_db
@@ -56,6 +57,7 @@ app.include_router(pecas_router)
 app.include_router(pedidos_router)
 app.include_router(pedido_itens_router)
 app.include_router(agendamentos_router)
+app.include_router(orcamentos_router)
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):

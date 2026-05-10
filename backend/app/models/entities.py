@@ -122,6 +122,17 @@ class Agendamento:
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
 
+@dataclass
+class Orcamento:
+    id_orcamento: Optional[int] = None
+    id_cliente: int = 0
+    id_veiculo: int = 0
+    status: str = "pendente"
+    valor_total: float = 0.0
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    deleted_at: Optional[datetime] = None
+
 # Funções auxiliares para converter dicionários do banco para entidades
 def dict_to_user(data: dict) -> User:
     """Converte dicionário do banco para entidade User."""
@@ -182,6 +193,12 @@ def dict_to_agendamento(data: dict) -> Agendamento:
     if not data:
         return None
     return Agendamento(**data)
+
+def dict_to_orcamento(data: dict) -> Orcamento:
+    """Converte dicionário do banco para entidade Orcamento."""
+    if not data:
+        return None
+    return Orcamento(**data)
 
 # Funções para converter entidades para dicionários (para INSERT/UPDATE)
 def user_to_dict(user: User, exclude_password: bool = False) -> dict:
@@ -281,4 +298,13 @@ def agendamento_to_dict(agendamento: Agendamento) -> dict:
         'data_agendamento': agendamento.data_agendamento,
         'descricao': agendamento.descricao,
         'status': agendamento.status
+    }
+
+def orcamento_to_dict(orcamento: Orcamento) -> dict:
+    """Converte entidade Orcamento para dicionário."""
+    return {
+        'id_cliente': orcamento.id_cliente,
+        'id_veiculo': orcamento.id_veiculo,
+        'status': orcamento.status,
+        'valor_total': orcamento.valor_total
     }
