@@ -145,6 +145,31 @@ class OrcamentoServico:
     id_servico: int = 0
     quantidade: int = 1
 
+@dataclass
+class OrdemServico:
+    id_ordem_servico: Optional[int] = None
+    id_orcamento: int = 0
+    id_veiculo: int = 0
+    status: str = "aberta"
+    valor_total: float = 0.0
+    data_inicio: Optional[datetime] = None
+    data_conclusao: Optional[datetime] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    deleted_at: Optional[datetime] = None
+
+@dataclass
+class OrdemServicoPeca:
+    id_ordem_servico: int = 0
+    id_peca: int = 0
+    quantidade: int = 1
+
+@dataclass
+class OrdemServicoServico:
+    id_ordem_servico: int = 0
+    id_servico: int = 0
+    quantidade: int = 1
+
 # Funções auxiliares para converter dicionários do banco para entidades
 def dict_to_user(data: dict) -> User:
     """Converte dicionário do banco para entidade User."""
@@ -223,6 +248,24 @@ def dict_to_orcamento_servico(data: dict) -> OrcamentoServico:
     if not data:
         return None
     return OrcamentoServico(**data)
+
+def dict_to_ordem_servico(data: dict) -> OrdemServico:
+    """Converte dicionário do banco para entidade OrdemServico."""
+    if not data:
+        return None
+    return OrdemServico(**data)
+
+def dict_to_ordem_servico_peca(data: dict) -> OrdemServicoPeca:
+    """Converte dicionário do banco para entidade OrdemServicoPeca."""
+    if not data:
+        return None
+    return OrdemServicoPeca(**data)
+
+def dict_to_ordem_servico_servico(data: dict) -> OrdemServicoServico:
+    """Converte dicionário do banco para entidade OrdemServicoServico."""
+    if not data:
+        return None
+    return OrdemServicoServico(**data)
 
 # Funções para converter entidades para dicionários (para INSERT/UPDATE)
 def user_to_dict(user: User, exclude_password: bool = False) -> dict:
@@ -347,4 +390,31 @@ def orcamento_servico_to_dict(orcamento_servico: OrcamentoServico) -> dict:
         'id_orcamento': orcamento_servico.id_orcamento,
         'id_servico': orcamento_servico.id_servico,
         'quantidade': orcamento_servico.quantidade
+    }
+
+def ordem_servico_to_dict(ordem_servico: OrdemServico) -> dict:
+    """Converte entidade OrdemServico para dicionário."""
+    return {
+        'id_orcamento': ordem_servico.id_orcamento,
+        'id_veiculo': ordem_servico.id_veiculo,
+        'status': ordem_servico.status,
+        'valor_total': ordem_servico.valor_total,
+        'data_inicio': ordem_servico.data_inicio,
+        'data_conclusao': ordem_servico.data_conclusao
+    }
+
+def ordem_servico_peca_to_dict(ordem_servico_peca: OrdemServicoPeca) -> dict:
+    """Converte entidade OrdemServicoPeca para dicionário."""
+    return {
+        'id_ordem_servico': ordem_servico_peca.id_ordem_servico,
+        'id_peca': ordem_servico_peca.id_peca,
+        'quantidade': ordem_servico_peca.quantidade
+    }
+
+def ordem_servico_servico_to_dict(ordem_servico_servico: OrdemServicoServico) -> dict:
+    """Converte entidade OrdemServicoServico para dicionário."""
+    return {
+        'id_ordem_servico': ordem_servico_servico.id_ordem_servico,
+        'id_servico': ordem_servico_servico.id_servico,
+        'quantidade': ordem_servico_servico.quantidade
     }
