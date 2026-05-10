@@ -147,12 +147,12 @@ class OrcamentoServico:
 
 @dataclass
 class OrdemServico:
-    id_ordem_servico: Optional[int] = None
-    id_orcamento: int = 0
+    id_os: Optional[int] = None
     id_veiculo: int = 0
+    id_mecanico: int = 0
+    descricao_problema: str = ""
     status: str = "aberta"
-    valor_total: float = 0.0
-    data_inicio: Optional[datetime] = None
+    data_abertura: Optional[datetime] = None
     data_conclusao: Optional[datetime] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
@@ -160,15 +160,27 @@ class OrdemServico:
 
 @dataclass
 class OrdemServicoPeca:
-    id_ordem_servico: int = 0
+    id_os: int = 0
     id_peca: int = 0
     quantidade: int = 1
 
 @dataclass
 class OrdemServicoServico:
-    id_ordem_servico: int = 0
+    id_os: int = 0
     id_servico: int = 0
     quantidade: int = 1
+
+@dataclass
+class Mecanico:
+    id_mecanico: Optional[int] = None
+    nome: str = ""
+    especialidade: str = ""
+    telefone: str = ""
+    email: str = ""
+    ativo: bool = True
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    deleted_at: Optional[datetime] = None
 
 # Funções auxiliares para converter dicionários do banco para entidades
 def dict_to_user(data: dict) -> User:
@@ -266,6 +278,12 @@ def dict_to_ordem_servico_servico(data: dict) -> OrdemServicoServico:
     if not data:
         return None
     return OrdemServicoServico(**data)
+
+def dict_to_mecanico(data: dict) -> Mecanico:
+    """Converte dicionário do banco para entidade Mecanico."""
+    if not data:
+        return None
+    return Mecanico(**data)
 
 # Funções para converter entidades para dicionários (para INSERT/UPDATE)
 def user_to_dict(user: User, exclude_password: bool = False) -> dict:
@@ -395,18 +413,18 @@ def orcamento_servico_to_dict(orcamento_servico: OrcamentoServico) -> dict:
 def ordem_servico_to_dict(ordem_servico: OrdemServico) -> dict:
     """Converte entidade OrdemServico para dicionário."""
     return {
-        'id_orcamento': ordem_servico.id_orcamento,
         'id_veiculo': ordem_servico.id_veiculo,
+        'id_mecanico': ordem_servico.id_mecanico,
+        'descricao_problema': ordem_servico.descricao_problema,
         'status': ordem_servico.status,
-        'valor_total': ordem_servico.valor_total,
-        'data_inicio': ordem_servico.data_inicio,
+        'data_abertura': ordem_servico.data_abertura,
         'data_conclusao': ordem_servico.data_conclusao
     }
 
 def ordem_servico_peca_to_dict(ordem_servico_peca: OrdemServicoPeca) -> dict:
     """Converte entidade OrdemServicoPeca para dicionário."""
     return {
-        'id_ordem_servico': ordem_servico_peca.id_ordem_servico,
+        'id_os': ordem_servico_peca.id_os,
         'id_peca': ordem_servico_peca.id_peca,
         'quantidade': ordem_servico_peca.quantidade
     }
@@ -414,7 +432,17 @@ def ordem_servico_peca_to_dict(ordem_servico_peca: OrdemServicoPeca) -> dict:
 def ordem_servico_servico_to_dict(ordem_servico_servico: OrdemServicoServico) -> dict:
     """Converte entidade OrdemServicoServico para dicionário."""
     return {
-        'id_ordem_servico': ordem_servico_servico.id_ordem_servico,
+        'id_os': ordem_servico_servico.id_os,
         'id_servico': ordem_servico_servico.id_servico,
         'quantidade': ordem_servico_servico.quantidade
+    }
+
+def mecanico_to_dict(mecanico: Mecanico) -> dict:
+    """Converte entidade Mecanico para dicionário."""
+    return {
+        'nome': mecanico.nome,
+        'especialidade': mecanico.especialidade,
+        'telefone': mecanico.telefone,
+        'email': mecanico.email,
+        'ativo': mecanico.ativo
     }
