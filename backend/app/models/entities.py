@@ -110,6 +110,18 @@ class PedidoProduto:
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
 
+@dataclass
+class Agendamento:
+    id_agendamento: Optional[int] = None
+    id_cliente: int = 0
+    id_veiculo: int = 0
+    data_agendamento: Optional[datetime] = None
+    descricao: str = ""
+    status: str = "agendado"
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    deleted_at: Optional[datetime] = None
+
 # Funções auxiliares para converter dicionários do banco para entidades
 def dict_to_user(data: dict) -> User:
     """Converte dicionário do banco para entidade User."""
@@ -164,6 +176,12 @@ def dict_to_pedido_produto(data: dict) -> PedidoProduto:
     if not data:
         return None
     return PedidoProduto(**data)
+
+def dict_to_agendamento(data: dict) -> Agendamento:
+    """Converte dicionário do banco para entidade Agendamento."""
+    if not data:
+        return None
+    return Agendamento(**data)
 
 # Funções para converter entidades para dicionários (para INSERT/UPDATE)
 def user_to_dict(user: User, exclude_password: bool = False) -> dict:
@@ -253,4 +271,14 @@ def pedido_produto_to_dict(pedido_produto: PedidoProduto) -> dict:
         'id_pedido': pedido_produto.id_pedido,
         'id_produto': pedido_produto.id_produto,
         'quantidade': pedido_produto.quantidade
+    }
+
+def agendamento_to_dict(agendamento: Agendamento) -> dict:
+    """Converte entidade Agendamento para dicionário."""
+    return {
+        'id_cliente': agendamento.id_cliente,
+        'id_veiculo': agendamento.id_veiculo,
+        'data_agendamento': agendamento.data_agendamento,
+        'descricao': agendamento.descricao,
+        'status': agendamento.status
     }
