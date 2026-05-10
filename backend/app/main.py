@@ -36,6 +36,7 @@ from app.controllers.ordem_servico_controller import router as ordem_servico_rou
 from app.controllers.os_servico_controller import router as os_servico_router
 from app.controllers.os_peca_controller import router as os_peca_router
 from app.controllers.movimentacao_estoque_controller import router as movimentacao_estoque_router
+from app.controllers.pagamento_controller import router as pagamento_router
 from app.core.roles import ADMIN
 from app.core.security import require_role
 from app.database.db import get_db
@@ -70,6 +71,7 @@ app.include_router(ordem_servico_router)
 app.include_router(os_servico_router)
 app.include_router(os_peca_router)
 app.include_router(movimentacao_estoque_router)
+app.include_router(pagamento_router)
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
