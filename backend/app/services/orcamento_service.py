@@ -5,6 +5,8 @@ import psycopg2
 
 from app.models.entities import Orcamento
 from app.repositories import orcamento_repository as repo
+from app.repositories import orcamento_peca_repository as peca_repo
+from app.repositories import orcamento_servico_repository as servico_repo
 from app.schemas.orcamento_schema import OrcamentoCreate, OrcamentoUpdate, OrcamentoUpdateStatus
 
 logger = logging.getLogger(__name__)
@@ -163,16 +165,20 @@ def get_orcamentos_by_veiculo(veiculo_id: int):
     return repo.get_orcamentos_by_veiculo(veiculo_id)
 
 def calcular_valor_total_orcamento(orcamento_id: int):
-    """Calcula valor total do orçamento baseado em seus itens (serviços/produtos)."""
-    # Nota: Esta função será implementada quando tivermos a tabela orcamento_item
-    # Por enquanto, retorna o valor atual do orçamento
-    orcamento = get_orcamento_or_404(orcamento_id)
-    return orcamento.valor_total
+    """Calcula valor total do orçamento baseado em seus itens (serviços/peças)."""
+    valor_pecas = peca_repo.calcular_valor_total_pecas(orcamento_id)
+    valor_servicos = servico_repo.calcular_valor_total_servicos(orcamento_id)
+    valor_total = valor_pecas + valor_servicos
+    logger.info("valor total calculado orcamento=%s valor=%s (pecas=%s, servicos=%s)", 
+                orcamento_id, valor_total, valor_pecas, valor_servicos)
+    return valor_total
 
 def recalcular_valor_total_orcamento(orcamento_id: int):
     """Recalcula e atualiza o valor total do orçamento."""
-    # Nota: Esta função será implementada quando tivermos a tabela orcamento_item
-    # Por enquanto, apenas mantém o valor atual
-    orcamento = get_orcamento_or_404(orcamento_id)
-    repo.update_valor_total_orcamento(orcamento_id, orcamento.valor_total)
-    return orcamento
+    novo_valor_total = calcular_valor_total_orcamento(orcamento_id)
+    repo.update_valor_total_orcamento(orcamento_id, novo_valor_total)
+    logger.info("valor total recalculado e atualizado orcamento=%s novo_valor=%s", 
+                orcamento_id, novo_valor_total)
+    
+    # Retorna orçamento atualizado
+    return get_orcamento_or_404(orcamento_id)

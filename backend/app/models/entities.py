@@ -133,6 +133,18 @@ class Orcamento:
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
 
+@dataclass
+class OrcamentoPeca:
+    id_orcamento: int = 0
+    id_peca: int = 0
+    quantidade: int = 1
+
+@dataclass
+class OrcamentoServico:
+    id_orcamento: int = 0
+    id_servico: int = 0
+    quantidade: int = 1
+
 # Funções auxiliares para converter dicionários do banco para entidades
 def dict_to_user(data: dict) -> User:
     """Converte dicionário do banco para entidade User."""
@@ -199,6 +211,18 @@ def dict_to_orcamento(data: dict) -> Orcamento:
     if not data:
         return None
     return Orcamento(**data)
+
+def dict_to_orcamento_peca(data: dict) -> OrcamentoPeca:
+    """Converte dicionário do banco para entidade OrcamentoPeca."""
+    if not data:
+        return None
+    return OrcamentoPeca(**data)
+
+def dict_to_orcamento_servico(data: dict) -> OrcamentoServico:
+    """Converte dicionário do banco para entidade OrcamentoServico."""
+    if not data:
+        return None
+    return OrcamentoServico(**data)
 
 # Funções para converter entidades para dicionários (para INSERT/UPDATE)
 def user_to_dict(user: User, exclude_password: bool = False) -> dict:
@@ -307,4 +331,20 @@ def orcamento_to_dict(orcamento: Orcamento) -> dict:
         'id_veiculo': orcamento.id_veiculo,
         'status': orcamento.status,
         'valor_total': orcamento.valor_total
+    }
+
+def orcamento_peca_to_dict(orcamento_peca: OrcamentoPeca) -> dict:
+    """Converte entidade OrcamentoPeca para dicionário."""
+    return {
+        'id_orcamento': orcamento_peca.id_orcamento,
+        'id_peca': orcamento_peca.id_peca,
+        'quantidade': orcamento_peca.quantidade
+    }
+
+def orcamento_servico_to_dict(orcamento_servico: OrcamentoServico) -> dict:
+    """Converte entidade OrcamentoServico para dicionário."""
+    return {
+        'id_orcamento': orcamento_servico.id_orcamento,
+        'id_servico': orcamento_servico.id_servico,
+        'quantidade': orcamento_servico.quantidade
     }
