@@ -24,6 +24,7 @@ from app.controllers.marca_controller import router as marcas_router
 from app.controllers.modelo_controller import router as modelos_router
 from app.controllers.veiculo_controller import router as veiculos_router
 from app.controllers.servico_controller import router as servicos_router
+from app.controllers.produto_controller import router as produtos_router
 from app.core.roles import ADMIN
 from app.core.security import require_role
 from app.database.db import get_db
@@ -46,6 +47,7 @@ app.include_router(marcas_router)
 app.include_router(modelos_router)
 app.include_router(veiculos_router)
 app.include_router(servicos_router)
+app.include_router(produtos_router)
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):

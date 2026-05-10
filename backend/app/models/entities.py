@@ -80,6 +80,17 @@ class Servico:
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
 
+@dataclass
+class Produto:
+    id_produto: Optional[int] = None
+    nome: str = ""
+    descricao: str = ""
+    preco: float = 0.0
+    quantidade_estoque: int = 0
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    deleted_at: Optional[datetime] = None
+
 # Funções auxiliares para converter dicionários do banco para entidades
 def dict_to_user(data: dict) -> User:
     """Converte dicionário do banco para entidade User."""
@@ -116,6 +127,12 @@ def dict_to_servico(data: dict) -> Servico:
     if not data:
         return None
     return Servico(**data)
+
+def dict_to_produto(data: dict) -> Produto:
+    """Converte dicionário do banco para entidade Produto."""
+    if not data:
+        return None
+    return Produto(**data)
 
 # Funções para converter entidades para dicionários (para INSERT/UPDATE)
 def user_to_dict(user: User, exclude_password: bool = False) -> dict:
@@ -180,4 +197,13 @@ def servico_to_dict(servico: Servico) -> dict:
     return {
         'descricao': servico.descricao,
         'preco': servico.preco
+    }
+
+def produto_to_dict(produto: Produto) -> dict:
+    """Converte entidade Produto para dicionário."""
+    return {
+        'nome': produto.nome,
+        'descricao': produto.descricao,
+        'preco': produto.preco,
+        'quantidade_estoque': produto.quantidade_estoque
     }
