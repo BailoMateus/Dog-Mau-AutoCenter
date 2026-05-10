@@ -33,6 +33,7 @@ from app.controllers.orcamento_controller import router as orcamentos_router
 from app.controllers.orcamento_item_controller import router as orcamento_itens_router
 from app.controllers.orcamento_approval_controller import router as orcamento_approval_router
 from app.controllers.ordem_servico_controller import router as ordem_servico_router
+from app.controllers.os_servico_controller import router as os_servico_router
 from app.core.roles import ADMIN
 from app.core.security import require_role
 from app.database.db import get_db
@@ -64,6 +65,7 @@ app.include_router(orcamentos_router)
 app.include_router(orcamento_itens_router)
 app.include_router(orcamento_approval_router)
 app.include_router(ordem_servico_router)
+app.include_router(os_servico_router)
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
