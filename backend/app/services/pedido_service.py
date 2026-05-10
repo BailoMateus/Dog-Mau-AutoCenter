@@ -5,6 +5,7 @@ import psycopg2
 
 from app.models.entities import Pedido
 from app.repositories import pedido_repository as repo
+from app.repositories import pedido_produto_repository as pedido_produto_repo
 from app.schemas.pedido_schema import PedidoCreate, PedidoUpdate
 
 logger = logging.getLogger(__name__)
@@ -47,7 +48,7 @@ def create_pedido(data: PedidoCreate):
         valor_total=float(data.valor_total)
     )
     
-    # Cria entidade Pedido
+    # Cria entidade Pedido com valor_total inicial (será recalculado quando itens forem adicionados)
     pedido = Pedido(
         id_cliente=data.id_cliente,
         valor_total=float(data.valor_total),

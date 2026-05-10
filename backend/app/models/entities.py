@@ -101,6 +101,15 @@ class Pedido:
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
 
+@dataclass
+class PedidoProduto:
+    id_pedido: int = 0
+    id_produto: int = 0
+    quantidade: int = 1
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    deleted_at: Optional[datetime] = None
+
 # Funções auxiliares para converter dicionários do banco para entidades
 def dict_to_user(data: dict) -> User:
     """Converte dicionário do banco para entidade User."""
@@ -149,6 +158,12 @@ def dict_to_pedido(data: dict) -> Pedido:
     if not data:
         return None
     return Pedido(**data)
+
+def dict_to_pedido_produto(data: dict) -> PedidoProduto:
+    """Converte dicionário do banco para entidade PedidoProduto."""
+    if not data:
+        return None
+    return PedidoProduto(**data)
 
 # Funções para converter entidades para dicionários (para INSERT/UPDATE)
 def user_to_dict(user: User, exclude_password: bool = False) -> dict:
@@ -230,4 +245,12 @@ def pedido_to_dict(pedido: Pedido) -> dict:
         'id_cliente': pedido.id_cliente,
         'valor_total': pedido.valor_total,
         'status': pedido.status
+    }
+
+def pedido_produto_to_dict(pedido_produto: PedidoProduto) -> dict:
+    """Converte entidade PedidoProduto para dicionário."""
+    return {
+        'id_pedido': pedido_produto.id_pedido,
+        'id_produto': pedido_produto.id_produto,
+        'quantidade': pedido_produto.quantidade
     }
