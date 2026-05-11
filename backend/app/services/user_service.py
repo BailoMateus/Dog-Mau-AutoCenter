@@ -141,4 +141,12 @@ def update_user(
 def delete_user(user_id: int, *, actor: dict):
     user = get_user_or_404(user_id)
     assert_can_modify(actor, user_id, admin_only=True)
-    return repo.soft_delete_user(user)
+
+    try:
+        return repo.delete_user(user)
+    except psycopg2.IntegrityError:
+        logger.error("delete_user erro de integridade user_id=%s", user_id)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro ao excluir usuário",
+        )

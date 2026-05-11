@@ -111,6 +111,16 @@ class PedidoProduto:
     deleted_at: Optional[datetime] = None
 
 @dataclass
+class Peca:
+    id_peca: Optional[int] = None
+    nome: str = ""
+    preco_unitario: float = 0.0
+    quantidade_estoque: int = 0
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    deleted_at: Optional[datetime] = None
+
+@dataclass
 class Agendamento:
     id_agendamento: Optional[int] = None
     id_cliente: int = 0
@@ -261,11 +271,11 @@ def dict_to_pedido(data: dict) -> Pedido:
         return None
     return Pedido(**data)
 
-def dict_to_pedido_produto(data: dict) -> PedidoProduto:
-    """Converte dicionário do banco para entidade PedidoProduto."""
+def dict_to_peca(data: dict) -> Peca:
+    """Converte dicionário do banco para entidade Peca."""
     if not data:
         return None
-    return PedidoProduto(**data)
+    return Peca(**data)
 
 def dict_to_agendamento(data: dict) -> Agendamento:
     """Converte dicionário do banco para entidade Agendamento."""
@@ -333,25 +343,32 @@ def dict_to_movimentacao_financeira(data: dict) -> MovimentacaoFinanceira:
         return None
     return MovimentacaoFinanceira(**data)
 
-# Funções para converter entidades para dicionários (para INSERT/UPDATE)
-def user_to_dict(user: User, exclude_password: bool = False) -> dict:
+# Funções auxiliares para converter entidades para dicionários
+def user_to_dict(user: User) -> dict:
     """Converte entidade User para dicionário."""
-    data = {
+    if not user:
+        return None
+    return {
+        'id_usuario': user.id_usuario,
         'nome': user.nome,
         'email': user.email,
+        'senha_hash': user.senha_hash,
         'role': user.role,
         'ativo': user.ativo,
         'telefone': user.telefone,
         'cpf_cnpj': user.cpf_cnpj,
-        'data_nascimento': user.data_nascimento
+        'data_nascimento': user.data_nascimento,
+        'created_at': user.created_at,
+        'updated_at': user.updated_at,
+        'deleted_at': user.deleted_at
     }
-    if not exclude_password and user.senha_hash:
-        data['senha_hash'] = user.senha_hash
-    return data
 
 def endereco_to_dict(endereco: Endereco) -> dict:
     """Converte entidade Endereco para dicionário."""
+    if not endereco:
+        return None
     return {
+        'id_endereco': endereco.id_endereco,
         'id_usuario': endereco.id_usuario,
         'logradouro': endereco.logradouro,
         'numero': endereco.numero,
@@ -359,91 +376,150 @@ def endereco_to_dict(endereco: Endereco) -> dict:
         'complemento': endereco.complemento,
         'bairro': endereco.bairro,
         'cidade': endereco.cidade,
-        'estado': endereco.estado
+        'estado': endereco.estado,
+        'created_at': endereco.created_at,
+        'updated_at': endereco.updated_at,
+        'deleted_at': endereco.deleted_at
     }
 
 def marca_to_dict(marca: Marca) -> dict:
     """Converte entidade Marca para dicionário."""
+    if not marca:
+        return None
     return {
+        'id_marca': marca.id_marca,
         'nome': marca.nome,
         'pais_origem': marca.pais_origem,
-        'site_oficial': marca.site_oficial
+        'site_oficial': marca.site_oficial,
+        'created_at': marca.created_at,
+        'updated_at': marca.updated_at,
+        'deleted_at': marca.deleted_at
     }
 
 def modelo_to_dict(modelo: Modelo) -> dict:
     """Converte entidade Modelo para dicionário."""
+    if not modelo:
+        return None
     return {
+        'id_modelo': modelo.id_modelo,
         'id_marca': modelo.id_marca,
         'nome_modelo': modelo.nome_modelo,
         'ano_lancamento': modelo.ano_lancamento,
         'tipo_combustivel': modelo.tipo_combustivel,
         'categoria': modelo.categoria,
-        'num_portas': modelo.num_portas
+        'num_portas': modelo.num_portas,
+        'created_at': modelo.created_at,
+        'updated_at': modelo.updated_at,
+        'deleted_at': modelo.deleted_at
     }
 
 def veiculo_to_dict(veiculo: Veiculo) -> dict:
     """Converte entidade Veiculo para dicionário."""
+    if not veiculo:
+        return None
     return {
+        'id_veiculo': veiculo.id_veiculo,
         'placa': veiculo.placa,
         'ano_fabricacao': veiculo.ano_fabricacao,
         'cor': veiculo.cor,
         'id_usuario': veiculo.id_usuario,
-        'id_modelo': veiculo.id_modelo
+        'id_modelo': veiculo.id_modelo,
+        'created_at': veiculo.created_at,
+        'updated_at': veiculo.updated_at,
+        'deleted_at': veiculo.deleted_at
     }
 
 def servico_to_dict(servico: Servico) -> dict:
     """Converte entidade Servico para dicionário."""
+    if not servico:
+        return None
     return {
+        'id_servico': servico.id_servico,
         'descricao': servico.descricao,
-        'preco': servico.preco
+        'preco': servico.preco,
+        'created_at': servico.created_at,
+        'updated_at': servico.updated_at,
+        'deleted_at': servico.deleted_at
     }
 
 def produto_to_dict(produto: Produto) -> dict:
     """Converte entidade Produto para dicionário."""
+    if not produto:
+        return None
     return {
+        'id_produto': produto.id_produto,
         'nome': produto.nome,
         'descricao': produto.descricao,
         'preco': produto.preco,
-        'quantidade_estoque': produto.quantidade_estoque
+        'quantidade_estoque': produto.quantidade_estoque,
+        'created_at': produto.created_at,
+        'updated_at': produto.updated_at,
+        'deleted_at': produto.deleted_at
     }
 
 def pedido_to_dict(pedido: Pedido) -> dict:
     """Converte entidade Pedido para dicionário."""
+    if not pedido:
+        return None
     return {
+        'id_pedido': pedido.id_pedido,
         'id_cliente': pedido.id_cliente,
         'valor_total': pedido.valor_total,
-        'status': pedido.status
+        'status': pedido.status,
+        'created_at': pedido.created_at,
+        'updated_at': pedido.updated_at,
+        'deleted_at': pedido.deleted_at
     }
 
-def pedido_produto_to_dict(pedido_produto: PedidoProduto) -> dict:
-    """Converte entidade PedidoProduto para dicionário."""
+def peca_to_dict(peca: Peca) -> dict:
+    """Converte entidade Peca para dicionário."""
+    if not peca:
+        return None
     return {
-        'id_pedido': pedido_produto.id_pedido,
-        'id_produto': pedido_produto.id_produto,
-        'quantidade': pedido_produto.quantidade
+        'id_peca': peca.id_peca,
+        'nome': peca.nome,
+        'preco_unitario': peca.preco_unitario,
+        'quantidade_estoque': peca.quantidade_estoque,
+        'created_at': peca.created_at,
+        'updated_at': peca.updated_at,
+        'deleted_at': peca.deleted_at
     }
 
 def agendamento_to_dict(agendamento: Agendamento) -> dict:
     """Converte entidade Agendamento para dicionário."""
+    if not agendamento:
+        return None
     return {
+        'id_agendamento': agendamento.id_agendamento,
         'id_cliente': agendamento.id_cliente,
         'id_veiculo': agendamento.id_veiculo,
         'data_agendamento': agendamento.data_agendamento,
         'descricao': agendamento.descricao,
-        'status': agendamento.status
+        'status': agendamento.status,
+        'created_at': agendamento.created_at,
+        'updated_at': agendamento.updated_at,
+        'deleted_at': agendamento.deleted_at
     }
 
 def orcamento_to_dict(orcamento: Orcamento) -> dict:
     """Converte entidade Orcamento para dicionário."""
+    if not orcamento:
+        return None
     return {
+        'id_orcamento': orcamento.id_orcamento,
         'id_cliente': orcamento.id_cliente,
         'id_veiculo': orcamento.id_veiculo,
         'status': orcamento.status,
-        'valor_total': orcamento.valor_total
+        'valor_total': orcamento.valor_total,
+        'created_at': orcamento.created_at,
+        'updated_at': orcamento.updated_at,
+        'deleted_at': orcamento.deleted_at
     }
 
 def orcamento_peca_to_dict(orcamento_peca: OrcamentoPeca) -> dict:
     """Converte entidade OrcamentoPeca para dicionário."""
+    if not orcamento_peca:
+        return None
     return {
         'id_orcamento': orcamento_peca.id_orcamento,
         'id_peca': orcamento_peca.id_peca,
@@ -452,6 +528,8 @@ def orcamento_peca_to_dict(orcamento_peca: OrcamentoPeca) -> dict:
 
 def orcamento_servico_to_dict(orcamento_servico: OrcamentoServico) -> dict:
     """Converte entidade OrcamentoServico para dicionário."""
+    if not orcamento_servico:
+        return None
     return {
         'id_orcamento': orcamento_servico.id_orcamento,
         'id_servico': orcamento_servico.id_servico,
@@ -460,17 +538,25 @@ def orcamento_servico_to_dict(orcamento_servico: OrcamentoServico) -> dict:
 
 def ordem_servico_to_dict(ordem_servico: OrdemServico) -> dict:
     """Converte entidade OrdemServico para dicionário."""
+    if not ordem_servico:
+        return None
     return {
+        'id_os': ordem_servico.id_os,
         'id_veiculo': ordem_servico.id_veiculo,
         'id_mecanico': ordem_servico.id_mecanico,
         'descricao_problema': ordem_servico.descricao_problema,
         'status': ordem_servico.status,
         'data_abertura': ordem_servico.data_abertura,
-        'data_conclusao': ordem_servico.data_conclusao
+        'data_conclusao': ordem_servico.data_conclusao,
+        'created_at': ordem_servico.created_at,
+        'updated_at': ordem_servico.updated_at,
+        'deleted_at': ordem_servico.deleted_at
     }
 
 def ordem_servico_peca_to_dict(ordem_servico_peca: OrdemServicoPeca) -> dict:
     """Converte entidade OrdemServicoPeca para dicionário."""
+    if not ordem_servico_peca:
+        return None
     return {
         'id_os': ordem_servico_peca.id_os,
         'id_peca': ordem_servico_peca.id_peca,
@@ -479,6 +565,8 @@ def ordem_servico_peca_to_dict(ordem_servico_peca: OrdemServicoPeca) -> dict:
 
 def ordem_servico_servico_to_dict(ordem_servico_servico: OrdemServicoServico) -> dict:
     """Converte entidade OrdemServicoServico para dicionário."""
+    if not ordem_servico_servico:
+        return None
     return {
         'id_os': ordem_servico_servico.id_os,
         'id_servico': ordem_servico_servico.id_servico,
@@ -487,38 +575,58 @@ def ordem_servico_servico_to_dict(ordem_servico_servico: OrdemServicoServico) ->
 
 def mecanico_to_dict(mecanico: Mecanico) -> dict:
     """Converte entidade Mecanico para dicionário."""
+    if not mecanico:
+        return None
     return {
+        'id_mecanico': mecanico.id_mecanico,
         'nome': mecanico.nome,
         'especialidade': mecanico.especialidade,
         'telefone': mecanico.telefone,
         'email': mecanico.email,
-        'ativo': mecanico.ativo
+        'ativo': mecanico.ativo,
+        'created_at': mecanico.created_at,
+        'updated_at': mecanico.updated_at,
+        'deleted_at': mecanico.deleted_at
     }
 
 def movimentacao_estoque_to_dict(movimentacao: MovimentacaoEstoque) -> dict:
     """Converte entidade MovimentacaoEstoque para dicionário."""
+    if not movimentacao:
+        return None
     return {
+        'id_movimentacao': movimentacao.id_movimentacao,
         'id_peca': movimentacao.id_peca,
         'tipo_movimentacao': movimentacao.tipo_movimentacao,
         'quantidade': movimentacao.quantidade,
-        'motivo': movimentacao.motivo
+        'motivo': movimentacao.motivo,
+        'created_at': movimentacao.created_at
     }
 
 def pagamento_to_dict(pagamento: Pagamento) -> dict:
     """Converte entidade Pagamento para dicionário."""
+    if not pagamento:
+        return None
     return {
+        'id_pagamento': pagamento.id_pagamento,
         'id_os': pagamento.id_os,
         'valor': pagamento.valor,
         'forma_pagamento': pagamento.forma_pagamento,
         'status': pagamento.status,
-        'data_pagamento': pagamento.data_pagamento
+        'data_pagamento': pagamento.data_pagamento,
+        'created_at': pagamento.created_at,
+        'updated_at': pagamento.updated_at,
+        'deleted_at': pagamento.deleted_at
     }
 
 def movimentacao_financeira_to_dict(movimentacao: MovimentacaoFinanceira) -> dict:
     """Converte entidade MovimentacaoFinanceira para dicionário."""
+    if not movimentacao:
+        return None
     return {
+        'id_movimentacao_financeira': movimentacao.id_movimentacao_financeira,
         'tipo_movimentacao': movimentacao.tipo_movimentacao,
         'valor': movimentacao.valor,
         'descricao': movimentacao.descricao,
-        'id_pagamento': movimentacao.id_pagamento
+        'id_pagamento': movimentacao.id_pagamento,
+        'created_at': movimentacao.created_at
     }
