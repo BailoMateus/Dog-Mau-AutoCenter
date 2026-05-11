@@ -9,21 +9,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/pedidos", tags=["Pedidos"])
 
-@router.post("/", response_model=PedidoPublic, status_code=status.HTTP_201_CREATED)
-def create_pedido(data: PedidoCreate):
-    """Cria um novo pedido."""
-    logger.info("POST /pedidos cliente=%s valor=%s", data.id_cliente, data.valor_total)
-    pedido = pedido_service.create_pedido(data)
-    return PedidoPublic(
-        id_pedido=pedido.id_pedido,
-        id_cliente=pedido.id_cliente,
-        valor_total=pedido.valor_total,
-        status=pedido.status,
-        created_at=pedido.created_at,
-        updated_at=pedido.updated_at
-    )
-
-@router.get("/", response_model=list[PedidoPublic])
+@router.get("", response_model=list[PedidoPublic])
 def list_pedidos():
     """Lista todos os pedidos."""
     logger.info("GET /pedidos")
@@ -40,6 +26,20 @@ def list_pedidos():
         for p in pedidos
     ]
 
+@router.post("", response_model=PedidoPublic, status_code=status.HTTP_201_CREATED)
+def create_pedido(data: PedidoCreate):
+    """Cria um novo pedido."""
+    logger.info("POST /pedidos cliente=%s valor=%s", data.id_cliente, data.valor_total)
+    pedido = pedido_service.create_pedido(data)
+    return PedidoPublic(
+        id_pedido=pedido.id_pedido,
+        id_cliente=pedido.id_cliente,
+        valor_total=pedido.valor_total,
+        status=pedido.status,
+        created_at=pedido.created_at,
+        updated_at=pedido.updated_at
+    )
+
 @router.get("/{pedido_id}", response_model=PedidoPublic)
 def get_pedido(pedido_id: int):
     """Busca um pedido por ID."""
@@ -54,10 +54,10 @@ def get_pedido(pedido_id: int):
         updated_at=pedido.updated_at
     )
 
-@router.put("/{pedido_id}", response_model=PedidoPublic)
+@router.patch("/{pedido_id}", response_model=PedidoPublic)
 def update_pedido(pedido_id: int, data: PedidoUpdate):
     """Atualiza um pedido existente."""
-    logger.info("PUT /pedidos/%s", pedido_id)
+    logger.info("PATCH /pedidos/%s", pedido_id)
     pedido = pedido_service.update_pedido(pedido_id, data)
     return PedidoPublic(
         id_pedido=pedido.id_pedido,

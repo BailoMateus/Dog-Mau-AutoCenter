@@ -54,7 +54,7 @@ def create_produto(data: ProdutoCreate):
     validate_produto_data(
         nome=data.nome,
         preco=float(data.preco),
-        quantidade_estoque=data.quantidade_estoque if hasattr(data, 'quantidade_estoque') and data.quantidade_estoque is not None else 0
+        quantidade_estoque=data.quantidade_estoque
     )
     
     # Cria entidade Produto
@@ -62,7 +62,7 @@ def create_produto(data: ProdutoCreate):
         nome=data.nome,
         descricao=data.descricao or "",
         preco=float(data.preco),
-        quantidade_estoque=data.quantidade_estoque if hasattr(data, 'quantidade_estoque') and data.quantidade_estoque is not None else 0
+        quantidade_estoque=data.quantidade_estoque
     )
     
     try:

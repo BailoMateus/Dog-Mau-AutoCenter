@@ -24,7 +24,6 @@ def create_produto(data: ProdutoCreate):
         updated_at=produto.updated_at
     )
 
-@router.get("/", response_model=list[ProdutoPublic])
 def list_produtos():
     """Lista todos os produtos."""
     logger.info("GET /produtos")
@@ -42,6 +41,21 @@ def list_produtos():
         for p in produtos
     ]
 
+@router.post("", response_model=ProdutoPublic, status_code=status.HTTP_201_CREATED)
+def create_produto(data: ProdutoCreate):
+    """Cria um novo produto."""
+    logger.info("POST /produtos nome=%s", data.nome)
+    produto = produto_service.create_produto(data)
+    return ProdutoPublic(
+        id_produto=produto.id_produto,
+        nome=produto.nome,
+        descricao=produto.descricao,
+        preco=produto.preco,
+        quantidade_estoque=produto.quantidade_estoque,
+        created_at=produto.created_at,
+        updated_at=produto.updated_at
+    )
+
 @router.get("/{produto_id}", response_model=ProdutoPublic)
 def get_produto(produto_id: int):
     """Busca um produto por ID."""
@@ -57,10 +71,10 @@ def get_produto(produto_id: int):
         updated_at=produto.updated_at
     )
 
-@router.put("/{produto_id}", response_model=ProdutoPublic)
+@router.patch("/{produto_id}", response_model=ProdutoPublic)
 def update_produto(produto_id: int, data: ProdutoUpdate):
     """Atualiza um produto existente."""
-    logger.info("PUT /produtos/%s", produto_id)
+    logger.info("PATCH /produtos/%s", produto_id)
     produto = produto_service.update_produto(produto_id, data)
     return ProdutoPublic(
         id_produto=produto.id_produto,

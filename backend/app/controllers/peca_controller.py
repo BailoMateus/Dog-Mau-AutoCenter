@@ -1,49 +1,76 @@
-from fastapi import APIRouter, HTTPException
-from app.services.peca_service import (
-    listar_pecas,
-    buscar_peca_por_id,
-    criar_peca,
-    atualizar_peca,
-    remover_peca,
-)
+import logging
+
+from fastapi import APIRouter, HTTPException, status
+
+from app.services import peca_service
+from app.schemas.peca_schema import PecaCreate, PecaUpdate, PecaPublic
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/pecas", tags=["Peças"])
 
-@router.get("/", response_model=list)
-def listar():
+@router.get("", response_model=list[PecaPublic])
+def list_pecas():
     """Lista todas as peças."""
-    return listar_pecas()
+    logger.info("GET /pecas")
+    pecas = peca_service.list_pecas()
+    return [
+        PecaPublic(
+            id_peca=p.id_peca,
+            nome=p.nome,
+            preco_unitario=p.preco_unitario,
+            quantidade_estoque=p.quantidade_estoque,
+            created_at=p.created_at,
+            updated_at=p.updated_at
+        )
+        for p in pecas
+    ]
 
-@router.get("/{peca_id}", response_model=dict)
-def buscar_por_id(peca_id: int):
-    """Busca uma peça pelo ID."""
-    try:
-        return buscar_peca_por_id(peca_id)
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-
-@router.post("/", response_model=dict)
-def criar(nome: str, preco_unitario: float, quantidade_estoque: int = 0):
+@router.post("", response_model=PecaPublic, status_code=status.HTTP_201_CREATED)
+def create_peca(data: PecaCreate):
     """Cria uma nova peça."""
-    try:
-        return criar_peca(nome, preco_unitario, quantidade_estoque)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    logger.info("POST /pecas nome=%s", data.nome)
+    peca = peca_service.create_peca(data)
+    return PecaPublic(
+        id_peca=peca.id_peca,
+        nome=peca.nome,
+        preco_unitario=peca.preco_unitario,
+        quantidade_estoque=peca.quantidade_estoque,
+        created_at=peca.created_at,
+        updated_at=peca.updated_at
+    )
 
-@router.put("/{peca_id}", response_model=dict)
-def atualizar(peca_id: int, nome: str, preco_unitario: float, quantidade_estoque: int):
+@router.get("/{peca_id}", response_model=PecaPublic)
+def get_peca(peca_id: int):
+    """Busca uma peça pelo ID."""
+    logger.info("GET /pecas/%s", peca_id)
+    peca = peca_service.get_peca_or_404(peca_id)
+    return PecaPublic(
+        id_peca=peca.id_peca,
+        nome=peca.nome,
+        preco_unitario=peca.preco_unitario,
+        quantidade_estoque=peca.quantidade_estoque,
+        created_at=peca.created_at,
+        updated_at=peca.updated_at
+    )
+
+@router.patch("/{peca_id}", response_model=PecaPublic)
+def update_peca(peca_id: int, data: PecaUpdate):
     """Atualiza os dados de uma peça."""
-    try:
-        return atualizar_peca(peca_id, nome, preco_unitario, quantidade_estoque)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except HTTPException as e:
-        raise e
+    logger.info("PATCH /pecas/%s", peca_id)
+    peca = peca_service.update_peca(peca_id, data)
+    return PecaPublic(
+        id_peca=peca.id_peca,
+        nome=peca.nome,
+        preco_unitario=peca.preco_unitario,
+        quantidade_estoque=peca.quantidade_estoque,
+        created_at=peca.created_at,
+        updated_at=peca.updated_at
+    )
 
-@router.delete("/{peca_id}", response_model=dict)
-def remover(peca_id: int):
+@router.delete("/{peca_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_peca(peca_id: int):
     """Remove uma peça (soft delete)."""
-    try:
-        return remover_peca(peca_id)
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    logger.info("DELETE /pecas/%s", peca_id)
+    peca_service.delete_peca(peca_id)
+    return None
