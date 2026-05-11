@@ -203,6 +203,15 @@ class Pagamento:
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
 
+@dataclass
+class MovimentacaoFinanceira:
+    id_movimentacao_financeira: Optional[int] = None
+    tipo_movimentacao: str = ""  # 'entrada' ou 'saida'
+    valor: float = 0.0
+    descricao: str = ""
+    id_pagamento: Optional[int] = None
+    created_at: Optional[datetime] = None
+
 # Funções auxiliares para converter dicionários do banco para entidades
 def dict_to_user(data: dict) -> User:
     """Converte dicionário do banco para entidade User."""
@@ -317,6 +326,12 @@ def dict_to_pagamento(data: dict) -> Pagamento:
     if not data:
         return None
     return Pagamento(**data)
+
+def dict_to_movimentacao_financeira(data: dict) -> MovimentacaoFinanceira:
+    """Converte dicionário do banco para entidade MovimentacaoFinanceira."""
+    if not data:
+        return None
+    return MovimentacaoFinanceira(**data)
 
 # Funções para converter entidades para dicionários (para INSERT/UPDATE)
 def user_to_dict(user: User, exclude_password: bool = False) -> dict:
@@ -497,4 +512,13 @@ def pagamento_to_dict(pagamento: Pagamento) -> dict:
         'forma_pagamento': pagamento.forma_pagamento,
         'status': pagamento.status,
         'data_pagamento': pagamento.data_pagamento
+    }
+
+def movimentacao_financeira_to_dict(movimentacao: MovimentacaoFinanceira) -> dict:
+    """Converte entidade MovimentacaoFinanceira para dicionário."""
+    return {
+        'tipo_movimentacao': movimentacao.tipo_movimentacao,
+        'valor': movimentacao.valor,
+        'descricao': movimentacao.descricao,
+        'id_pagamento': movimentacao.id_pagamento
     }
