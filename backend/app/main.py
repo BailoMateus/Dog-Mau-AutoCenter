@@ -41,6 +41,7 @@ from app.controllers.movimentacao_estoque_controller import router as movimentac
 from app.controllers.pagamento_controller import router as pagamento_router
 from app.controllers.movimentacao_financeira_controller import router as movimentacao_financeira_router
 from app.controllers.relatorios_controller import router as relatorios_router
+from app.controllers.page_controller import router as page_router
 from app.core.roles import ADMIN
 from app.core.security import require_role
 from app.database.db import get_db
