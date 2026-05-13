@@ -26,7 +26,21 @@ from app.controllers.marca_controller import router as marcas_router
 from app.controllers.modelo_controller import router as modelos_router
 from app.controllers.veiculo_controller import router as veiculos_router
 from app.controllers.servico_controller import router as servicos_router
-from app.controllers.page_controller import router as page_router
+from app.controllers.produto_controller import router as produtos_router
+from app.controllers.peca_controller import router as pecas_router
+from app.controllers.pedido_controller import router as pedidos_router
+from app.controllers.pedido_produto_controller import router as pedido_itens_router
+from app.controllers.agendamento_controller import router as agendamentos_router
+from app.controllers.orcamento_controller import router as orcamentos_router
+from app.controllers.orcamento_item_controller import router as orcamento_itens_router
+from app.controllers.orcamento_approval_controller import router as orcamento_approval_router
+from app.controllers.ordem_servico_controller import router as ordem_servico_router
+from app.controllers.os_servico_controller import router as os_servico_router
+from app.controllers.os_peca_controller import router as os_peca_router
+from app.controllers.movimentacao_estoque_controller import router as movimentacao_estoque_router
+from app.controllers.pagamento_controller import router as pagamento_router
+from app.controllers.movimentacao_financeira_controller import router as movimentacao_financeira_router
+from app.controllers.relatorios_controller import router as relatorios_router
 from app.core.roles import ADMIN
 from app.core.security import require_role
 from app.database.db import get_db
@@ -55,6 +69,21 @@ app.include_router(marcas_router)
 app.include_router(modelos_router)
 app.include_router(veiculos_router)
 app.include_router(servicos_router)
+app.include_router(produtos_router)
+app.include_router(pecas_router)
+app.include_router(pedidos_router)
+app.include_router(pedido_itens_router)
+app.include_router(agendamentos_router)
+app.include_router(orcamentos_router)
+app.include_router(orcamento_itens_router)
+app.include_router(orcamento_approval_router)
+app.include_router(ordem_servico_router)
+app.include_router(os_servico_router)
+app.include_router(os_peca_router)
+app.include_router(movimentacao_estoque_router)
+app.include_router(pagamento_router)
+app.include_router(movimentacao_financeira_router)
+app.include_router(relatorios_router)
 
 # Rotas de páginas HTML (Jinja2) — DEVE ser a última para não sobrescrever rotas de API
 app.include_router(page_router)

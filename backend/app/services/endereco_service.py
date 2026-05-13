@@ -19,8 +19,9 @@ def add_endereco_to_user(user_id: int, data: EnderecoCreate):
         complemento=data.complemento,
         bairro=data.bairro,
         cidade=data.cidade,
-        estado=data.estado,
+        estado=data.estado
     )
+
     return repo.create_endereco(endereco)
 
 def list_enderecos_by_user(user_id: int):
@@ -31,11 +32,6 @@ def get_endereco_or_404(user_id: int, endereco_id: int) -> Endereco:
     user_service.get_user_or_404(user_id)
     endereco = repo.get_endereco_by_id_for_user(user_id, endereco_id)
     if not endereco:
-        logger.info(
-            "endereço não encontrado user=%s endereco=%s",
-            user_id,
-            endereco_id,
-        )
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Endereço não encontrado")
     return endereco
 

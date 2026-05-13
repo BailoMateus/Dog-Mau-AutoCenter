@@ -21,7 +21,6 @@ def list_servicos(
     logger.info("GET /servicos")
     return servico_service.list_servicos()
 
-
 @router.post("", response_model=ServicoPublic, status_code=201)
 def create_servico(
     data: ServicoCreate,
@@ -29,7 +28,6 @@ def create_servico(
 ):
     logger.info("POST /servicos")
     return servico_service.create_servico(data)
-
 
 @router.get("/{servico_id}", response_model=ServicoPublic)
 def get_servico(
@@ -39,9 +37,8 @@ def get_servico(
     logger.info("GET /servicos/%s", servico_id)
     return servico_service.get_servico_or_404(servico_id)
 
-
 @router.patch("/{servico_id}", response_model=ServicoPublic)
-def patch_servico(
+def update_servico(
     servico_id: Annotated[int, Path(ge=1)],
     data: ServicoUpdate,
     _=Depends(require_role(_STAFF)),
@@ -49,9 +46,8 @@ def patch_servico(
     logger.info("PATCH /servicos/%s", servico_id)
     return servico_service.update_servico(servico_id, data)
 
-
 @router.delete("/{servico_id}", response_model=ServicoPublic)
-def remove_servico(
+def delete_servico(
     servico_id: Annotated[int, Path(ge=1)],
     _=Depends(require_role(_STAFF)),
 ):

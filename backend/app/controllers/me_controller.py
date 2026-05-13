@@ -2,6 +2,7 @@ import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Path
+
 from app.core.roles import CLIENTE
 from app.core.security import require_role
 from app.middlewares.auth_middleware import get_current_user
@@ -27,7 +28,6 @@ def require_cliente(current=Depends(get_current_user)):
 
 def get_my_user(current: dict):
     return user_service.get_user_or_404(int(current["user_id"]))
-
 
 @router.get("/profile", response_model=UserPublic)
 def get_my_profile(
