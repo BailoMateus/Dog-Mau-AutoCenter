@@ -33,7 +33,7 @@ class VeiculoPublic(BaseModel):
     placa: str
     ano_fabricacao: int | None
     cor: str | None
-    id_cliente: int
+    id_usuario: int
     id_modelo: int
     created_at: datetime | None = None
     updated_at: datetime | None = None

@@ -21,14 +21,14 @@ def get_agendamento_or_404(agendamento_id: int) -> Agendamento:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Agendamento não encontrado")
     return agendamento
 
-def validate_agendamento_data(cliente_id: int = None, veiculo_id: int = None, data_agendamento=None):
+def validate_agendamento_data(usuario_id: int = None, veiculo_id: int = None, data_agendamento=None):
     """Valida dados do agendamento."""
-    # Validação de cliente existente
-    if cliente_id and not repo.check_cliente_exists(cliente_id):
-        logger.warning("cliente não encontrado cliente_id=%s", cliente_id)
+    # Validação de usuario existente
+    if usuario_id and not repo.check_usuario_exists(usuario_id):
+        logger.warning("usuario não encontrado usuario_id=%s", usuario_id)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cliente não encontrado"
+            detail="Usuario não encontrado"
         )
     
     # Validação de veículo existente
@@ -39,12 +39,12 @@ def validate_agendamento_data(cliente_id: int = None, veiculo_id: int = None, da
             detail="Veículo não encontrado"
         )
     
-    # Validação de veículo pertencente ao cliente
-    if cliente_id and veiculo_id and not repo.check_veiculo_pertence_cliente(veiculo_id, cliente_id):
-        logger.warning("veículo não pertence ao cliente veiculo=%s cliente=%s", veiculo_id, cliente_id)
+    # Validação de veículo pertencente ao usuario
+    if usuario_id and veiculo_id and not repo.check_veiculo_pertence_usuario(veiculo_id, usuario_id):
+        logger.warning("veículo não pertence ao usuario veiculo=%s usuario=%s", veiculo_id, usuario_id)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Veículo não pertence ao cliente informado"
+            detail="Veículo não pertence ao usuario informado"
         )
     
     # Validação de data no futuro
@@ -59,14 +59,14 @@ def create_agendamento(data: AgendamentoCreate):
     """Cria um novo agendamento com validações."""
     # Validações
     validate_agendamento_data(
-        cliente_id=data.id_cliente,
+        usuario_id=data.id_usuario,
         veiculo_id=data.id_veiculo,
         data_agendamento=data.data_agendamento
     )
     
     # Cria entidade Agendamento
     agendamento = Agendamento(
-        id_cliente=data.id_cliente,
+        id_usuario=data.id_usuario,
         id_veiculo=data.id_veiculo,
         data_agendamento=data.data_agendamento,
         descricao=data.descricao or "",
@@ -88,14 +88,14 @@ def update_agendamento(agendamento_id: int, data: AgendamentoUpdate):
     
     # Validações
     validate_agendamento_data(
-        cliente_id=data.id_cliente,
+        usuario_id=data.id_usuario,
         veiculo_id=data.id_veiculo,
         data_agendamento=data.data_agendamento
     )
     
     # Atualiza campos
-    if data.id_cliente is not None:
-        agendamento.id_cliente = data.id_cliente
+    if data.id_usuario is not None:
+        agendamento.id_usuario = data.id_usuario
     if data.id_veiculo is not None:
         agendamento.id_veiculo = data.id_veiculo
     if data.data_agendamento is not None:
@@ -160,16 +160,16 @@ def delete_agendamento(agendamento_id: int):
     agendamento = get_agendamento_or_404(agendamento_id)
     return repo.soft_delete_agendamento(agendamento)
 
-def get_agendamentos_by_cliente(cliente_id: int):
-    """Lista agendamentos de um cliente específico."""
-    if not repo.check_cliente_exists(cliente_id):
-        logger.warning("cliente não encontrado cliente_id=%s", cliente_id)
+def get_agendamentos_by_usuario(usuario_id: int):
+    """Lista agendamentos de um usuario específico."""
+    if not repo.check_usuario_exists(usuario_id):
+        logger.warning("usuario não encontrado usuario_id=%s", usuario_id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Cliente não encontrado"
+            detail="Usuario não encontrado"
         )
     
-    return repo.get_agendamentos_by_cliente(cliente_id)
+    return repo.get_agendamentos_by_usuario(usuario_id)
 
 def get_agendamentos_by_veiculo(veiculo_id: int):
     """Lista agendamentos de um veículo específico."""

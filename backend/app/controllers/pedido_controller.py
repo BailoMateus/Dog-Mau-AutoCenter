@@ -17,7 +17,7 @@ def list_pedidos():
     return [
         PedidoPublic(
             id_pedido=p.id_pedido,
-            id_cliente=p.id_cliente,
+            id_usuario=p.id_usuario,
             valor_total=p.valor_total,
             status=p.status,
             created_at=p.created_at,
@@ -29,11 +29,11 @@ def list_pedidos():
 @router.post("", response_model=PedidoPublic, status_code=status.HTTP_201_CREATED)
 def create_pedido(data: PedidoCreate):
     """Cria um novo pedido."""
-    logger.info("POST /pedidos cliente=%s valor=%s", data.id_cliente, data.valor_total)
+    logger.info("POST /pedidos usuario=%s valor=%s", data.id_usuario, data.valor_total)
     pedido = pedido_service.create_pedido(data)
     return PedidoPublic(
         id_pedido=pedido.id_pedido,
-        id_cliente=pedido.id_cliente,
+        id_usuario=pedido.id_usuario,
         valor_total=pedido.valor_total,
         status=pedido.status,
         created_at=pedido.created_at,
@@ -47,7 +47,7 @@ def get_pedido(pedido_id: int):
     pedido = pedido_service.get_pedido_or_404(pedido_id)
     return PedidoPublic(
         id_pedido=pedido.id_pedido,
-        id_cliente=pedido.id_cliente,
+        id_usuario=pedido.id_usuario,
         valor_total=pedido.valor_total,
         status=pedido.status,
         created_at=pedido.created_at,
@@ -61,7 +61,7 @@ def update_pedido(pedido_id: int, data: PedidoUpdate):
     pedido = pedido_service.update_pedido(pedido_id, data)
     return PedidoPublic(
         id_pedido=pedido.id_pedido,
-        id_cliente=pedido.id_cliente,
+        id_usuario=pedido.id_usuario,
         valor_total=pedido.valor_total,
         status=pedido.status,
         created_at=pedido.created_at,
@@ -75,15 +75,15 @@ def delete_pedido(pedido_id: int):
     pedido_service.delete_pedido(pedido_id)
     return None
 
-@router.get("/cliente/{cliente_id}", response_model=list[PedidoPublic])
-def get_pedidos_by_cliente(cliente_id: int):
-    """Lista pedidos de um cliente específico."""
-    logger.info("GET /pedidos/cliente/%s", cliente_id)
-    pedidos = pedido_service.get_pedidos_by_cliente(cliente_id)
+@router.get("/usuario/{usuario_id}", response_model=list[PedidoPublic])
+def get_pedidos_by_usuario(usuario_id: int):
+    """Lista pedidos de um usuario específico."""
+    logger.info("GET /pedidos/usuario/%s", usuario_id)
+    pedidos = pedido_service.get_pedidos_by_usuario(usuario_id)
     return [
         PedidoPublic(
             id_pedido=p.id_pedido,
-            id_cliente=p.id_cliente,
+            id_usuario=p.id_usuario,
             valor_total=p.valor_total,
             status=p.status,
             created_at=p.created_at,

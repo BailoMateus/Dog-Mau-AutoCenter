@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 def get_agendamento_by_id(agendamento_id: int):
     """Busca agendamento por ID."""
     query = """
-    SELECT id_agendamento, id_cliente, id_veiculo, data_agendamento, descricao, status,
+    SELECT id_agendamento, id_usuario, id_veiculo, data_agendamento, descricao, status,
            created_at, updated_at, deleted_at
     FROM agendamento 
     WHERE id_agendamento = %s AND deleted_at IS NULL
@@ -22,7 +22,7 @@ def get_agendamento_by_id(agendamento_id: int):
 def get_all_agendamentos():
     """Lista todos os agendamentos."""
     query = """
-    SELECT id_agendamento, id_cliente, id_veiculo, data_agendamento, descricao, status,
+    SELECT id_agendamento, id_usuario, id_veiculo, data_agendamento, descricao, status,
            created_at, updated_at, deleted_at
     FROM agendamento 
     WHERE deleted_at IS NULL
@@ -33,24 +33,12 @@ def get_all_agendamentos():
     logger.debug("get_all_agendamentos count=%s", len(agendamentos))
     return agendamentos
 
-def get_agendamentos_by_cliente(cliente_id: int):
-    """Lista agendamentos de um cliente."""
-    query = """
-    SELECT id_agendamento, id_cliente, id_veiculo, data_agendamento, descricao, status,
-           created_at, updated_at, deleted_at
-    FROM agendamento 
-    WHERE id_cliente = %s AND deleted_at IS NULL
-    ORDER BY data_agendamento ASC
-    """
-    results = execute_query(query, (cliente_id,))
-    agendamentos = [dict_to_agendamento(row) for row in results]
-    logger.debug("get_agendamentos_by_cliente cliente_id=%s count=%s", cliente_id, len(agendamentos))
-    return agendamentos
+
 
 def get_agendamentos_by_veiculo(veiculo_id: int):
     """Lista agendamentos de um veículo."""
     query = """
-    SELECT id_agendamento, id_cliente, id_veiculo, data_agendamento, descricao, status,
+    SELECT id_agendamento, id_usuario, id_veiculo, data_agendamento, descricao, status,
            created_at, updated_at, deleted_at
     FROM agendamento 
     WHERE id_veiculo = %s AND deleted_at IS NULL
@@ -64,30 +52,30 @@ def get_agendamentos_by_veiculo(veiculo_id: int):
 def create_agendamento(agendamento: Agendamento):
     """Cria um novo agendamento."""
     query = """
-    INSERT INTO agendamento (id_cliente, id_veiculo, data_agendamento, descricao, status)
+    INSERT INTO agendamento (id_usuario, id_veiculo, data_agendamento, descricao, status)
     VALUES (%s, %s, %s, %s, %s)
     RETURNING id_agendamento
     """
     params = (
-        agendamento.id_cliente, agendamento.id_veiculo, 
+        agendamento.id_usuario, agendamento.id_veiculo, 
         agendamento.data_agendamento, agendamento.descricao, agendamento.status
     )
     agendamento_id = execute_insert(query, params)
     agendamento.id_agendamento = agendamento_id
-    logger.info("agendamento criado id=%s cliente=%s veiculo=%s", 
-                agendamento.id_agendamento, agendamento.id_cliente, agendamento.id_veiculo)
+    logger.info("agendamento criado id=%s usuario=%s veiculo=%s", 
+                agendamento.id_agendamento, agendamento.id_usuario, agendamento.id_veiculo)
     return agendamento
 
 def update_agendamento(agendamento: Agendamento):
     """Atualiza um agendamento."""
     query = """
     UPDATE agendamento 
-    SET id_cliente = %s, id_veiculo = %s, data_agendamento = %s, descricao = %s, 
+    SET id_usuario = %s, id_veiculo = %s, data_agendamento = %s, descricao = %s, 
         status = %s, updated_at = CURRENT_TIMESTAMP
     WHERE id_agendamento = %s AND deleted_at IS NULL
     """
     params = (
-        agendamento.id_cliente, agendamento.id_veiculo, agendamento.data_agendamento,
+        agendamento.id_usuario, agendamento.id_veiculo, agendamento.data_agendamento,
         agendamento.descricao, agendamento.status, agendamento.id_agendamento
     )
     execute_command(query, params)
@@ -134,14 +122,14 @@ def cancelar_agendamento(agendamento_id: int):
     update_status_agendamento(agendamento_id, "cancelado")
     logger.info("agendamento cancelado id=%s", agendamento_id)
 
-def check_cliente_exists(cliente_id: int):
-    """Verifica se cliente existe."""
+def check_usuario_exists(usuario_id: int):
+    """Verifica se usuario existe."""
     query = """
     SELECT COUNT(*) as count
     FROM usuario 
     WHERE id_usuario = %s AND deleted_at IS NULL AND ativo = TRUE
     """
-    result = execute_query(query, (cliente_id,), fetch="one")
+    result = execute_query(query, (usuario_id,), fetch="one")
     return result['count'] > 0 if result else False
 
 def check_veiculo_exists(veiculo_id: int):
@@ -154,12 +142,12 @@ def check_veiculo_exists(veiculo_id: int):
     result = execute_query(query, (veiculo_id,), fetch="one")
     return result['count'] > 0 if result else False
 
-def check_veiculo_pertence_cliente(veiculo_id: int, cliente_id: int):
-    """Verifica se veículo pertence ao cliente."""
+def check_veiculo_pertence_usuario(veiculo_id: int, usuario_id: int):
+    """Verifica se veículo pertence ao usuario."""
     query = """
     SELECT COUNT(*) as count
     FROM veiculo 
     WHERE id_veiculo = %s AND id_usuario = %s AND deleted_at IS NULL
     """
-    result = execute_query(query, (veiculo_id, cliente_id), fetch="one")
+    result = execute_query(query, (veiculo_id, usuario_id), fetch="one")
     return result['count'] > 0 if result else False

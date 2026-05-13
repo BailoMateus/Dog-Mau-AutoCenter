@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 def get_pedido_by_id(pedido_id: int):
     """Busca pedido por ID."""
     query = """
-    SELECT id_pedido, id_cliente, valor_total, status, 
+    SELECT id_pedido, id_usuario, valor_total, status, 
            created_at, updated_at, deleted_at
     FROM pedido 
     WHERE id_pedido = %s AND deleted_at IS NULL
@@ -22,7 +22,7 @@ def get_pedido_by_id(pedido_id: int):
 def get_all_pedidos():
     """Lista todos os pedidos."""
     query = """
-    SELECT id_pedido, id_cliente, valor_total, status, 
+    SELECT id_pedido, id_usuario, valor_total, status, 
            created_at, updated_at, deleted_at
     FROM pedido 
     WHERE deleted_at IS NULL
@@ -33,44 +33,44 @@ def get_all_pedidos():
     logger.debug("get_all_pedidos count=%s", len(pedidos))
     return pedidos
 
-def get_pedidos_by_cliente(cliente_id: int):
-    """Lista pedidos de um cliente."""
+def get_pedidos_by_usuario(usuario_id: int):
+    """Lista pedidos de um usuario."""
     query = """
-    SELECT id_pedido, id_cliente, valor_total, status, 
+    SELECT id_pedido, id_usuario, valor_total, status, 
            created_at, updated_at, deleted_at
     FROM pedido 
-    WHERE id_cliente = %s AND deleted_at IS NULL
+    WHERE id_usuario = %s AND deleted_at IS NULL
     ORDER BY created_at DESC
     """
-    results = execute_query(query, (cliente_id,))
+    results = execute_query(query, (usuario_id,))
     pedidos = [dict_to_pedido(row) for row in results]
-    logger.debug("get_pedidos_by_cliente cliente_id=%s count=%s", cliente_id, len(pedidos))
+    logger.debug("get_pedidos_by_usuario usuario_id=%s count=%s", usuario_id, len(pedidos))
     return pedidos
 
 def create_pedido(pedido: Pedido):
     """Cria um novo pedido."""
     query = """
-    INSERT INTO pedido (id_cliente, valor_total, status)
+    INSERT INTO pedido (id_usuario, valor_total, status)
     VALUES (%s, %s, %s)
     RETURNING id_pedido
     """
     params = (
-        pedido.id_cliente, pedido.valor_total, pedido.status
+        pedido.id_usuario, pedido.valor_total, pedido.status
     )
     pedido_id = execute_insert(query, params)
     pedido.id_pedido = pedido_id
-    logger.info("pedido criado id=%s cliente=%s valor=%s", pedido.id_pedido, pedido.id_cliente, pedido.valor_total)
+    logger.info("pedido criado id=%s usuario=%s valor=%s", pedido.id_pedido, pedido.id_usuario, pedido.valor_total)
     return pedido
 
 def update_pedido(pedido: Pedido):
     """Atualiza um pedido."""
     query = """
     UPDATE pedido 
-    SET id_cliente = %s, valor_total = %s, status = %s, updated_at = CURRENT_TIMESTAMP
+    SET id_usuario = %s, valor_total = %s, status = %s, updated_at = CURRENT_TIMESTAMP
     WHERE id_pedido = %s AND deleted_at IS NULL
     """
     params = (
-        pedido.id_cliente, pedido.valor_total, pedido.status, pedido.id_pedido
+        pedido.id_usuario, pedido.valor_total, pedido.status, pedido.id_pedido
     )
     execute_command(query, params)
     logger.info("pedido atualizado id=%s", pedido.id_pedido)
@@ -89,12 +89,12 @@ def soft_delete_pedido(pedido: Pedido):
     logger.info("pedido soft-delete id=%s", pedido.id_pedido)
     return pedido
 
-def check_cliente_exists(cliente_id: int):
-    """Verifica se cliente existe."""
+def check_usuario_exists(usuario_id: int):
+    """Verifica se usuario existe."""
     query = """
     SELECT COUNT(*) as count
     FROM usuario 
     WHERE id_usuario = %s AND deleted_at IS NULL AND ativo = TRUE
     """
-    result = execute_query(query, (cliente_id,), fetch="one")
+    result = execute_query(query, (usuario_id,), fetch="one")
     return result['count'] > 0 if result else False

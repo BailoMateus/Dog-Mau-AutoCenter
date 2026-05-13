@@ -94,7 +94,7 @@ class Produto:
 @dataclass
 class Pedido:
     id_pedido: Optional[int] = None
-    id_cliente: int = 0
+    id_usuario: int = 0
     valor_total: float = 0.0
     status: str = "processando"
     created_at: Optional[datetime] = None
@@ -123,7 +123,7 @@ class Peca:
 @dataclass
 class Agendamento:
     id_agendamento: Optional[int] = None
-    id_cliente: int = 0
+    id_usuario: int = 0
     id_veiculo: int = 0
     data_agendamento: Optional[datetime] = None
     descricao: str = ""
@@ -135,7 +135,7 @@ class Agendamento:
 @dataclass
 class Orcamento:
     id_orcamento: Optional[int] = None
-    id_cliente: int = 0
+    id_usuario: int = 0
     id_veiculo: int = 0
     status: str = "pendente"
     valor_total: float = 0.0
@@ -469,7 +469,7 @@ def pedido_to_dict(pedido: Pedido) -> dict:
         return None
     return {
         'id_pedido': pedido.id_pedido,
-        'id_cliente': pedido.id_cliente,
+        'id_usuario': pedido.id_usuario,
         'valor_total': pedido.valor_total,
         'status': pedido.status,
         'created_at': pedido.created_at,
@@ -511,7 +511,7 @@ def agendamento_to_dict(agendamento: Agendamento) -> dict:
         return None
     return {
         'id_agendamento': agendamento.id_agendamento,
-        'id_cliente': agendamento.id_cliente,
+        'id_usuario': agendamento.id_usuario,
         'id_veiculo': agendamento.id_veiculo,
         'data_agendamento': agendamento.data_agendamento,
         'descricao': agendamento.descricao,
@@ -527,7 +527,7 @@ def orcamento_to_dict(orcamento: Orcamento) -> dict:
         return None
     return {
         'id_orcamento': orcamento.id_orcamento,
-        'id_cliente': orcamento.id_cliente,
+        'id_usuario': orcamento.id_usuario,
         'id_veiculo': orcamento.id_veiculo,
         'status': orcamento.status,
         'valor_total': orcamento.valor_total,

@@ -14,12 +14,12 @@ router = APIRouter(prefix="/agendamentos", tags=["Agendamentos"])
 @router.post("/", response_model=AgendamentoPublic, status_code=status.HTTP_201_CREATED)
 def create_agendamento(data: AgendamentoCreate):
     """Cria um novo agendamento."""
-    logger.info("POST /agendamentos cliente=%s veiculo=%s data=%s", 
-                data.id_cliente, data.id_veiculo, data.data_agendamento)
+    logger.info("POST /agendamentos usuario=%s veiculo=%s data=%s", 
+                data.id_usuario, data.id_veiculo, data.data_agendamento)
     agendamento = agendamento_service.create_agendamento(data)
     return AgendamentoPublic(
         id_agendamento=agendamento.id_agendamento,
-        id_cliente=agendamento.id_cliente,
+        id_usuario=agendamento.id_usuario,
         id_veiculo=agendamento.id_veiculo,
         data_agendamento=agendamento.data_agendamento,
         descricao=agendamento.descricao,
@@ -36,7 +36,7 @@ def list_agendamentos():
     return [
         AgendamentoPublic(
             id_agendamento=a.id_agendamento,
-            id_cliente=a.id_cliente,
+            id_usuario=a.id_usuario,
             id_veiculo=a.id_veiculo,
             data_agendamento=a.data_agendamento,
             descricao=a.descricao,
@@ -54,7 +54,7 @@ def get_agendamento(agendamento_id: int):
     agendamento = agendamento_service.get_agendamento_or_404(agendamento_id)
     return AgendamentoPublic(
         id_agendamento=agendamento.id_agendamento,
-        id_cliente=agendamento.id_cliente,
+        id_usuario=agendamento.id_usuario,
         id_veiculo=agendamento.id_veiculo,
         data_agendamento=agendamento.data_agendamento,
         descricao=agendamento.descricao,
@@ -70,7 +70,7 @@ def update_agendamento(agendamento_id: int, data: AgendamentoUpdate):
     agendamento = agendamento_service.update_agendamento(agendamento_id, data)
     return AgendamentoPublic(
         id_agendamento=agendamento.id_agendamento,
-        id_cliente=agendamento.id_cliente,
+        id_usuario=agendamento.id_usuario,
         id_veiculo=agendamento.id_veiculo,
         data_agendamento=agendamento.data_agendamento,
         descricao=agendamento.descricao,
@@ -86,7 +86,7 @@ def update_data_agendamento(agendamento_id: int, data: AgendamentoUpdateData):
     agendamento = agendamento_service.update_data_agendamento(agendamento_id, data)
     return AgendamentoPublic(
         id_agendamento=agendamento.id_agendamento,
-        id_cliente=agendamento.id_cliente,
+        id_usuario=agendamento.id_usuario,
         id_veiculo=agendamento.id_veiculo,
         data_agendamento=agendamento.data_agendamento,
         descricao=agendamento.descricao,
@@ -102,7 +102,7 @@ def cancelar_agendamento(agendamento_id: int):
     agendamento = agendamento_service.cancelar_agendamento(agendamento_id)
     return AgendamentoPublic(
         id_agendamento=agendamento.id_agendamento,
-        id_cliente=agendamento.id_cliente,
+        id_usuario=agendamento.id_usuario,
         id_veiculo=agendamento.id_veiculo,
         data_agendamento=agendamento.data_agendamento,
         descricao=agendamento.descricao,

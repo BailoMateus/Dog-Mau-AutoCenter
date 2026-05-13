@@ -14,12 +14,12 @@ router = APIRouter(prefix="/orcamentos", tags=["Orçamentos"])
 @router.post("/", response_model=OrcamentoPublic, status_code=status.HTTP_201_CREATED)
 def create_orcamento(data: OrcamentoCreate):
     """Cria um novo orçamento."""
-    logger.info("POST /orcamentos cliente=%s veiculo=%s valor=%s", 
-                data.id_cliente, data.id_veiculo, data.valor_total)
+    logger.info("POST /orcamentos usuario=%s veiculo=%s valor=%s", 
+                data.id_usuario, data.id_veiculo, data.valor_total)
     orcamento = orcamento_service.create_orcamento(data)
     return OrcamentoPublic(
         id_orcamento=orcamento.id_orcamento,
-        id_cliente=orcamento.id_cliente,
+        id_usuario=orcamento.id_usuario,
         id_veiculo=orcamento.id_veiculo,
         status=orcamento.status,
         valor_total=orcamento.valor_total,
@@ -35,7 +35,7 @@ def list_orcamentos():
     return [
         OrcamentoPublic(
             id_orcamento=o.id_orcamento,
-            id_cliente=o.id_cliente,
+            id_usuario=o.id_usuario,
             id_veiculo=o.id_veiculo,
             status=o.status,
             valor_total=o.valor_total,
@@ -52,7 +52,7 @@ def get_orcamento(orcamento_id: int):
     orcamento = orcamento_service.get_orcamento_or_404(orcamento_id)
     return OrcamentoPublic(
         id_orcamento=orcamento.id_orcamento,
-        id_cliente=orcamento.id_cliente,
+        id_usuario=orcamento.id_usuario,
         id_veiculo=orcamento.id_veiculo,
         status=orcamento.status,
         valor_total=orcamento.valor_total,
@@ -67,7 +67,7 @@ def update_orcamento(orcamento_id: int, data: OrcamentoUpdate):
     orcamento = orcamento_service.update_orcamento(orcamento_id, data)
     return OrcamentoPublic(
         id_orcamento=orcamento.id_orcamento,
-        id_cliente=orcamento.id_cliente,
+        id_usuario=orcamento.id_usuario,
         id_veiculo=orcamento.id_veiculo,
         status=orcamento.status,
         valor_total=orcamento.valor_total,
@@ -82,7 +82,7 @@ def update_status_orcamento(orcamento_id: int, data: OrcamentoUpdateStatus):
     orcamento = orcamento_service.update_status_orcamento(orcamento_id, data)
     return OrcamentoPublic(
         id_orcamento=orcamento.id_orcamento,
-        id_cliente=orcamento.id_cliente,
+        id_usuario=orcamento.id_usuario,
         id_veiculo=orcamento.id_veiculo,
         status=orcamento.status,
         valor_total=orcamento.valor_total,
@@ -97,15 +97,15 @@ def delete_orcamento(orcamento_id: int):
     orcamento_service.delete_orcamento(orcamento_id)
     return None
 
-@router.get("/cliente/{cliente_id}", response_model=list[OrcamentoPublic])
-def get_orcamentos_by_cliente(cliente_id: int):
-    """Lista orçamentos de um cliente específico."""
-    logger.info("GET /orcamentos/cliente/%s", cliente_id)
-    orcamentos = orcamento_service.get_orcamentos_by_cliente(cliente_id)
+@router.get("/usuario/{usuario_id}", response_model=list[OrcamentoPublic])
+def get_orcamentos_by_usuario(usuario_id: int):
+    """Lista orçamentos de um usuario específico."""
+    logger.info("GET /orcamentos/usuario/%s", usuario_id)
+    orcamentos = orcamento_service.get_orcamentos_by_usuario(usuario_id)
     return [
         OrcamentoPublic(
             id_orcamento=o.id_orcamento,
-            id_cliente=o.id_cliente,
+            id_usuario=o.id_usuario,
             id_veiculo=o.id_veiculo,
             status=o.status,
             valor_total=o.valor_total,
@@ -123,7 +123,7 @@ def get_orcamentos_by_veiculo(veiculo_id: int):
     return [
         OrcamentoPublic(
             id_orcamento=o.id_orcamento,
-            id_cliente=o.id_cliente,
+            id_usuario=o.id_usuario,
             id_veiculo=o.id_veiculo,
             status=o.status,
             valor_total=o.valor_total,

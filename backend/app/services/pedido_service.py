@@ -22,14 +22,14 @@ def get_pedido_or_404(pedido_id: int) -> Pedido:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pedido não encontrado")
     return pedido
 
-def validate_pedido_data(cliente_id: int = None, valor_total: float = None):
+def validate_pedido_data(usuario_id: int = None, valor_total: float = None):
     """Valida dados do pedido."""
-    # Validação de cliente existente
-    if cliente_id and not repo.check_cliente_exists(cliente_id):
-        logger.warning("cliente não encontrado cliente_id=%s", cliente_id)
+    # Validação de usuario existente
+    if usuario_id and not repo.check_usuario_exists(usuario_id):
+        logger.warning("usuario não encontrado usuario_id=%s", usuario_id)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cliente não encontrado"
+            detail="Usuario não encontrado"
         )
     
     # Validação de valor total
@@ -44,13 +44,13 @@ def create_pedido(data: PedidoCreate):
     """Cria um novo pedido com validações."""
     # Validações
     validate_pedido_data(
-        cliente_id=data.id_cliente,
+        usuario_id=data.id_usuario,
         valor_total=float(data.valor_total)
     )
     
     # Cria entidade Pedido com valor_total inicial (será recalculado quando itens forem adicionados)
     pedido = Pedido(
-        id_cliente=data.id_cliente,
+        id_usuario=data.id_usuario,
         valor_total=float(data.valor_total),
         status=data.status or "processando"
     )
@@ -70,13 +70,13 @@ def update_pedido(pedido_id: int, data: PedidoUpdate):
     
     # Validações
     validate_pedido_data(
-        cliente_id=data.id_cliente,
+        usuario_id=data.id_usuario,
         valor_total=float(data.valor_total) if data.valor_total is not None else None
     )
     
     # Atualiza campos
-    if data.id_cliente is not None:
-        pedido.id_cliente = data.id_cliente
+    if data.id_usuario is not None:
+        pedido.id_usuario = data.id_usuario
     if data.valor_total is not None:
         pedido.valor_total = float(data.valor_total)
     if data.status is not None:
@@ -96,13 +96,13 @@ def delete_pedido(pedido_id: int):
     pedido = get_pedido_or_404(pedido_id)
     return repo.soft_delete_pedido(pedido)
 
-def get_pedidos_by_cliente(cliente_id: int):
-    """Lista pedidos de um cliente específico."""
-    if not repo.check_cliente_exists(cliente_id):
-        logger.warning("cliente não encontrado cliente_id=%s", cliente_id)
+def get_pedidos_by_usuario(usuario_id: int):
+    """Lista pedidos de um usuario específico."""
+    if not repo.check_usuario_exists(usuario_id):
+        logger.warning("usuario não encontrado usuario_id=%s", usuario_id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Cliente não encontrado"
+            detail="Usuario não encontrado"
         )
     
-    return repo.get_pedidos_by_cliente(cliente_id)
+    return repo.get_pedidos_by_usuario(usuario_id)
