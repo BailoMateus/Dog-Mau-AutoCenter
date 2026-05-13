@@ -132,3 +132,14 @@ def get_mecanicos():
 def get_admins():
     """Lista todos os administradores."""
     return get_users_by_role(ADMIN)
+
+def update_user_photo(user_id: int, photo_path: str):
+    """Atualiza a foto de perfil do usuário."""
+    query = """
+    UPDATE usuario
+    SET foto_perfil = %s, updated_at = CURRENT_TIMESTAMP
+    WHERE id_usuario = %s AND deleted_at IS NULL
+    """
+    params = (photo_path, user_id)
+    execute_command(query, params)
+    logger.info("Foto de perfil atualizada para o usuário id=%s", user_id)
