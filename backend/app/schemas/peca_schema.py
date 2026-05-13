@@ -1,16 +1,16 @@
 from pydantic import BaseModel, Field
 
-class PecaCreateSchema(BaseModel):
+class PecaCreate(BaseModel):
     nome: str = Field(..., max_length=100, description="Nome da peça")
     preco_unitario: float = Field(..., ge=0, description="Preço unitário da peça")
     quantidade_estoque: int = Field(0, ge=0, description="Quantidade em estoque")
 
-class PecaUpdateSchema(BaseModel):
+class PecaUpdate(BaseModel):
     nome: str = Field(..., max_length=100, description="Nome da peça")
     preco_unitario: float = Field(..., ge=0, description="Preço unitário da peça")
     quantidade_estoque: int = Field(..., ge=0, description="Quantidade em estoque")
 
-class PecaResponseSchema(BaseModel):
+class PecaResponse(BaseModel):
     id_peca: int
     nome: str
     preco_unitario: float
