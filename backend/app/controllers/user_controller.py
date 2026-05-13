@@ -12,7 +12,7 @@ from app.services import user_service
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/users", tags=["Usuários"])
+router = APIRouter(prefix="/api/users", tags=["Usuários"])
 
 @router.get("", response_model=list[UserPublic])
 def list_users(
@@ -43,11 +43,21 @@ def create_user(
             user = user_service.create_user(data)
             return user
         
-        if not authorization or not authorization.startswith("Bearer "):
+        # Fallback para o cookie
+        token = None
+        if authorization and authorization.startswith("Bearer "):
+            token = authorization.replace("Bearer ", "")
+        else:
+            token = request.cookies.get("__session") or request.cookies.get("access_token")
+
+        if not token:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token não fornecido"
             )
+
+        if token.startswith("Bearer "):
+            token = token.replace("Bearer ", "")
         
         current_user = get_current_user(authorization)
         if not current_user:

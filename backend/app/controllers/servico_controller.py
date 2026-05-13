@@ -5,7 +5,6 @@ from fastapi import APIRouter, Depends, Path
 
 from app.core.roles import ADMIN, MECANICO
 from app.core.security import require_role
-from app.database.database import get_db
 from app.schemas.servico_schema import ServicoCreate, ServicoPublic, ServicoUpdate
 from app.services import servico_service
 
@@ -13,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 _STAFF = [ADMIN, MECANICO]
 
-router = APIRouter(prefix="/servicos", tags=["Servicos"])
+router = APIRouter(prefix="/api/servicos", tags=["Servicos"])
 
 @router.get("", response_model=list[ServicoPublic])
 def list_servicos(

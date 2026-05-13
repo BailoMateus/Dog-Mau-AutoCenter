@@ -5,7 +5,6 @@ from fastapi import APIRouter, Depends, Path
 
 from app.core.roles import ADMIN, MECANICO
 from app.core.security import require_role
-from app.database.database import get_db
 from app.schemas.endereco_schema import EnderecoCreate, EnderecoPublic, EnderecoUpdate
 from app.services import endereco_service
 

@@ -5,7 +5,6 @@ from fastapi import APIRouter, Depends, Path
 
 from app.core.roles import ADMIN, MECANICO
 from app.core.security import require_role
-from app.database.database import get_db
 from app.schemas.veiculo_schema import VeiculoCreate, VeiculoPublic, VeiculoUpdate
 from app.services import veiculo_service
 
@@ -13,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 _STAFF = [ADMIN, MECANICO]
 
-router = APIRouter(prefix="/clientes/{cliente_id}/veiculos", tags=["Veiculos"])
+router = APIRouter(prefix="/api/clientes/{cliente_id}/veiculos", tags=["Veiculos"])
 
 
 @router.get("", response_model=list[VeiculoPublic])

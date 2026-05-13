@@ -1,5 +1,7 @@
 {
   "projects": {
     "default": "dog-mau-autocenter"
-  }
+  },
+  "targets": {},
+  "etags": {}
 }
