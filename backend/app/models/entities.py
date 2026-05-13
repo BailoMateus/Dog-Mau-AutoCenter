@@ -271,6 +271,12 @@ def dict_to_pedido(data: dict) -> Pedido:
         return None
     return Pedido(**data)
 
+def dict_to_pedido_produto(data: dict) -> PedidoProduto:
+    """Converte dicionário do banco para entidade PedidoProduto."""
+    if not data:
+        return None
+    return PedidoProduto(**data)
+
 def dict_to_peca(data: dict) -> Peca:
     """Converte dicionário do banco para entidade Peca."""
     if not data:
@@ -469,6 +475,20 @@ def pedido_to_dict(pedido: Pedido) -> dict:
         'created_at': pedido.created_at,
         'updated_at': pedido.updated_at,
         'deleted_at': pedido.deleted_at
+    }
+
+def pedido_produto_to_dict(pedido_produto: PedidoProduto) -> dict:
+    """Converte entidade PedidoProduto para dicionário."""
+    if not pedido_produto:
+        return None
+
+    return {
+        'id_pedido': pedido_produto.id_pedido,
+        'id_produto': pedido_produto.id_produto,
+        'quantidade': pedido_produto.quantidade,
+        'created_at': pedido_produto.created_at,
+        'updated_at': pedido_produto.updated_at,
+        'deleted_at': pedido_produto.deleted_at
     }
 
 def peca_to_dict(peca: Peca) -> dict:
