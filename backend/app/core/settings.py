@@ -47,7 +47,7 @@ class Settings(BaseSettings):
     debug_log: bool = False
 
     algorithm: str = "HS256"
-    access_token_expire_minutes: int = 60
+    access_token_expire_minutes: int = 1
 
     firebase_web_api_key: str = ""
 
