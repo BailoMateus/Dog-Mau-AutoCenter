@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path, status, Header, Fil
 
 from app.core.roles import ADMIN, CLIENTE
 from app.core.security import require_role, validate_file
-from app.database.database import get_db
+from app.database.db import get_db
 from app.middlewares.auth_middleware import get_current_user
 from app.schemas.user_schema import UserCreate, UserPublic, UserUpdate
 from app.services import user_service
