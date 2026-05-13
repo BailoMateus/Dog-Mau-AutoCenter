@@ -10,7 +10,7 @@ class PecaUpdate(BaseModel):
     preco_unitario: float = Field(..., ge=0, description="Preço unitário da peça")
     quantidade_estoque: int = Field(..., ge=0, description="Quantidade em estoque")
 
-class PecaResponse(BaseModel):
+class PecaPublic(BaseModel):
     id_peca: int
     nome: str
     preco_unitario: float
