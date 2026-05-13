@@ -5,7 +5,6 @@ from fastapi import APIRouter, Depends, Path
 
 from app.core.roles import ADMIN, MECANICO
 from app.core.security import require_role
-from app.database.database import get_db
 from app.schemas.marca_schema import MarcaCreate, MarcaPublic, MarcaUpdate
 from app.services import marca_service
 
@@ -13,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 _STAFF = [ADMIN, MECANICO]
 
-router = APIRouter(prefix="/marcas", tags=["Marcas"])
+router = APIRouter(prefix="/api/marcas", tags=["Marcas"])
 
 @router.get("", response_model=list[MarcaPublic])
 def list_marcas(

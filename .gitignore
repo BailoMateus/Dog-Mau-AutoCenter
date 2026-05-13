@@ -12,3 +12,8 @@ venv/
 .idea/
 
 firebase-credentials.json
+
+.firebase/
+/backend/.firebase
+backend/firebase-debug.log
+backend/.firebase/hosting.c3RhdGlj.cache

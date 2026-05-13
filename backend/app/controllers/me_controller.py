@@ -5,7 +5,6 @@ from fastapi import APIRouter, Depends, Path
 
 from app.core.roles import CLIENTE
 from app.core.security import require_role
-from app.database.database import get_db
 from app.middlewares.auth_middleware import get_current_user
 from app.schemas.user_schema import UserPublic, UserUpdate
 from app.schemas.endereco_schema import EnderecoCreate, EnderecoPublic, EnderecoUpdate
@@ -14,7 +13,7 @@ from app.services import endereco_service, veiculo_service, user_service
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/me", tags=["Minha Conta"])
+router = APIRouter(prefix="/api/me", tags=["Minha Conta"])
 
 # Middleware para garantir que é cliente
 def require_cliente(current=Depends(get_current_user)):
@@ -36,7 +35,7 @@ def get_my_profile(
 ):
     """Cliente vê seus próprios dados de perfil"""
     logger.info("GET /me/profile user_id=%s", current["user_id"])
-    return get_my_user(db, current)
+    return get_my_user(current)
 
 
 @router.patch("/profile", response_model=UserPublic)
@@ -46,8 +45,8 @@ def update_my_profile(
 ):
     """Cliente atualiza seus próprios dados"""
     logger.info("PATCH /me/profile user_id=%s", current["user_id"])
-    user = get_my_user(db, current)
-    return user_service.update_user(db, user.id_usuario, data, actor=current)
+    user = get_my_user(current)
+    return user_service.update_user(user.id_usuario, data, actor=current)
 
 
 # Endereços do cliente

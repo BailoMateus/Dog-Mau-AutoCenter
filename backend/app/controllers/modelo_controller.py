@@ -5,7 +5,6 @@ from fastapi import APIRouter, Depends, Path
 
 from app.core.roles import ADMIN, MECANICO
 from app.core.security import require_role
-from app.database.database import get_db
 from app.schemas.modelo_schema import ModeloCreate, ModeloPublic, ModeloUpdate
 from app.services import modelo_service
 
@@ -13,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 _STAFF = [ADMIN, MECANICO]
 
-router = APIRouter(prefix="/modelos", tags=["Modelos"])
+router = APIRouter(prefix="/api/modelos", tags=["Modelos"])
 
 @router.get("", response_model=list[ModeloPublic])
 def list_modelos(

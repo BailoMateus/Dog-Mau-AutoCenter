@@ -1,10 +1,12 @@
 import logging
 import os
 import time
+from pathlib import Path
 
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI, Request
+from fastapi.staticfiles import StaticFiles
 
 from app.core.settings import get_settings
 
@@ -45,6 +47,12 @@ from app.database.db import get_db
 
 app = FastAPI(title="Dog Mau AutoCenter API")
 
+# Montar arquivos estáticos (CSS, JS, imagens)
+_BACKEND_DIR = Path(__file__).resolve().parent.parent
+_STATIC_DIR = _BACKEND_DIR / "static"
+if _STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -77,6 +85,9 @@ app.include_router(pagamento_router)
 app.include_router(movimentacao_financeira_router)
 app.include_router(relatorios_router)
 
+# Rotas de páginas HTML (Jinja2) — DEVE ser a última para não sobrescrever rotas de API
+app.include_router(page_router)
+
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     start = time.perf_counter()
@@ -99,8 +110,11 @@ async def log_requests(request: Request, call_next):
 @app.on_event("startup")
 async def on_startup():
     from app.core.firebase import init_firebase
-    init_firebase()
-    logger.info("API iniciada (FastAPI) e Firebase Configurado!")
+    try:
+        init_firebase()
+        logger.info("API iniciada (FastAPI) com Firebase Configurado")
+    except Exception as e:
+        logger.warning(f"API iniciada (FastAPI) - Firebase não disponível: {e}")
 
 
 @app.get("/testar-banco")
@@ -114,8 +128,10 @@ def test_db_connection():
         logger.exception("testar-banco falhou")
         return {"status": "Erro", "detalhes": str(e)}
 
-@app.get("/")
-def root():
+# A rota "/" agora é servida pelo page_controller (Jinja2)
+# Use GET /saude ou GET /api/status para verificar se a API está online.
+@app.get("/api/status")
+def api_status():
     return {"message": "Dog Mau AutoCenter API - Backend", "status": "Online"}
 
 @app.get("/saude")
