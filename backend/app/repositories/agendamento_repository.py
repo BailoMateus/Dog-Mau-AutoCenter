@@ -61,6 +61,20 @@ def get_agendamentos_by_veiculo(veiculo_id: int):
     logger.debug("get_agendamentos_by_veiculo veiculo_id=%s count=%s", veiculo_id, len(agendamentos))
     return agendamentos
 
+def get_agendamentos_by_usuario(usuario_id: int):
+    """Lista agendamentos de um usuário."""
+    query = """
+    SELECT id_agendamento, id_usuario, id_veiculo, data_agendamento, descricao, status,
+           created_at, updated_at, deleted_at
+    FROM agendamento 
+    WHERE id_usuario = %s AND deleted_at IS NULL
+    ORDER BY data_agendamento ASC
+    """
+    results = execute_query(query, (usuario_id,))
+    agendamentos = [dict_to_agendamento(row) for row in results]
+    logger.debug("get_agendamentos_by_usuario usuario_id=%s count=%s", usuario_id, len(agendamentos))
+    return agendamentos
+
 def create_agendamento(agendamento: Agendamento):
     """Cria um novo agendamento."""
     query = """

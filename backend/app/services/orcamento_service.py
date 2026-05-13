@@ -23,14 +23,14 @@ def get_orcamento_or_404(orcamento_id: int) -> Orcamento:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Orçamento não encontrado")
     return orcamento
 
-def validate_orcamento_data(cliente_id: int = None, veiculo_id: int = None, valor_total: float = None):
+def validate_orcamento_data(usuario_id: int = None, veiculo_id: int = None, valor_total: float = None):
     """Valida dados do orçamento."""
-    # Validação de cliente existente
-    if cliente_id and not repo.check_cliente_exists(cliente_id):
-        logger.warning("cliente não encontrado cliente_id=%s", cliente_id)
+    # Validação de usuário existente
+    if usuario_id and not repo.check_usuario_exists(usuario_id):
+        logger.warning("usuário não encontrado usuario_id=%s", usuario_id)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cliente não encontrado"
+            detail="Usuário não encontrado"
         )
     
     # Validação de veículo existente
@@ -39,14 +39,6 @@ def validate_orcamento_data(cliente_id: int = None, veiculo_id: int = None, valo
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Veículo não encontrado"
-        )
-    
-    # Validação de veículo pertencente ao cliente
-    if cliente_id and veiculo_id and not repo.check_veiculo_pertence_cliente(veiculo_id, cliente_id):
-        logger.warning("veículo não pertence ao cliente veiculo=%s cliente=%s", veiculo_id, cliente_id)
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Veículo não pertence ao cliente informado"
         )
     
     # Validação de valor total
@@ -61,7 +53,7 @@ def create_orcamento(data: OrcamentoCreate):
     """Cria um novo orçamento com validações."""
     # Validações
     validate_orcamento_data(
-        cliente_id=data.id_cliente,
+        usuario_id=data.id_cliente,
         veiculo_id=data.id_veiculo,
         valor_total=float(data.valor_total)
     )
@@ -89,7 +81,7 @@ def update_orcamento(orcamento_id: int, data: OrcamentoUpdate):
     
     # Validações
     validate_orcamento_data(
-        cliente_id=data.id_cliente,
+        usuario_id=data.id_cliente,
         veiculo_id=data.id_veiculo,
         valor_total=float(data.valor_total) if data.valor_total is not None else None
     )
