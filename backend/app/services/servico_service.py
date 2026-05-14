@@ -1,5 +1,7 @@
 import logging
 
+from fastapi import HTTPException, status
+
 from app.models.entities import Servico
 from app.repositories import servico_repository as repo
 from app.schemas.servico_schema import ServicoCreate, ServicoUpdate

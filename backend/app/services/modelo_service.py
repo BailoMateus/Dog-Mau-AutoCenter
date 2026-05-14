@@ -1,5 +1,7 @@
 import logging
 
+from fastapi import HTTPException, status
+
 from app.models.entities import Modelo
 from app.repositories import modelo_repository as repo
 from app.schemas.modelo_schema import ModeloCreate, ModeloUpdate

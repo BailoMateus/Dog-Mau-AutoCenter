@@ -1,5 +1,7 @@
 import logging
 
+from fastapi import HTTPException, status
+
 from app.models.entities import Marca
 from app.repositories import marca_repository as repo
 from app.schemas.marca_schema import MarcaCreate, MarcaUpdate

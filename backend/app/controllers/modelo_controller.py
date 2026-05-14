@@ -21,15 +21,13 @@ def list_modelos(
     logger.info("GET /modelos")
     return modelo_service.list_modelos()
 
-
 @router.post("", response_model=ModeloPublic, status_code=201)
 def create_modelo(
     data: ModeloCreate,
     _=Depends(require_role(_STAFF)),
 ):
-    logger.info("POST /modelos nome=%s", data.nome_modelo)
+    logger.info("POST /modelos")
     return modelo_service.create_modelo(data)
-
 
 @router.get("/{modelo_id}", response_model=ModeloPublic)
 def get_modelo(
@@ -39,7 +37,6 @@ def get_modelo(
     logger.info("GET /modelos/%s", modelo_id)
     return modelo_service.get_modelo_or_404(modelo_id)
 
-
 @router.get("/marca/{marca_id}", response_model=list[ModeloPublic])
 def list_modelos_by_marca(
     marca_id: Annotated[int, Path(ge=1)],
@@ -48,9 +45,8 @@ def list_modelos_by_marca(
     logger.info("GET /modelos/marca/%s", marca_id)
     return modelo_service.list_modelos_by_marca(marca_id)
 
-
 @router.patch("/{modelo_id}", response_model=ModeloPublic)
-def patch_modelo(
+def update_modelo(
     modelo_id: Annotated[int, Path(ge=1)],
     data: ModeloUpdate,
     _=Depends(require_role(_STAFF)),
@@ -58,9 +54,8 @@ def patch_modelo(
     logger.info("PATCH /modelos/%s", modelo_id)
     return modelo_service.update_modelo(modelo_id, data)
 
-
 @router.delete("/{modelo_id}", response_model=ModeloPublic)
-def remove_modelo(
+def delete_modelo(
     modelo_id: Annotated[int, Path(ge=1)],
     _=Depends(require_role(_STAFF)),
 ):

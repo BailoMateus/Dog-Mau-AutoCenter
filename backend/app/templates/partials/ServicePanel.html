@@ -1,0 +1,273 @@
+{# ──────────────────────────────────────────────────────────────────
+   Partial: ServicePanel.html
+   Conteúdo reutilizável de gerenciamento de serviços.
+   Segue o padrão do UserPanel.html.
+
+   Requer no contexto:
+     - user      (dict com .role)
+     - servicos  (lista de dicts de serviços)
+   ────────────────────────────────────────────────────────────────── #}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <h2 class="fw-bold m-0" style="color: rgba(192, 37, 43); font-family: 'Orbitron', sans-serif;">
+        <i class="bi bi-tools me-2"></i>Gerenciamento de Serviços
+    </h2>
+    {% if user.role == 'admin' %}
+    <button class="btn btn-primary px-4 py-2" onclick="openServiceModal('create', null)">
+        <i class="bi bi-plus-circle-fill me-2"></i>Novo Serviço
+    </button>
+    {% endif %}
+</div>
+
+<div class="table-responsive rounded shadow card p-0 border-0" style="background-color: #111;">
+    <table class="table table-dark table-hover align-middle mb-0" style="background-color: transparent;">
+        <thead class="table-dark text-uppercase small" style="border-bottom: 2px solid #222;">
+            <tr>
+                <th class="py-3">ID</th>
+                <th class="py-3">Descrição</th>
+                <th class="py-3">Preço</th>
+                {% if user.role == 'admin' %}
+                <th class="text-center py-3">Ações</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in servicos %}
+            <tr>
+                <td>{{ s.id_servico }}</td>
+                <td>{{ s.descricao }}</td>
+                <td>R$ {{ "%.2f" | format(s.preco | float) }}</td>
+                {% if user.role == 'admin' %}
+                <td class="text-center">
+                    <button class="btn btn-sm btn-outline-primary me-2"
+                            onclick="openServiceModal('edit', this)"
+                            data-svc-id="{{ s.id_servico }}"
+                            data-svc-descricao="{{ s.descricao }}"
+                            data-svc-preco="{{ s.preco }}">
+                        <i class="bi bi-pencil"></i> Editar
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger"
+                            onclick="openDeleteServiceModal(this)"
+                            data-svc-id="{{ s.id_servico }}"
+                            data-svc-descricao="{{ s.descricao }}">
+                        <i class="bi bi-trash"></i> Excluir
+                    </button>
+                </td>
+                {% endif %}
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="{% if user.role == 'admin' %}4{% else %}3{% endif %}" class="text-center py-4 text-muted">Nenhum serviço cadastrado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if user.role == 'admin' %}
+<!-- Modal Formulário (Criar/Editar Serviço) -->
+<div id="serviceFormModal" class="custom-modal d-none">
+    <div class="custom-modal-content rounded shadow card p-0" style="background-color: #111; border: 1px solid #222; max-width: 500px;">
+        <div class="custom-modal-header border-bottom border-secondary p-3 d-flex justify-content-between align-items-center">
+            <h5 class="m-0 fw-bold" id="serviceModalTitle" style="color: rgba(192, 37, 43);">Novo Serviço</h5>
+            <button type="button" class="btn-close btn-close-white" onclick="closeServiceModal('serviceFormModal')"></button>
+        </div>
+        <div class="custom-modal-body p-4">
+            <form id="serviceForm" class="w-100 m-auto" style="max-width: 100%;">
+                <input type="hidden" id="serviceId" name="id" />
+
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="serviceDescricao" name="descricao" placeholder="Descrição do Serviço" required>
+                    <label for="serviceDescricao" class="text-white-50">Descrição</label>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input type="number" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="servicePreco" name="preco" placeholder="0.00" step="0.01" min="0.01" required>
+                    <label for="servicePreco" class="text-white-50">Preço (R$)</label>
+                </div>
+
+                <div id="serviceFormError" class="alert alert-danger d-none small"></div>
+
+                <div class="d-flex justify-content-between gap-2 mt-4">
+                    <button type="button" class="btn btn-outline-secondary w-50 py-2" onclick="closeServiceModal('serviceFormModal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary w-50 py-2" id="serviceSaveButton">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmação de Exclusão de Serviço -->
+<div id="deleteServiceModal" class="custom-modal d-none">
+    <div class="custom-modal-content rounded shadow card p-0" style="max-width: 400px; background-color: #111; border: 1px solid #222;">
+        <div class="custom-modal-header border-bottom border-secondary p-3 text-center position-relative">
+            <h5 class="m-0 text-danger w-100 fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Atenção</h5>
+            <button type="button" class="btn-close btn-close-white position-absolute top-50 end-0 translate-middle-y me-3" onclick="closeServiceModal('deleteServiceModal')"></button>
+        </div>
+        <div class="custom-modal-body p-4 text-center">
+            <p class="mb-0 text-white">Tem certeza que deseja excluir o serviço <br><strong id="deleteServiceName" style="color: rgba(192, 37, 43);"></strong>?</p>
+            <p class="text-muted small mt-2">Esta ação não poderá ser desfeita.</p>
+            <input type="hidden" id="deleteServiceId">
+            <div id="deleteServiceError" class="alert alert-danger d-none small mt-3"></div>
+        </div>
+        <div class="custom-modal-footer border-top border-secondary p-3 d-flex justify-content-between gap-2">
+            <button type="button" class="btn btn-outline-secondary w-50 py-2" onclick="closeServiceModal('deleteServiceModal')">Cancelar</button>
+            <button type="button" class="btn btn-danger w-50 py-2" onclick="confirmServiceDelete()" id="btnConfirmServiceDelete">Confirmar Exclusão</button>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{# ── Estilos e Scripts ── #}
+<style>
+.custom-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 1055;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(3px);
+}
+.custom-modal-content {
+    background-color: var(--bs-body-bg);
+    width: 100%;
+    max-width: 500px;
+    margin: 1rem;
+    animation: modalFadeIn 0.2s ease-out;
+}
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+{% if user.role == 'admin' %}
+<script>
+    let svcCurrentMode = 'create';
+
+    function openServiceModal(mode, btnElement) {
+        svcCurrentMode = mode;
+        const form = document.getElementById('serviceForm');
+        form.reset();
+        document.getElementById('serviceFormError').classList.add('d-none');
+
+        const title = document.getElementById('serviceModalTitle');
+
+        if (mode === 'create') {
+            title.textContent = 'Novo Serviço';
+            document.getElementById('serviceId').value = '';
+        } else if (mode === 'edit' && btnElement) {
+            title.textContent = 'Editar Serviço';
+            document.getElementById('serviceId').value = btnElement.getAttribute('data-svc-id');
+            document.getElementById('serviceDescricao').value = btnElement.getAttribute('data-svc-descricao');
+            document.getElementById('servicePreco').value = btnElement.getAttribute('data-svc-preco');
+        }
+
+        document.getElementById('serviceFormModal').classList.remove('d-none');
+    }
+
+    function openDeleteServiceModal(btnElement) {
+        const id = btnElement.getAttribute('data-svc-id');
+        const descricao = btnElement.getAttribute('data-svc-descricao');
+        document.getElementById('deleteServiceId').value = id;
+        document.getElementById('deleteServiceName').textContent = descricao;
+        document.getElementById('deleteServiceError').classList.add('d-none');
+        document.getElementById('deleteServiceModal').classList.remove('d-none');
+    }
+
+    function closeServiceModal(modalId) {
+        document.getElementById(modalId).classList.add('d-none');
+    }
+
+    // Fechar modal ao clicar fora dele (apenas para modais de serviço)
+    document.querySelectorAll('#serviceFormModal, #deleteServiceModal').forEach(modal => {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeServiceModal(this.id);
+            }
+        });
+    });
+
+    // Submit Form (Create / Edit)
+    document.getElementById('serviceForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const saveBtn = document.getElementById('serviceSaveButton');
+        const errBox = document.getElementById('serviceFormError');
+        errBox.classList.add('d-none');
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Salvando...';
+
+        const id = document.getElementById('serviceId').value;
+        const descricao = document.getElementById('serviceDescricao').value;
+        const preco = parseFloat(document.getElementById('servicePreco').value);
+
+        const payload = { descricao, preco };
+
+        const url = svcCurrentMode === 'create' ? '/api/servicos' : `/api/servicos/${id}`;
+        const method = svcCurrentMode === 'create' ? 'POST' : 'PATCH';
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                errBox.textContent = data.detail || 'Erro ao salvar o serviço. Verifique os dados.';
+                errBox.classList.remove('d-none');
+            }
+        } catch (error) {
+            console.error(error);
+            errBox.textContent = 'Erro de rede ao se comunicar com o servidor.';
+            errBox.classList.remove('d-none');
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = 'Salvar';
+        }
+    });
+
+    // Confirm Delete
+    async function confirmServiceDelete() {
+        const id = document.getElementById('deleteServiceId').value;
+        const btn = document.getElementById('btnConfirmServiceDelete');
+        const errBox = document.getElementById('deleteServiceError');
+
+        errBox.classList.add('d-none');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Excluindo...';
+
+        try {
+            const response = await fetch(`/api/servicos/${id}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                errBox.textContent = data.detail || 'Serviço não pôde ser excluído.';
+                errBox.classList.remove('d-none');
+            }
+        } catch (error) {
+            console.error(error);
+            errBox.textContent = 'Erro de rede ao se comunicar com o servidor.';
+            errBox.classList.remove('d-none');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Confirmar Exclusão';
+        }
+    }
+</script>
+{% endif %}
