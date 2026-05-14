@@ -1,0 +1,348 @@
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap");
+* {
+  margin: 0;
+} 
+
+body {
+    background-color: black;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    min-height: 100vh;
+}
+
+h1 {
+  text-align: center;
+  font-size: 40px;
+  letter-spacing: 2px;
+  font-family: "Orbitron", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+}
+
+@media (max-width: 768px) {
+  h1 {
+    font-size: 28px;
+    letter-spacing: 1px;
+  }
+}
+
+/* CSS do Header */
+header {
+  background-color: black;
+  padding: 10px 0;
+}
+
+header .container > div {
+  align-items: center;
+  font-family: "Orbitron", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+}
+
+#logo {
+  height: 50px;
+  width: auto;
+}
+
+header .nav-link {
+  position: relative;
+  transition: 0.3s;
+  color: white !important;
+}
+
+header .nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0%;
+  height: 2px;
+  background: darkred;;
+  transition: 0.3s;
+}
+
+header .nav-link:hover::after {
+  width: 100%;
+  color: darkred !important;
+}
+
+header .nav-link:hover {
+  color: darkred !important;
+}
+
+header .nav-link.active {
+  color: darkred !important;
+}
+
+.search-input {
+  width: 250px;
+  transition: width 0.3s ease;
+}
+
+.bi, .fw-semibold, .dropdown-toggle {
+  font-size: 15px;
+  color: white;
+  transition: color 0.3s; 
+}
+.bi:hover, .fw-semibold:hover, .dropdown-toggle:hover {
+  color: crimson;
+}
+
+/* CSS do Carrossel */
+
+#myCarousel {
+  height: 500px;
+}
+
+#myCarousel .carousel-item img {
+  height: 500px;
+  object-fit: cover;
+}
+
+@media (max-width: 768px) {
+  #myCarousel, #myCarousel .carousel-item img {
+    height: 350px;
+  }
+}
+
+.carousel-fade .carousel-item {
+  transition: opacity 0.8s ease-in-out;
+}
+
+.footer {
+  background-color: #111;
+}
+.form-signin {
+  max-width: 330px;
+  padding: 1rem;
+}
+
+.form-signin .form-floating:focus-within {
+  z-index: 2;
+}
+
+.form-signin input[type="email"] {
+  margin-bottom: -1px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.form-signin input[type="password"] {
+  margin-bottom: 10px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.btn-primary {
+  background-color: rgba(192, 37, 43);
+  border: 0;
+}
+
+.btn-primary:hover {
+  background-color: dimgray;
+}
+
+.btn:focus,
+.btn:active {
+ background-color: dimgray !important;
+}
+
+.text-body-secondary {
+  text-align: center;
+}
+
+
+.features {
+  background-color: black;
+  color: white;
+}
+
+.feature-card {
+  padding: 30px 20px;
+  border-radius: 12px;
+  transition: 0.3s;
+}
+
+.feature-card i {
+  font-size: 40px;
+  color: red;
+  border: 1px solid red;
+  padding: 20px;
+  border-radius: 12px;
+  display: inline-block;
+  margin-bottom: 20px;
+  transition: 0.3s;
+}
+
+.feature-card h5 {
+  font-weight: bold;
+}
+
+.feature-card p {
+  color: #aaa;
+}
+
+.feature-card:hover {
+  transform: translateY(-8px);
+}
+
+.feature-card:hover i {
+  background-color: red;
+  color: white;
+  box-shadow: 0 0 15px red;
+}
+#login {
+  background-image: radial-gradient(rgb(0, 0, 0), rgb(38, 0, 0));
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+
+label {
+  color: white;
+}
+
+.subtitle {
+    text-align: center;
+    color: #aaa;
+    margin-bottom: 40px;
+}
+
+/* Steps */
+.steps {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
+    gap: 20px;
+}
+
+.step {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.step.active {
+    background: rgba(192, 37, 43);
+}
+
+/* Card */
+.card {
+    background: #111;
+    padding: 30px;
+    border-radius: 10px;
+    border: 1px solid #222;
+}
+
+/* Inputs */
+select, textarea {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    background: #0b0b0b;
+    border: 1px solid #333;
+    color: #fff;
+    border-radius: 5px;
+}
+
+/* Buttons */
+.btn {
+    padding: 12px 20px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.btn-primary {
+    background: rgba(192, 37, 43);
+    color: #fff;
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 1px solid #555;
+    color: #fff;
+}
+
+/* Services Grid */
+.services {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+@media (max-width: 768px) {
+    .services {
+        grid-template-columns: 1fr;
+    }
+}
+
+.service {
+    border: 1px solid #333;
+    padding: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.service:hover {
+    border-color: rgba(192, 37, 43);
+}
+
+.price {
+    color: rgba(192, 37, 43);
+    float: right;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Contact & Social Section Styles */
+.transition-hover {
+    transition: all 0.3s ease-in-out;
+}
+
+.transition-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(192, 37, 43, 0.1) !important;
+}
+
+.hover-scale {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.hover-scale:hover {
+    transform: scale(1.15);
+}
+
+.contact-icon-wrapper {
+    background: rgba(192, 37, 43, 0.1);
+}
+
+.social-icon-wrapper {
+    width: 60px; 
+    height: 60px; 
+    background-color: transparent;
+    border: 1px solid rgba(192, 37, 43, 0.5);
+    color: rgba(192, 37, 43, 0.8);
+    transition: 0.3s;
+}
+
+.social-icon-wrapper:hover {
+    background-color: rgba(192, 37, 43);
+    color: white !important;
+    box-shadow: 0 0 15px rgba(192, 37, 43, 0.8);
+}
+
+.social-icon-wrapper i {
+    color: inherit;
+}

@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}DogMau Cadastro{% endblock %}
+
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block body_attrs %}class="d-flex align-items-center py-4 bg-body-tertiary" id="login"{% endblock %}
+
+{% block main %}
+    <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 bd-mode-toggle">
+      <button
+        class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center"
+        id="bd-theme"
+        type="button"
+        aria-expanded="false"
+        data-bs-toggle="dropdown"
+        aria-label="Toggle theme (auto)"
+      >
+        <span class="visually-hidden" id="bd-theme-text">Toggle theme</span>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="bd-theme-text">
+        <li>
+          <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light" aria-pressed="false">
+            <i class="bi bi-sun-fill me-2"></i> Claro
+          </button>
+        </li>
+        <li>
+          <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark" aria-pressed="false">
+            <i class="bi bi-moon-stars-fill me-2"></i> Escuro
+          </button>
+        </li>
+        <li>
+          <button type="button" class="dropdown-item d-flex align-items-center active" data-bs-theme-value="auto" aria-pressed="true">
+            <i class="bi bi-circle-half me-2"></i> Auto
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <main class="form-signin w-100 m-auto">
+      <form id="cadastroForm" action="/auth/register" method="POST" novalidate>
+        <img class="mb-4 d-block mx-auto" src="/static/assets/nome.png" alt="DogMau Logo" height="72" />
+        <h1 class="h3 mb-3 fw-normal text-center" style="color: rgba(192, 37, 43);">Crie sua conta</h1>
+
+        <div class="form-floating">
+          <input type="text" class="form-control" id="floatingNome" name="nome" placeholder="Nome completo" required minlength="5" />
+          <label for="floatingNome">Nome completo <span class="text-danger">*</span></label>
+          <div class="invalid-feedback">O nome é obrigatório e precisa ter no mínimo 5 caracteres.</div>
+        </div>
+
+        <div class="form-floating mt-2">
+          <input type="email" class="form-control" id="floatingInput" name="email" placeholder="name@example.com" required />
+          <label for="floatingInput">Email <span class="text-danger">*</span></label>
+          <div class="invalid-feedback">Informe um e-mail válido.</div>
+        </div>
+
+        <div class="form-floating mt-2">
+          <input type="text" class="form-control" id="floatingCpf" name="cpf_cnpj" placeholder="CPF ou CNPJ" required />
+          <label for="floatingCpf">CPF / CNPJ <span class="text-danger">*</span></label>
+          <div class="invalid-feedback" id="feedbackCpf">CPF ou CNPJ inválido ou não preenchido.</div>
+        </div>
+
+        <div class="form-floating mt-2">
+          <input type="date" class="form-control" id="floatingNascimento" name="data_nascimento" required />
+          <label for="floatingNascimento">Data de nascimento <span class="text-danger">*</span></label>
+          <div class="invalid-feedback">Você precisa ser maior de idade para se cadastrar e informar a data.</div>
+        </div>
+
+        <div class="form-floating mt-2 position-relative">
+          <input type="password" class="form-control pe-5" id="floatingPassword" name="password" placeholder="Senha" required minlength="8" />
+          <label for="floatingPassword">Senha <span class="text-danger">*</span></label>
+          <i class="bi bi-eye position-absolute top-50 end-0 translate-middle-y me-3" id="togglePassword" style="cursor: pointer; z-index: 10;"></i>
+          <div class="invalid-feedback" id="feedbackPassword">Sua senha deve ter no mínimo 8 caracteres.</div>
+        </div>
+
+        <div class="form-floating mt-2 position-relative">
+          <input type="password" class="form-control pe-5" id="floatingConfirmPassword" placeholder="Confirmar senha" required minlength="8" />
+          <label for="floatingConfirmPassword">Confirmar senha <span class="text-danger">*</span></label>
+          <i class="bi bi-eye position-absolute top-50 end-0 translate-middle-y me-3" id="toggleConfirmPassword" style="cursor: pointer; z-index: 10;"></i>
+          <div class="invalid-feedback" id="feedbackConfirmPassword">As senhas não coincidem ou campo não preenchido.</div>
+        </div>
+
+        <hr class="my-4" />
+
+        <h5 class="mb-3">Endereço</h5>
+
+        <div class="form-floating">
+          <input type="text" class="form-control" id="floatingCep" name="cep" placeholder="CEP" required />
+          <label for="floatingCep">CEP <span class="text-danger">*</span></label>
+          <div class="invalid-feedback">CEP é obrigatório.</div>
+        </div>
+
+        <div class="form-floating mt-2">
+          <input type="text" class="form-control" id="floatingRua" name="logradouro" placeholder="Rua" required />
+          <label for="floatingRua">Rua <span class="text-danger">*</span></label>
+          <div class="invalid-feedback">Nome da rua é obrigatório.</div>
+        </div>
+
+        <div class="form-floating mt-2">
+          <input type="text" class="form-control" id="floatingNumero" name="numero" placeholder="Número" />
+          <label for="floatingNumero">Número</label>
+        </div>
+        
+        <div class="form-floating mt-2">
+          <input type="text" class="form-control" id="floatingBairro" name="bairro" placeholder="Bairro" />
+          <label for="floatingBairro">Bairro</label>
+        </div>
+        
+        <div class="row mt-2 g-2">
+          <div class="col-8">
+            <div class="form-floating">
+              <input type="text" class="form-control" id="floatingCidade" name="cidade" placeholder="Cidade" />
+              <label for="floatingCidade">Cidade</label>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="form-floating">
+              <input type="text" class="form-control" id="floatingEstado" name="estado" placeholder="Estado" maxlength="2" />
+              <label for="floatingEstado">Estado</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-check text-start my-3">
+          <input class="form-check-input" type="checkbox" value="remember-me" id="checkDefault" />
+          <label class="form-check-label" for="checkDefault">Lembre de mim</label>
+        </div>
+
+        <button class="btn btn-primary w-100 py-2" type="submit">Cadastrar</button>
+
+        <button class="btn btn-outline-danger w-100 py-2 mt-2" type="button" id="btnGoogleLogin">
+          <i class="bi bi-google"></i> Continuar com Google
+        </button>
+        <p class="mt-3 text-center"><a href="/login" class="text-decoration-none">Já tem conta? Entre aqui</a></p>
+        <p class="mt-5 mb-3 text-body-secondary">&copy; 2025–2026</p>
+      </form>
+    </main>
+{% endblock %}
+
+{% block extra_scripts %}
+    <!-- Firebase Auth SDK (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "{{ firebase_api_key | default('') }}",
+            authDomain: "dog-mau-autocenter.firebaseapp.com",
+            projectId: "dog-mau-autocenter",
+        };
+        if (firebaseConfig.apiKey) {
+            firebase.initializeApp(firebaseConfig);
+        }
+    </script>
+    <script src="/static/js/cadastro.js"></script>
+{% endblock %}

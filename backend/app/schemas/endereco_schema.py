@@ -24,7 +24,7 @@ class EnderecoPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id_endereco: int
-    id_cliente: int
+    id_usuario: int
     logradouro: str
     numero: str | None
     cep: str | None

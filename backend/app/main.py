@@ -1,12 +1,12 @@
 import logging
 import os
 import time
+from pathlib import Path
 
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI, Request
-from sqlalchemy import text
-from sqlalchemy.orm import Session
+from fastapi.staticfiles import StaticFiles
 
 from app.core.settings import get_settings
 
@@ -19,20 +19,40 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 from app.controllers.auth_controller import router as auth_router
-from app.controllers.cliente_controller import router as clientes_router
 from app.controllers.me_controller import router as me_router
 from app.controllers.user_controller import router as users_router
 from app.controllers.endereco_controller import router as enderecos_router
 from app.controllers.marca_controller import router as marcas_router
 from app.controllers.modelo_controller import router as modelos_router
 from app.controllers.veiculo_controller import router as veiculos_router
-from app.controllers.mecanico_controller import router as mecanicos_router
 from app.controllers.servico_controller import router as servicos_router
+from app.controllers.produto_controller import router as produtos_router
+from app.controllers.peca_controller import router as pecas_router
+from app.controllers.pedido_controller import router as pedidos_router
+from app.controllers.pedido_produto_controller import router as pedido_itens_router
+from app.controllers.agendamento_controller import router as agendamentos_router
+from app.controllers.orcamento_controller import router as orcamentos_router
+from app.controllers.orcamento_item_controller import router as orcamento_itens_router
+from app.controllers.orcamento_approval_controller import router as orcamento_approval_router
+from app.controllers.ordem_servico_controller import router as ordem_servico_router
+from app.controllers.os_servico_controller import router as os_servico_router
+from app.controllers.os_peca_controller import router as os_peca_router
+from app.controllers.movimentacao_estoque_controller import router as movimentacao_estoque_router
+from app.controllers.pagamento_controller import router as pagamento_router
+from app.controllers.movimentacao_financeira_controller import router as movimentacao_financeira_router
+from app.controllers.relatorios_controller import router as relatorios_router
+from app.controllers.page_controller import router as page_router
 from app.core.roles import ADMIN
 from app.core.security import require_role
-from app.database.database import get_db
+from app.database.db import get_db
 
 app = FastAPI(title="Dog Mau AutoCenter API")
+
+# Montar arquivos estáticos (CSS, JS, imagens)
+_BACKEND_DIR = Path(__file__).resolve().parent.parent
+_STATIC_DIR = _BACKEND_DIR / "static"
+if _STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
 
 app.add_middleware(
     CORSMiddleware,
@@ -44,14 +64,30 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(users_router)
-app.include_router(clientes_router)
 app.include_router(me_router)
 app.include_router(enderecos_router)
 app.include_router(marcas_router)
 app.include_router(modelos_router)
 app.include_router(veiculos_router)
-app.include_router(mecanicos_router)
 app.include_router(servicos_router)
+app.include_router(produtos_router)
+app.include_router(pecas_router)
+app.include_router(pedidos_router)
+app.include_router(pedido_itens_router)
+app.include_router(agendamentos_router)
+app.include_router(orcamentos_router)
+app.include_router(orcamento_itens_router)
+app.include_router(orcamento_approval_router)
+app.include_router(ordem_servico_router)
+app.include_router(os_servico_router)
+app.include_router(os_peca_router)
+app.include_router(movimentacao_estoque_router)
+app.include_router(pagamento_router)
+app.include_router(movimentacao_financeira_router)
+app.include_router(relatorios_router)
+
+# Rotas de páginas HTML (Jinja2) — DEVE ser a última para não sobrescrever rotas de API
+app.include_router(page_router)
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
@@ -75,22 +111,28 @@ async def log_requests(request: Request, call_next):
 @app.on_event("startup")
 async def on_startup():
     from app.core.firebase import init_firebase
-    init_firebase()
-    logger.info("API iniciada (FastAPI) e Firebase Configurado!")
+    try:
+        init_firebase()
+        logger.info("API iniciada (FastAPI) com Firebase Configurado")
+    except Exception as e:
+        logger.warning(f"API iniciada (FastAPI) - Firebase não disponível: {e}")
 
 
 @app.get("/testar-banco")
-def test_db_connection(db: Session = Depends(get_db)):
+def test_db_connection():
     try:
-        db.execute(text("SELECT 1"))
+        from app.database.db import execute_query
+        execute_query("SELECT 1")
         logger.info("testar-banco: SELECT 1 ok")
         return {"status": "Sucesso", "mensagem": "Conectado ao Cloud SQL!"}
     except Exception as e:
         logger.exception("testar-banco falhou")
         return {"status": "Erro", "detalhes": str(e)}
 
-@app.get("/")
-def root():
+# A rota "/" agora é servida pelo page_controller (Jinja2)
+# Use GET /saude ou GET /api/status para verificar se a API está online.
+@app.get("/api/status")
+def api_status():
     return {"message": "Dog Mau AutoCenter API - Backend", "status": "Online"}
 
 @app.get("/saude")

@@ -1,15 +1,19 @@
-from datetime import datetime
+from datetime import datetime, date
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
-from app.core.roles import ALL_ROLES, MECANICO
+from app.core.roles import ALL_ROLES, CLIENTE
 
 class UserCreate(BaseModel):
     nome: str = Field(..., min_length=1, max_length=100)
     email: EmailStr
     password: str = Field(..., min_length=6)
-    role: str = MECANICO
+    role: str = CLIENTE
     ativo: bool = True
+    telefone: str = Field(..., max_length=20)
+    cpf_cnpj: str = Field(..., max_length=18)
+    data_nascimento: date = Field(...)
+    foto_perfil: str | None = None
 
     @field_validator("email")
     @classmethod
@@ -32,6 +36,10 @@ class UserUpdate(BaseModel):
     password: str | None = Field(None, min_length=6)
     role: str | None = None
     ativo: bool | None = None
+    telefone: str | None = Field(None, max_length=20)
+    cpf_cnpj: str | None = Field(None, max_length=18)
+    data_nascimento: date | None = None
+    foto_perfil: str | None = None
 
     @field_validator("email")
     @classmethod
@@ -57,5 +65,9 @@ class UserPublic(BaseModel):
     email: str
     role: str | None
     ativo: bool | None
+    telefone: str
+    cpf_cnpj: str
+    data_nascimento: date
+    foto_perfil: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
