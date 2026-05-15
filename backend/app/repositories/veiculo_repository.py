@@ -7,12 +7,12 @@ from app.models.entities import Veiculo, dict_to_veiculo, veiculo_to_dict
 logger = logging.getLogger(__name__)
 
 def get_veiculo_by_id_for_user(user_id: int, veiculo_id: int):
-    """Busca veículo por ID para um cliente específico."""
+    """Busca veículo por ID para um usuário específico."""
     query = """
-    SELECT id_veiculo, placa, ano_fabricacao, cor, id_cliente, id_modelo, 
+    SELECT id_veiculo, placa, ano_fabricacao, cor, id_usuario, id_modelo, 
            created_at, updated_at, deleted_at
     FROM veiculo 
-    WHERE id_veiculo = %s AND id_cliente = %s AND deleted_at IS NULL
+    WHERE id_veiculo = %s AND id_usuario = %s AND deleted_at IS NULL
     """
     result = execute_query(query, (veiculo_id, user_id), fetch="one")
     veiculo = dict_to_veiculo(result)
@@ -27,23 +27,23 @@ def get_veiculo_by_id_for_user(user_id: int, veiculo_id: int):
 def create_veiculo(veiculo: Veiculo):
     """Cria um novo veículo."""
     query = """
-    INSERT INTO veiculo (placa, ano_fabricacao, cor, id_cliente, id_modelo)
+    INSERT INTO veiculo (placa, ano_fabricacao, cor, id_usuario, id_modelo)
     VALUES (%s, %s, %s, %s, %s)
     RETURNING id_veiculo
     """
-    params = (veiculo.placa, veiculo.ano_fabricacao, veiculo.cor, veiculo.id_cliente, veiculo.id_modelo)
+    params = (veiculo.placa, veiculo.ano_fabricacao, veiculo.cor, veiculo.id_usuario, veiculo.id_modelo)
     veiculo_id = execute_insert(query, params)
     veiculo.id_veiculo = veiculo_id
-    logger.info("veiculo criado id=%s cliente=%s", veiculo.id_veiculo, veiculo.id_cliente)
+    logger.info("veiculo criado id=%s usuario=%s", veiculo.id_veiculo, veiculo.id_usuario)
     return veiculo
 
 def list_veiculos_by_user(user_id: int):
-    """Lista todos os veículos de um cliente."""
+    """Lista todos os veículos de um usuário."""
     query = """
-    SELECT id_veiculo, placa, ano_fabricacao, cor, id_cliente, id_modelo, 
+    SELECT id_veiculo, placa, ano_fabricacao, cor, id_usuario, id_modelo, 
            created_at, updated_at, deleted_at
     FROM veiculo 
-    WHERE id_cliente = %s AND deleted_at IS NULL
+    WHERE id_usuario = %s AND deleted_at IS NULL
     ORDER BY created_at DESC
     """
     results = execute_query(query, (user_id,))

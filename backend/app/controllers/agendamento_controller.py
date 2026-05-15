@@ -126,7 +126,7 @@ def get_agendamentos_by_cliente(cliente_id: int):
     return [
         AgendamentoPublic(
             id_agendamento=a.id_agendamento,
-            id_cliente=a.id_cliente,
+            id_usuario=a.id_usuario,
             id_veiculo=a.id_veiculo,
             data_agendamento=a.data_agendamento,
             descricao=a.descricao,
@@ -145,7 +145,7 @@ def get_agendamentos_by_veiculo(veiculo_id: int):
     return [
         AgendamentoPublic(
             id_agendamento=a.id_agendamento,
-            id_cliente=a.id_cliente,
+            id_usuario=a.id_usuario,
             id_veiculo=a.id_veiculo,
             data_agendamento=a.data_agendamento,
             descricao=a.descricao,
