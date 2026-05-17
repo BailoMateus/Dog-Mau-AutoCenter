@@ -12,35 +12,88 @@ logger = logging.getLogger(__name__)
 def add_endereco_to_user(user_id: int, data: EnderecoCreate):
     user_service.get_user_or_404(user_id)
     endereco = Endereco(
-        id_cliente=user_id,
+        id_usuario=user_id,
         logradouro=data.logradouro,
         numero=data.numero,
         cep=data.cep,
         complemento=data.complemento,
         bairro=data.bairro,
         cidade=data.cidade,
-        estado=data.estado,
+        estado=data.estado
+    )
+
+    return repo.create_endereco(endereco)
+
+
+def list_enderecos():
+    return repo.list_enderecos()
+
+
+def create_endereco(data: EnderecoCreate):
+    if not data.id_usuario:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="id_usuario é obrigatório para criar um endereço"
+        )
+    user_service.get_user_or_404(data.id_usuario)
+    endereco = Endereco(
+        id_usuario=data.id_usuario,
+        logradouro=data.logradouro,
+        numero=data.numero,
+        cep=data.cep,
+        complemento=data.complemento,
+        bairro=data.bairro,
+        cidade=data.cidade,
+        estado=data.estado
     )
     return repo.create_endereco(endereco)
+
+
+def get_endereco_or_404(endereco_id: int) -> Endereco:
+    endereco = repo.get_endereco_by_id(endereco_id)
+    if not endereco:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Endereço não encontrado")
+    return endereco
+
+
+def update_endereco(endereco_id: int, data: EnderecoUpdate):
+    endereco = get_endereco_or_404(endereco_id)
+    if data.logradouro is not None:
+        endereco.logradouro = data.logradouro
+    if data.numero is not None:
+        endereco.numero = data.numero
+    if data.cep is not None:
+        endereco.cep = data.cep
+    if data.complemento is not None:
+        endereco.complemento = data.complemento
+    if data.bairro is not None:
+        endereco.bairro = data.bairro
+    if data.cidade is not None:
+        endereco.cidade = data.cidade
+    if data.estado is not None:
+        endereco.estado = data.estado
+    return repo.update_endereco(endereco)
+
+
+def delete_endereco(endereco_id: int):
+    endereco = get_endereco_or_404(endereco_id)
+    return repo.soft_delete_endereco(endereco)
+
 
 def list_enderecos_by_user(user_id: int):
     user_service.get_user_or_404(user_id)
     return repo.list_enderecos_by_user(user_id)
 
-def get_endereco_or_404(user_id: int, endereco_id: int) -> Endereco:
+
+def get_endereco_by_user_or_404(user_id: int, endereco_id: int) -> Endereco:
     user_service.get_user_or_404(user_id)
     endereco = repo.get_endereco_by_id_for_user(user_id, endereco_id)
     if not endereco:
-        logger.info(
-            "endereço não encontrado user=%s endereco=%s",
-            user_id,
-            endereco_id,
-        )
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Endereço não encontrado")
     return endereco
 
 def update_endereco_by_user(user_id: int, endereco_id: int, data: EnderecoUpdate):
-    endereco = get_endereco_or_404(user_id, endereco_id)
+    endereco = get_endereco_by_user_or_404(user_id, endereco_id)
     if data.logradouro is not None:
         endereco.logradouro = data.logradouro
     if data.numero is not None:
@@ -58,5 +111,5 @@ def update_endereco_by_user(user_id: int, endereco_id: int, data: EnderecoUpdate
     return repo.update_endereco(endereco)
 
 def delete_endereco_by_user(user_id: int, endereco_id: int):
-    endereco = get_endereco_or_404(user_id, endereco_id)
+    endereco = get_endereco_by_user_or_404(user_id, endereco_id)
     return repo.soft_delete_endereco(endereco)

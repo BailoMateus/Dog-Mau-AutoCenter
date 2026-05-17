@@ -51,6 +51,9 @@ class Settings(BaseSettings):
 
     firebase_web_api_key: str = ""
 
+    resend_api_key: str = ""
+    frontend_url: str = ""
+
     @field_validator("debug_log", mode="before")
     @classmethod
     def _coerce_debug_log(cls, v):

@@ -20,11 +20,11 @@ def create_veiculo_for_user(user_id: int, data: VeiculoCreate):
     user_service.get_user_or_404(user_id)
     get_modelo_or_404(data.id_modelo)
     veiculo = Veiculo(
-        id_cliente=user_id,
+        id_usuario=user_id,
+        id_modelo=data.id_modelo,
         placa=data.placa,
         ano_fabricacao=data.ano_fabricacao,
         cor=data.cor,
-        id_modelo=data.id_modelo,
     )
     try:
         return repo.create_veiculo(veiculo)
@@ -43,11 +43,7 @@ def get_veiculo_by_user_or_404(user_id: int, veiculo_id: int) -> Veiculo:
     user_service.get_user_or_404(user_id)
     veiculo = repo.get_veiculo_by_id_for_user(user_id, veiculo_id)
     if not veiculo:
-        logger.info(
-            "veículo não encontrado user=%s veiculo=%s",
-            user_id,
-            veiculo_id,
-        )
+        logger.info("veículo não encontrado id=%s user_id=%s", veiculo_id, user_id)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Veículo não encontrado")
     return veiculo
 
@@ -65,7 +61,7 @@ def update_veiculo_by_user(user_id: int, veiculo_id: int, data: VeiculoUpdate):
     try:
         return repo.update_veiculo(veiculo)
     except psycopg2.IntegrityError:
-        logger.warning("update_veiculo placa duplicada veiculo_id=%s", veiculo_id)
+        logger.warning("update_veiculo placa duplicada placa=%s", data.placa)
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Placa já cadastrada",

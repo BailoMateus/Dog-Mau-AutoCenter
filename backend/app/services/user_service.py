@@ -1,7 +1,9 @@
 import logging
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, UploadFile
 import psycopg2
+import os
+from uuid import uuid4
 
 from app.core.roles import ADMIN, CLIENTE, MECANICO
 from app.core.security import hash_password
@@ -147,4 +149,26 @@ def update_user(
 def delete_user(user_id: int, *, actor: dict):
     user = get_user_or_404(user_id)
     assert_can_modify(actor, user_id, admin_only=True)
-    return repo.soft_delete_user(user)
+
+    try:
+        return repo.delete_user(user)
+    except psycopg2.IntegrityError:
+        logger.error("delete_user erro de integridade user_id=%s", user_id)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro ao excluir usuário",
+        )
+
+def save_user_photo(user_id: int, file: UploadFile) -> str:
+    """Salva a foto do usuário no sistema de arquivos."""
+    upload_dir = os.path.join("uploads", "users")
+    os.makedirs(upload_dir, exist_ok=True)
+
+    file_extension = file.filename.split(".")[-1]
+    file_name = f"{user_id}_{uuid4().hex}.{file_extension}"
+    file_path = os.path.join(upload_dir, file_name)
+
+    with open(file_path, "wb") as f:
+        f.write(file.file.read())
+
+    return file_path

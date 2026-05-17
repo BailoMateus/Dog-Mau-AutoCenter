@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime, timedelta
+import os
 
 from fastapi import Depends, HTTPException, status
 from jose import jwt
@@ -21,10 +22,13 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 # gerar token
-def create_access_token(data: dict):
+def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()
 
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
     to_encode.update({"exp": expire})
 
@@ -32,6 +36,20 @@ def create_access_token(data: dict):
     logger.debug("access token emitido sub=%s", to_encode.get("sub"))
     return encoded_jwt
 
+def validate_file(file, allowed_types, max_size):
+    """Valida tipo e tamanho do arquivo."""
+    if file.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Tipo de arquivo não permitido."
+        )
+
+    if len(file.file.read()) > max_size:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Arquivo excede o tamanho máximo permitido."
+        )
+    file.file.seek(0)  # Resetar ponteiro do arquivo
 
 def require_role(allowed_roles: list):
     def role_checker(user=Depends(get_current_user)):

@@ -3,6 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 
 class EnderecoCreate(BaseModel):
+    id_usuario: int | None = Field(None, gt=0)
     logradouro: str = Field(..., min_length=1, max_length=150)
     numero: str | None = Field(None, max_length=10)
     cep: str | None = Field(None, max_length=9)
@@ -24,7 +25,7 @@ class EnderecoPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id_endereco: int
-    id_cliente: int
+    id_usuario: int
     logradouro: str
     numero: str | None
     cep: str | None

@@ -13,6 +13,7 @@ class UserCreate(BaseModel):
     telefone: str | None = Field(None, max_length=20)
     cpf_cnpj: str | None = Field(None, max_length=18)
     data_nascimento: date | None = Field(None)
+    foto_perfil: str | None = None
 
     @field_validator("email")
     @classmethod
@@ -38,6 +39,7 @@ class UserUpdate(BaseModel):
     telefone: str | None = Field(None, max_length=20)
     cpf_cnpj: str | None = Field(None, max_length=18)
     data_nascimento: date | None = None
+    foto_perfil: str | None = None
 
     @field_validator("email")
     @classmethod
@@ -63,8 +65,9 @@ class UserPublic(BaseModel):
     email: str
     role: str | None
     ativo: bool | None
-    telefone: str | None = None
-    cpf_cnpj: str | None = None
-    data_nascimento: date | None = None
+    telefone: str
+    cpf_cnpj: str
+    data_nascimento: date
+    foto_perfil: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None

@@ -20,7 +20,7 @@ def list_veiculos(
     cliente_id: Annotated[int, Path(ge=1)],
     _=Depends(require_role(_STAFF)),
 ):
-    logger.info("GET /clientes/%s/veiculos", cliente_id)
+    logger.info("GET /api/clientes/%s/veiculos", cliente_id)
     return veiculo_service.list_veiculos_by_user(cliente_id)
 
 
@@ -30,7 +30,7 @@ def create_veiculo(
     data: VeiculoCreate,
     _=Depends(require_role(_STAFF)),
 ):
-    logger.info("POST /clientes/%s/veiculos placa=%s", cliente_id, data.placa)
+    logger.info("POST /api/clientes/%s/veiculos", cliente_id)
     return veiculo_service.create_veiculo_for_user(cliente_id, data)
 
 
@@ -40,26 +40,26 @@ def get_veiculo(
     veiculo_id: Annotated[int, Path(ge=1)],
     _=Depends(require_role(_STAFF)),
 ):
-    logger.info("GET /clientes/%s/veiculos/%s", cliente_id, veiculo_id)
+    logger.info("GET /api/clientes/%s/veiculos/%s", cliente_id, veiculo_id)
     return veiculo_service.get_veiculo_by_user_or_404(cliente_id, veiculo_id)
 
 
 @router.patch("/{veiculo_id}", response_model=VeiculoPublic)
-def patch_veiculo(
+def update_veiculo(
     cliente_id: Annotated[int, Path(ge=1)],
     veiculo_id: Annotated[int, Path(ge=1)],
     data: VeiculoUpdate,
     _=Depends(require_role(_STAFF)),
 ):
-    logger.info("PATCH /clientes/%s/veiculos/%s", cliente_id, veiculo_id)
+    logger.info("PATCH /api/clientes/%s/veiculos/%s", cliente_id, veiculo_id)
     return veiculo_service.update_veiculo_by_user(cliente_id, veiculo_id, data)
 
 
 @router.delete("/{veiculo_id}", response_model=VeiculoPublic)
-def remove_veiculo(
+def delete_veiculo(
     cliente_id: Annotated[int, Path(ge=1)],
     veiculo_id: Annotated[int, Path(ge=1)],
     _=Depends(require_role(_STAFF)),
 ):
-    logger.info("DELETE /clientes/%s/veiculos/%s", cliente_id, veiculo_id)
+    logger.info("DELETE /api/clientes/%s/veiculos/%s", cliente_id, veiculo_id)
     return veiculo_service.delete_veiculo_by_user(cliente_id, veiculo_id)

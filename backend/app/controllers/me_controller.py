@@ -2,6 +2,7 @@ import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Path
+
 from app.core.roles import CLIENTE
 from app.core.security import require_role
 from app.middlewares.auth_middleware import get_current_user
@@ -27,7 +28,6 @@ def require_cliente(current=Depends(get_current_user)):
 
 def get_my_user(current: dict):
     return user_service.get_user_or_404(int(current["user_id"]))
-
 
 @router.get("/profile", response_model=UserPublic)
 def get_my_profile(
@@ -74,7 +74,7 @@ def get_my_endereco(
 ):
     """Cliente vê um endereço específico"""
     logger.info("GET /me/enderecos/%s user_id=%s", endereco_id, current["user_id"])
-    return endereco_service.get_endereco_or_404(int(current["user_id"]), endereco_id)
+    return endereco_service.get_endereco_by_user_or_404(int(current["user_id"]), endereco_id)
 
 @router.patch("/enderecos/{endereco_id}", response_model=EnderecoPublic)
 def update_my_endereco(

@@ -21,15 +21,13 @@ def list_marcas(
     logger.info("GET /marcas")
     return marca_service.list_marcas()
 
-
 @router.post("", response_model=MarcaPublic, status_code=201)
 def create_marca(
     data: MarcaCreate,
     _=Depends(require_role(_STAFF)),
 ):
-    logger.info("POST /marcas nome=%s", data.nome)
+    logger.info("POST /marcas")
     return marca_service.create_marca(data)
-
 
 @router.get("/{marca_id}", response_model=MarcaPublic)
 def get_marca(
@@ -39,9 +37,8 @@ def get_marca(
     logger.info("GET /marcas/%s", marca_id)
     return marca_service.get_marca_or_404(marca_id)
 
-
 @router.patch("/{marca_id}", response_model=MarcaPublic)
-def patch_marca(
+def update_marca(
     marca_id: Annotated[int, Path(ge=1)],
     data: MarcaUpdate,
     _=Depends(require_role(_STAFF)),
@@ -49,9 +46,8 @@ def patch_marca(
     logger.info("PATCH /marcas/%s", marca_id)
     return marca_service.update_marca(marca_id, data)
 
-
 @router.delete("/{marca_id}", response_model=MarcaPublic)
-def remove_marca(
+def delete_marca(
     marca_id: Annotated[int, Path(ge=1)],
     _=Depends(require_role(_STAFF)),
 ):

@@ -1,10 +1,11 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Path, status, Header, Request
+from fastapi import APIRouter, Depends, HTTPException, Path, status, Header, File, UploadFile
 
 from app.core.roles import ADMIN, CLIENTE
-from app.core.security import require_role
+from app.core.security import require_role, validate_file
+from app.database.db import get_db
 from app.middlewares.auth_middleware import get_current_user
 from app.schemas.user_schema import UserCreate, UserPublic, UserUpdate
 from app.services import user_service
@@ -24,7 +25,6 @@ def list_users(
 @router.post("", response_model=UserPublic, status_code=201)
 def create_user(
     data: UserCreate,
-    request: Request,
     authorization: Annotated[str | None, Header()] = None,
 ):
     existing_admin = user_service.get_user_by_role(ADMIN)
@@ -53,31 +53,26 @@ def create_user(
         if not token:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Not authenticated"
+                detail="Token não fornecido"
             )
 
         if token.startswith("Bearer "):
             token = token.replace("Bearer ", "")
         
-        # Validação do token
-        try:
-            from app.core.config import SECRET_KEY, ALGORITHM
-            from jose import jwt
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-            role = payload.get("role")
-            
-            if role != ADMIN:
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Acesso não autorizado"
-                )
-        except Exception:
+        current_user = get_current_user(authorization)
+        if not current_user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token inválido"
             )
         
-        logger.info("POST /users email=%s role=%s", data.email, data.role)
+        if current_user["role"] not in [ADMIN, MECANICO]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Sem permissão"
+            )
+        
+        logger.info("POST /users (admin/mecanico) email=%s", data.email)
         user = user_service.create_user(data)
         return user
 
@@ -106,3 +101,23 @@ def remove_user(
 ):
     logger.info("DELETE /users/%s actor=%s", user_id, current.get("user_id"))
     return user_service.delete_user(user_id, actor=current)
+
+@router.post("/{user_id}/upload-photo", response_model=UserPublic)
+def upload_user_photo(
+    user_id: Annotated[int, Path(ge=1)],
+    file: UploadFile = File(...),
+    current=Depends(get_current_user),
+):
+    logger.info("POST /users/%s/upload-photo actor=%s", user_id, current.get("user_id"))
+
+    # Validar permissões
+    user_service.assert_can_update(current, user_id)
+
+    # Validar tipo e tamanho do arquivo
+    validate_file(file, allowed_types=["image/jpeg", "image/png"], max_size=2 * 1024 * 1024)
+
+    # Salvar arquivo e atualizar banco de dados
+    photo_path = user_service.save_user_photo(user_id, file)
+    user_repository.update_user_photo(user_id, photo_path)
+
+    return user_service.get_user_or_404(user_id)
