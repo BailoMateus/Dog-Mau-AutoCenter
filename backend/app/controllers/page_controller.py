@@ -23,6 +23,7 @@ from app.core.settings import get_settings
 from app.database.db import execute_query
 from app.services.user_service import list_users
 from app.services import servico_service
+from app.services import produto_service
 
 logger = logging.getLogger(__name__)
 
@@ -143,15 +144,22 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
     # Carrega dados apenas para roles que precisam
     usuarios = []
     servicos = []
+    produtos = []
     if user.get("role") in ("admin", "mecanico"):
         usuarios = list_users()
         servicos = servico_service.list_servicos()
+        produtos = produto_service.list_produtos()
+
+    # Pedidos: listas vazias até os backends serem implementados
+    pedidos = []
 
     return templates.TemplateResponse("pages/painel.html", {
         "request": request,
         "user": user,
         "usuarios": usuarios,
         "servicos": servicos,
+        "produtos": produtos,
+        "pedidos": pedidos,
         "tab": tab,
         "page": "painel",
     })
