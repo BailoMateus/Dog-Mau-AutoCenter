@@ -17,44 +17,49 @@ router = APIRouter(prefix="/api/clientes/{cliente_id}/veiculos", tags=["Veiculos
 
 @router.get("", response_model=list[VeiculoPublic])
 def list_veiculos(
+    cliente_id: Annotated[int, Path(ge=1)],
     _=Depends(require_role(_STAFF)),
 ):
-    logger.info("GET /veiculos")
-    return veiculo_service.list_veiculos()
+    logger.info("GET /api/clientes/%s/veiculos", cliente_id)
+    return veiculo_service.list_veiculos_by_user(cliente_id)
 
 
 @router.post("", response_model=VeiculoPublic, status_code=201)
 def create_veiculo(
+    cliente_id: Annotated[int, Path(ge=1)],
     data: VeiculoCreate,
     _=Depends(require_role(_STAFF)),
 ):
-    logger.info("POST /veiculos")
-    return veiculo_service.create_veiculo(data)
+    logger.info("POST /api/clientes/%s/veiculos", cliente_id)
+    return veiculo_service.create_veiculo_for_user(cliente_id, data)
 
 
 @router.get("/{veiculo_id}", response_model=VeiculoPublic)
 def get_veiculo(
+    cliente_id: Annotated[int, Path(ge=1)],
     veiculo_id: Annotated[int, Path(ge=1)],
     _=Depends(require_role(_STAFF)),
 ):
-    logger.info("GET /veiculos/%s", veiculo_id)
-    return veiculo_service.get_veiculo_or_404(veiculo_id)
+    logger.info("GET /api/clientes/%s/veiculos/%s", cliente_id, veiculo_id)
+    return veiculo_service.get_veiculo_by_user_or_404(cliente_id, veiculo_id)
 
 
 @router.patch("/{veiculo_id}", response_model=VeiculoPublic)
 def update_veiculo(
+    cliente_id: Annotated[int, Path(ge=1)],
     veiculo_id: Annotated[int, Path(ge=1)],
     data: VeiculoUpdate,
     _=Depends(require_role(_STAFF)),
 ):
-    logger.info("PATCH /veiculos/%s", veiculo_id)
-    return veiculo_service.update_veiculo(veiculo_id, data)
+    logger.info("PATCH /api/clientes/%s/veiculos/%s", cliente_id, veiculo_id)
+    return veiculo_service.update_veiculo_by_user(cliente_id, veiculo_id, data)
 
 
 @router.delete("/{veiculo_id}", response_model=VeiculoPublic)
 def delete_veiculo(
+    cliente_id: Annotated[int, Path(ge=1)],
     veiculo_id: Annotated[int, Path(ge=1)],
     _=Depends(require_role(_STAFF)),
 ):
-    logger.info("DELETE /veiculos/%s", veiculo_id)
-    return veiculo_service.delete_veiculo(veiculo_id)
+    logger.info("DELETE /api/clientes/%s/veiculos/%s", cliente_id, veiculo_id)
+    return veiculo_service.delete_veiculo_by_user(cliente_id, veiculo_id)

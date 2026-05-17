@@ -7,12 +7,12 @@ from app.models.entities import Endereco, dict_to_endereco, endereco_to_dict
 logger = logging.getLogger(__name__)
 
 def get_endereco_by_id_for_user(user_id: int, endereco_id: int):
-    """Busca endereço por ID para um cliente específico."""
+    """Busca endereço por ID para um usuário específico."""
     query = """
-    SELECT id_endereco, id_cliente, logradouro, numero, cep, complemento, 
+    SELECT id_endereco, id_usuario, logradouro, numero, cep, complemento, 
            bairro, cidade, estado, created_at, updated_at, deleted_at
     FROM endereco 
-    WHERE id_endereco = %s AND id_cliente = %s AND deleted_at IS NULL
+    WHERE id_endereco = %s AND id_usuario = %s AND deleted_at IS NULL
     """
     result = execute_query(query, (endereco_id, user_id), fetch="one")
     endereco = dict_to_endereco(result)
@@ -27,26 +27,60 @@ def get_endereco_by_id_for_user(user_id: int, endereco_id: int):
 def create_endereco(endereco: Endereco):
     """Cria um novo endereço."""
     query = """
-    INSERT INTO endereco (id_cliente, logradouro, numero, cep, complemento, bairro, cidade, estado)
+    INSERT INTO endereco (id_usuario, logradouro, numero, cep, complemento, bairro, cidade, estado)
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
     RETURNING id_endereco
     """
     params = (
-        endereco.id_cliente, endereco.logradouro, endereco.numero, endereco.cep,
+        endereco.id_usuario, endereco.logradouro, endereco.numero, endereco.cep,
         endereco.complemento, endereco.bairro, endereco.cidade, endereco.estado
     )
     endereco_id = execute_insert(query, params)
     endereco.id_endereco = endereco_id
-    logger.info("endereco criado id=%s cliente=%s", endereco.id_endereco, endereco.id_cliente)
+    logger.info("endereco criado id=%s usuario=%s", endereco.id_endereco, endereco.id_usuario)
     return endereco
 
-def list_enderecos_by_user(user_id: int):
-    """Lista todos os endereços de um cliente."""
+
+def get_endereco_by_id(endereco_id: int):
+    """Busca endereço por ID."""
     query = """
-    SELECT id_endereco, id_cliente, logradouro, numero, cep, complemento, 
+    SELECT id_endereco, id_usuario, logradouro, numero, cep, complemento, 
            bairro, cidade, estado, created_at, updated_at, deleted_at
     FROM endereco 
-    WHERE id_cliente = %s AND deleted_at IS NULL
+    WHERE id_endereco = %s AND deleted_at IS NULL
+    """
+    result = execute_query(query, (endereco_id,), fetch="one")
+    endereco = dict_to_endereco(result)
+    logger.debug(
+        "get_endereco_by_id endereco=%s found=%s",
+        endereco_id,
+        endereco is not None,
+    )
+    return endereco
+
+
+def list_enderecos():
+    """Lista todos os endereços."""
+    query = """
+    SELECT id_endereco, id_usuario, logradouro, numero, cep, complemento, 
+           bairro, cidade, estado, created_at, updated_at, deleted_at
+    FROM endereco 
+    WHERE deleted_at IS NULL
+    ORDER BY created_at DESC
+    """
+    results = execute_query(query)
+    enderecos = [dict_to_endereco(row) for row in results]
+    logger.debug("list_enderecos count=%s", len(enderecos))
+    return enderecos
+
+
+def list_enderecos_by_user(user_id: int):
+    """Lista todos os endereços de um usuário."""
+    query = """
+    SELECT id_endereco, id_usuario, logradouro, numero, cep, complemento, 
+           bairro, cidade, estado, created_at, updated_at, deleted_at
+    FROM endereco 
+    WHERE id_usuario = %s AND deleted_at IS NULL
     ORDER BY created_at DESC
     """
     results = execute_query(query, (user_id,))
