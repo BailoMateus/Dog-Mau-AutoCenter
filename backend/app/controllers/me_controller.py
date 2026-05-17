@@ -74,7 +74,7 @@ def get_my_endereco(
 ):
     """Cliente vê um endereço específico"""
     logger.info("GET /me/enderecos/%s user_id=%s", endereco_id, current["user_id"])
-    return endereco_service.get_endereco_or_404(int(current["user_id"]), endereco_id)
+    return endereco_service.get_endereco_by_user_or_404(int(current["user_id"]), endereco_id)
 
 @router.patch("/enderecos/{endereco_id}", response_model=EnderecoPublic)
 def update_my_endereco(

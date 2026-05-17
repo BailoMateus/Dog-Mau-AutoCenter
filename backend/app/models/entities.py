@@ -24,7 +24,7 @@ class User:
 @dataclass
 class Endereco:
     id_endereco: Optional[int] = None
-    id_cliente: int = 0
+    id_usuario: int = 0
     logradouro: str = ""
     numero: Optional[str] = None
     cep: Optional[str] = None
@@ -65,7 +65,7 @@ class Veiculo:
     placa: str = ""
     ano_fabricacao: Optional[int] = None
     cor: Optional[str] = None
-    id_cliente: int = 0
+    id_usuario: int = 0
     id_modelo: int = 0
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
