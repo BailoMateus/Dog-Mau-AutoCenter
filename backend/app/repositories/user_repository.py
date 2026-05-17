@@ -11,7 +11,7 @@ def get_user_by_email(email: str):
     """Busca usuário por email."""
     query = """
     SELECT id_usuario, nome, email, senha_hash, role, ativo, telefone, cpf_cnpj, 
-           data_nascimento, created_at, updated_at, deleted_at
+           data_nascimento, foto_perfil, created_at, updated_at, deleted_at
     FROM usuario 
     WHERE email = %s AND deleted_at IS NULL
     """
@@ -24,7 +24,7 @@ def get_user_by_id(user_id: int):
     """Busca usuário por ID."""
     query = """
     SELECT id_usuario, nome, email, senha_hash, role, ativo, telefone, cpf_cnpj, 
-           data_nascimento, created_at, updated_at, deleted_at
+           data_nascimento, foto_perfil, created_at, updated_at, deleted_at
     FROM usuario 
     WHERE id_usuario = %s AND deleted_at IS NULL
     """
