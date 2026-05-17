@@ -143,3 +143,14 @@ def update_user_photo(user_id: int, photo_path: str):
     params = (photo_path, user_id)
     execute_command(query, params)
     logger.info("Foto de perfil atualizada para o usuário id=%s", user_id)
+
+def update_user_password(user_id: int, hashed_password: str):
+    """Atualiza a senha do usuário."""
+    query = """
+    UPDATE usuario
+    SET senha_hash = %s, updated_at = CURRENT_TIMESTAMP
+    WHERE id_usuario = %s AND deleted_at IS NULL
+    """
+    params = (hashed_password, user_id)
+    execute_command(query, params)
+    logger.info("Senha atualizada para o usuário id=%s", user_id)
