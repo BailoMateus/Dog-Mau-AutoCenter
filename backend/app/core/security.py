@@ -19,7 +19,17 @@ def hash_password(password: str) -> str:
 
 # verificar senha
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        return pwd_context.verify(plain_password, hashed_password)
+    except Exception as e:
+        # Se o hash armazenado não é um hash bcrypt válido (ex: senha em texto puro no banco),
+        # passlib lança exceção. Fazemos fallback para comparação direta.
+        logger.warning(
+            "verify_password: bcrypt falhou (%s). Tentando comparação direta. "
+            "ATENÇÃO: a senha deste usuário deve ser re-hasheada!",
+            e,
+        )
+        return plain_password == hashed_password
 
 # gerar token
 def create_access_token(data: dict, expires_delta: timedelta = None):
