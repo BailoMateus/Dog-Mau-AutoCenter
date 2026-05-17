@@ -1,0 +1,47 @@
+# Ambiente LOCAL de desenvolvimento - Dog Mau AutoCenter.
+#
+# Sobe um PostgreSQL 16 isolado com schema + admin ja populados.
+# Cada dev roda na propria maquina, sem afetar o Cloud SQL de producao.
+#
+# Comandos uteis:
+#   docker compose up -d           Sobe o banco em background
+#   docker compose down            Para o banco (preserva dados)
+#   docker compose down -v         Para e DESTROI os dados (reset completo)
+#   docker compose logs -f postgres   Logs em tempo real
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: dogmau-postgres-local
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: dogmau
+      POSTGRES_PASSWORD: dogmau
+      POSTGRES_DB: dogmau_local
+    ports:
+      # Host 5433 -> container 5432: evita conflito com Postgres nativo (muitos devs ja
+      # tem postgresql-x64-XX rodando como servico Windows na 5432). 5433 e a convencao
+      # padrao para "segunda instancia Postgres". O backend usa DATABASE_URL em .env
+      # para apontar para esta porta. Veja IMPLEMENTACAO_LOCAL.md.
+      - "5433:5432"
+    volumes:
+      - dogmau_pgdata:/var/lib/postgresql/data
+      # Scripts de inicializacao - executados em ordem alfabetica APENAS no primeiro boot
+      # (quando o volume dogmau_pgdata esta vazio). Para reexecutar: docker compose down -v.
+      - ./infra/database/tables.sql:/docker-entrypoint-initdb.d/01_tables.sql:ro
+      - ./infra/database/migration_add_user_fields.sql:/docker-entrypoint-initdb.d/02_add_user_fields.sql:ro
+      - ./infra/database/seed_admin.sql:/docker-entrypoint-initdb.d/03_seed_admin.sql:ro
+      # NOTA: migration_unified_users.sql NAO eh montada de proposito.
+      # Ela eh uma migracao one-time de DADOS (move clientes/mecanicos antigos
+      # para usuario unificada) que ja foi aplicada em producao e contem um bug
+      # ao referenciar "cliente.ativo" (coluna que nao existe em tables.sql).
+      # Em banco LOCAL/NOVO ela e inutil e quebra o init. Veja IMPLEMENTACAO_LOCAL.md.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dogmau -d dogmau_local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  dogmau_pgdata:
+    name: dogmau_pgdata

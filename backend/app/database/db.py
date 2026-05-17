@@ -50,7 +50,7 @@ def get_db_connection():
     """
     conn = None
     try:
-        conn = psycopg2.connect(_get_connection_string())
+        conn = psycopg2.connect(_get_connection_string(), client_encoding="utf-8")
         conn.autocommit = False
         yield conn
         conn.commit()

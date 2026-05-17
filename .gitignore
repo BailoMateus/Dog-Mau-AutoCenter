@@ -17,3 +17,4 @@ firebase-credentials.json
 /backend/.firebase
 backend/firebase-debug.log
 backend/.firebase/hosting.c3RhdGlj.cache
+.claude
