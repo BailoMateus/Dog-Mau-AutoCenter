@@ -1,0 +1,301 @@
+{# ──────────────────────────────────────────────────────────────────
+   Partial: PedidoPanel.html
+   Conteúdo reutilizável de gerenciamento de pedidos.
+   Segue o padrão do ProdutoPanel.html / ServicePanel.html.
+
+   Requer no contexto:
+     - user     (dict com .role)
+     - pedidos  (lista de dicts de pedidos)
+   ────────────────────────────────────────────────────────────────── #}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <h2 class="fw-bold m-0" style="color: rgba(192, 37, 43); font-family: 'Orbitron', sans-serif;">
+        <i class="bi bi-cart3 me-2"></i>
+        {% if user.role in ['admin', 'mecanico'] %}Gerenciamento de Pedidos{% else %}Meus Pedidos{% endif %}
+    </h2>
+    {% if user.role in ['admin', 'mecanico'] %}
+    <button class="btn btn-primary px-4 py-2" onclick="openPedidoModal('create', null)">
+        <i class="bi bi-plus-circle-fill me-2"></i>Novo Pedido
+    </button>
+    {% endif %}
+</div>
+
+<div class="table-responsive rounded shadow card p-0 border-0" style="background-color: #111;">
+    <table class="table table-dark table-hover align-middle mb-0" style="background-color: transparent;">
+        <thead class="table-dark text-uppercase small" style="border-bottom: 2px solid #222;">
+            <tr>
+                <th class="py-3">ID Pedido</th>
+                <th class="py-3">Data</th>
+                <th class="py-3 d-none d-md-table-cell">Itens</th>
+                <th class="py-3">Valor Total</th>
+                <th class="py-3">Status</th>
+                {% if user.role in ['admin', 'mecanico'] %}
+                <th class="text-center py-3">Ações</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for ped in pedidos %}
+            <tr>
+                <td>{{ ped.id_pedido }}</td>
+                <td>{{ ped.data_pedido }}</td>
+                <td class="d-none d-md-table-cell">{{ ped.qtd_itens if ped.qtd_itens is defined else '—' }}</td>
+                <td>R$ {{ "%.2f" | format(ped.valor_total | float) }}</td>
+                <td>
+                    {% if ped.status == 'concluido' %}
+                    <span class="badge bg-success">Concluído</span>
+                    {% elif ped.status == 'em_andamento' %}
+                    <span class="badge bg-warning text-dark">Em Andamento</span>
+                    {% elif ped.status == 'cancelado' %}
+                    <span class="badge bg-danger">Cancelado</span>
+                    {% else %}
+                    <span class="badge bg-info text-dark">{{ ped.status | default('Pendente') | capitalize }}</span>
+                    {% endif %}
+                </td>
+                {% if user.role in ['admin', 'mecanico'] %}
+                <td class="text-center">
+                    <button class="btn btn-sm btn-outline-primary me-2"
+                            onclick="openPedidoModal('edit', this)"
+                            data-ped-id="{{ ped.id_pedido }}"
+                            data-ped-data="{{ ped.data_pedido }}"
+                            data-ped-valor="{{ ped.valor_total }}"
+                            data-ped-status="{{ ped.status }}">
+                        <i class="bi bi-pencil"></i> Editar
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger"
+                            onclick="openDeletePedidoModal(this)"
+                            data-ped-id="{{ ped.id_pedido }}">
+                        <i class="bi bi-trash"></i> Excluir
+                    </button>
+                </td>
+                {% endif %}
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="{% if user.role in ['admin', 'mecanico'] %}6{% else %}5{% endif %}" class="text-center py-4 text-muted">Nenhum pedido encontrado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if user.role in ['admin', 'mecanico'] %}
+<!-- Modal Formulário (Criar/Editar Pedido) -->
+<div id="pedidoFormModal" class="custom-modal d-none">
+    <div class="custom-modal-content rounded shadow card p-0" style="background-color: #111; border: 1px solid #222; max-width: 500px;">
+        <div class="custom-modal-header border-bottom border-secondary p-3 d-flex justify-content-between align-items-center">
+            <h5 class="m-0 fw-bold" id="pedidoModalTitle" style="color: rgba(192, 37, 43);">Novo Pedido</h5>
+            <button type="button" class="btn-close btn-close-white" onclick="closePedidoModal('pedidoFormModal')"></button>
+        </div>
+        <div class="custom-modal-body p-4">
+            <form id="pedidoForm" class="w-100 m-auto" style="max-width: 100%;">
+                <input type="hidden" id="pedidoId" name="id" />
+
+                <div class="form-floating mb-3">
+                    <input type="date" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="pedidoData" name="data_pedido" required>
+                    <label for="pedidoData" class="text-white-50">Data do Pedido</label>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input type="number" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="pedidoValor" name="valor_total" placeholder="0.00" step="0.01" min="0.01" required>
+                    <label for="pedidoValor" class="text-white-50">Valor Total (R$)</label>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <select class="form-select text-white" style="background-color: #0b0b0b; border-color: #333;" id="pedidoStatus" name="status" required>
+                        <option value="pendente">Pendente</option>
+                        <option value="em_andamento">Em Andamento</option>
+                        <option value="concluido">Concluído</option>
+                        <option value="cancelado">Cancelado</option>
+                    </select>
+                    <label for="pedidoStatus" class="text-white-50">Status</label>
+                </div>
+
+                <div id="pedidoFormError" class="alert alert-danger d-none small"></div>
+
+                <div class="d-flex justify-content-between gap-2 mt-4">
+                    <button type="button" class="btn btn-outline-secondary w-50 py-2" onclick="closePedidoModal('pedidoFormModal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary w-50 py-2" id="pedidoSaveButton">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmação de Exclusão de Pedido -->
+<div id="deletePedidoModal" class="custom-modal d-none">
+    <div class="custom-modal-content rounded shadow card p-0" style="max-width: 400px; background-color: #111; border: 1px solid #222;">
+        <div class="custom-modal-header border-bottom border-secondary p-3 text-center position-relative">
+            <h5 class="m-0 text-danger w-100 fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Atenção</h5>
+            <button type="button" class="btn-close btn-close-white position-absolute top-50 end-0 translate-middle-y me-3" onclick="closePedidoModal('deletePedidoModal')"></button>
+        </div>
+        <div class="custom-modal-body p-4 text-center">
+            <p class="mb-0 text-white">Tem certeza que deseja excluir o pedido <br><strong id="deletePedidoName" style="color: rgba(192, 37, 43);"></strong>?</p>
+            <p class="text-muted small mt-2">Esta ação não poderá ser desfeita.</p>
+            <input type="hidden" id="deletePedidoId">
+            <div id="deletePedidoError" class="alert alert-danger d-none small mt-3"></div>
+        </div>
+        <div class="custom-modal-footer border-top border-secondary p-3 d-flex justify-content-between gap-2">
+            <button type="button" class="btn btn-outline-secondary w-50 py-2" onclick="closePedidoModal('deletePedidoModal')">Cancelar</button>
+            <button type="button" class="btn btn-danger w-50 py-2" onclick="confirmPedidoDelete()" id="btnConfirmPedidoDelete">Confirmar Exclusão</button>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{# ── Estilos do Modal (reutiliza se já existir de outros painéis) ── #}
+<style>
+.custom-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 1055;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(3px);
+}
+.custom-modal-content {
+    background-color: var(--bs-body-bg);
+    width: 100%;
+    max-width: 500px;
+    margin: 1rem;
+    animation: modalFadeIn 0.2s ease-out;
+}
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+{% if user.role in ['admin', 'mecanico'] %}
+<script>
+    let pedCurrentMode = 'create';
+
+    function openPedidoModal(mode, btnElement) {
+        pedCurrentMode = mode;
+        const form = document.getElementById('pedidoForm');
+        form.reset();
+        document.getElementById('pedidoFormError').classList.add('d-none');
+
+        const title = document.getElementById('pedidoModalTitle');
+
+        if (mode === 'create') {
+            title.textContent = 'Novo Pedido';
+            document.getElementById('pedidoId').value = '';
+            // Define a data de hoje como padrão
+            document.getElementById('pedidoData').value = new Date().toISOString().split('T')[0];
+        } else if (mode === 'edit' && btnElement) {
+            title.textContent = 'Editar Pedido';
+            document.getElementById('pedidoId').value = btnElement.getAttribute('data-ped-id');
+            document.getElementById('pedidoData').value = btnElement.getAttribute('data-ped-data');
+            document.getElementById('pedidoValor').value = btnElement.getAttribute('data-ped-valor');
+            document.getElementById('pedidoStatus').value = btnElement.getAttribute('data-ped-status');
+        }
+
+        document.getElementById('pedidoFormModal').classList.remove('d-none');
+    }
+
+    function openDeletePedidoModal(btnElement) {
+        const id = btnElement.getAttribute('data-ped-id');
+        document.getElementById('deletePedidoId').value = id;
+        document.getElementById('deletePedidoName').textContent = `#${id}`;
+        document.getElementById('deletePedidoError').classList.add('d-none');
+        document.getElementById('deletePedidoModal').classList.remove('d-none');
+    }
+
+    function closePedidoModal(modalId) {
+        document.getElementById(modalId).classList.add('d-none');
+    }
+
+    // Fechar modal ao clicar fora dele
+    document.querySelectorAll('#pedidoFormModal, #deletePedidoModal').forEach(modal => {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePedidoModal(this.id);
+            }
+        });
+    });
+
+    // Submit Form (Create / Edit)
+    document.getElementById('pedidoForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const saveBtn = document.getElementById('pedidoSaveButton');
+        const errBox = document.getElementById('pedidoFormError');
+        errBox.classList.add('d-none');
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Salvando...';
+
+        const id = document.getElementById('pedidoId').value;
+        const data_pedido = document.getElementById('pedidoData').value;
+        const valor_total = parseFloat(document.getElementById('pedidoValor').value);
+        const status = document.getElementById('pedidoStatus').value;
+
+        const payload = { data_pedido, valor_total, status };
+
+        const url = pedCurrentMode === 'create' ? '/api/pedidos' : `/api/pedidos/${id}`;
+        const method = pedCurrentMode === 'create' ? 'POST' : 'PATCH';
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                errBox.textContent = data.detail || 'Erro ao salvar o pedido. Verifique os dados.';
+                errBox.classList.remove('d-none');
+            }
+        } catch (error) {
+            console.error(error);
+            errBox.textContent = 'Erro de rede ao se comunicar com o servidor.';
+            errBox.classList.remove('d-none');
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = 'Salvar';
+        }
+    });
+
+    // Confirm Delete
+    async function confirmPedidoDelete() {
+        const id = document.getElementById('deletePedidoId').value;
+        const btn = document.getElementById('btnConfirmPedidoDelete');
+        const errBox = document.getElementById('deletePedidoError');
+
+        errBox.classList.add('d-none');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Excluindo...';
+
+        try {
+            const response = await fetch(`/api/pedidos/${id}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                errBox.textContent = data.detail || 'Pedido não pôde ser excluído.';
+                errBox.classList.remove('d-none');
+            }
+        } catch (error) {
+            console.error(error);
+            errBox.textContent = 'Erro de rede ao se comunicar com o servidor.';
+            errBox.classList.remove('d-none');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Confirmar Exclusão';
+        }
+    }
+</script>
+{% endif %}
