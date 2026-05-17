@@ -1,8 +1,10 @@
 import logging
 import os
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
 
 from app.schemas.auth_schema import FirebaseLoginRequest, ForgotPasswordRequest, ResetPasswordRequest, TokenResponse
 from app.services.auth_service import login
@@ -17,6 +19,10 @@ from app.services.email_service import send_password_reset_email
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
+
+# Templates próprios do auth (evita dependência circular com page_controller)
+_TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "templates"
+_templates = Jinja2Templates(directory=str(_TEMPLATE_DIR))
 
 # Detecta se estamos em produção (HTTPS) ou local (HTTP)
 _IS_PRODUCTION = bool(os.environ.get("K_SERVICE"))
@@ -46,8 +52,7 @@ def login_user(request: Request, email: str = Form(...), password: str = Form(..
 
     if not token:
         # Re-renderiza a página de login com mensagem de erro
-        from app.controllers.page_controller import templates
-        return templates.TemplateResponse("pages/login.html", {
+        return _templates.TemplateResponse("pages/login.html", {
             "request": request,
             "user": None,
             "error": "Usuário ou senha incorretos.",
@@ -107,8 +112,7 @@ def register_user(
         user = user_service.create_user(user_data)
     except HTTPException as e:
         # Re-renderiza a página de cadastro com erro
-        from app.controllers.page_controller import templates
-        return templates.TemplateResponse("pages/cadastro.html", {
+        return _templates.TemplateResponse("pages/cadastro.html", {
             "request": request,
             "user": None,
             "error": e.detail,
@@ -116,8 +120,7 @@ def register_user(
         }, status_code=e.status_code)
     except Exception as e:
         logger.error("Erro inesperado ao criar usuário: %s", e, exc_info=True)
-        from app.controllers.page_controller import templates
-        return templates.TemplateResponse("pages/cadastro.html", {
+        return _templates.TemplateResponse("pages/cadastro.html", {
             "request": request,
             "user": None,
             "error": "Erro interno ao criar conta. Tente novamente.",
@@ -326,9 +329,7 @@ def reset_password_page(
     request: Request,
     token: str
 ):
-    from app.controllers.page_controller import templates
-
-    return templates.TemplateResponse(
+    return _templates.TemplateResponse(
         "pages/reset_password.html",
         {
             "request": request,
