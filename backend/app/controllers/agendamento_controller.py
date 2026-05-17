@@ -118,11 +118,11 @@ def delete_agendamento(agendamento_id: int):
     agendamento_service.delete_agendamento(agendamento_id)
     return None
 
-@router.get("/cliente/{cliente_id}", response_model=list[AgendamentoPublic])
-def get_agendamentos_by_cliente(cliente_id: int):
+@router.get("/usuario/{usuario_id}", response_model=list[AgendamentoPublic])
+def get_agendamentos_by_cliente(usuario_id: int):
     """Lista agendamentos de um cliente específico."""
-    logger.info("GET /agendamentos/cliente/%s", cliente_id)
-    agendamentos = agendamento_service.get_agendamentos_by_cliente(cliente_id)
+    logger.info("GET /agendamentos/usuario/%s", usuario_id)
+    agendamentos = agendamento_service.get_agendamentos_by_cliente(usuario_id)
     return [
         AgendamentoPublic(
             id_agendamento=a.id_agendamento,
