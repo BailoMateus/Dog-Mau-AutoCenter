@@ -1,0 +1,156 @@
+FILE	PREFIX	METHOD	PATH	FUNC
+agendamento_controller.py	/agendamentos	POST	/	UNKNOWN
+agendamento_controller.py	/agendamentos	GET	/	UNKNOWN
+agendamento_controller.py	/agendamentos	GET	/{agendamento_id}	UNKNOWN
+agendamento_controller.py	/agendamentos	PUT	/{agendamento_id}	UNKNOWN
+agendamento_controller.py	/agendamentos	PATCH	/{agendamento_id}/data	UNKNOWN
+agendamento_controller.py	/agendamentos	PATCH	/{agendamento_id}/cancelar	UNKNOWN
+agendamento_controller.py	/agendamentos	DELETE	/{agendamento_id}	UNKNOWN
+agendamento_controller.py	/agendamentos	GET	/cliente/{cliente_id}	UNKNOWN
+agendamento_controller.py	/agendamentos	GET	/veiculo/{veiculo_id}	UNKNOWN
+auth_controller.py	/auth	POST	/login	UNKNOWN
+auth_controller.py	/auth	POST	/register	UNKNOWN
+auth_controller.py	/auth	POST	/google	UNKNOWN
+auth_controller.py	/auth	GET	/me	UNKNOWN
+endereco_controller.py	/enderecos	GET		UNKNOWN
+endereco_controller.py	/enderecos	POST		UNKNOWN
+endereco_controller.py	/enderecos	GET	/{endereco_id}	UNKNOWN
+endereco_controller.py	/enderecos	PATCH	/{endereco_id}	UNKNOWN
+endereco_controller.py	/enderecos	DELETE	/{endereco_id}	UNKNOWN
+marca_controller.py	/api/marcas	GET		UNKNOWN
+marca_controller.py	/api/marcas	POST		UNKNOWN
+marca_controller.py	/api/marcas	GET	/{marca_id}	UNKNOWN
+marca_controller.py	/api/marcas	PATCH	/{marca_id}	UNKNOWN
+marca_controller.py	/api/marcas	DELETE	/{marca_id}	UNKNOWN
+me_controller.py	/api/me	GET	/profile	UNKNOWN
+me_controller.py	/api/me	PATCH	/profile	UNKNOWN
+me_controller.py	/api/me	GET	/enderecos	UNKNOWN
+me_controller.py	/api/me	POST	/enderecos	UNKNOWN
+me_controller.py	/api/me	GET	/enderecos/{endereco_id}	UNKNOWN
+me_controller.py	/api/me	PATCH	/enderecos/{endereco_id}	UNKNOWN
+me_controller.py	/api/me	GET	/veiculos	UNKNOWN
+me_controller.py	/api/me	POST	/veiculos	UNKNOWN
+me_controller.py	/api/me	GET	/veiculos/{veiculo_id}	UNKNOWN
+me_controller.py	/api/me	PATCH	/veiculos/{veiculo_id}	UNKNOWN
+modelo_controller.py	/api/modelos	GET		UNKNOWN
+modelo_controller.py	/api/modelos	POST		UNKNOWN
+modelo_controller.py	/api/modelos	GET	/{modelo_id}	UNKNOWN
+modelo_controller.py	/api/modelos	GET	/marca/{marca_id}	UNKNOWN
+modelo_controller.py	/api/modelos	PATCH	/{modelo_id}	UNKNOWN
+modelo_controller.py	/api/modelos	DELETE	/{modelo_id}	UNKNOWN
+movimentacao_estoque_controller.py	/movimentacoes-estoque	POST	/entrada	UNKNOWN
+movimentacao_estoque_controller.py	/movimentacoes-estoque	POST	/saida	UNKNOWN
+movimentacao_estoque_controller.py	/movimentacoes-estoque	GET	/	UNKNOWN
+movimentacao_estoque_controller.py	/movimentacoes-estoque	GET	/tipo/{tipo}	UNKNOWN
+movimentacao_estoque_controller.py	/movimentacoes-estoque	GET	/peca/{peca_id}	UNKNOWN
+movimentacao_estoque_controller.py	/movimentacoes-estoque	GET	/peca/{peca_id}/historico	UNKNOWN
+movimentacao_estoque_controller.py	/movimentacoes-estoque	GET	/peca/{peca_id}/ultima	UNKNOWN
+movimentacao_financeira_controller.py	/movimentacoes-financeiras	POST	/entrada	UNKNOWN
+movimentacao_financeira_controller.py	/movimentacoes-financeiras	POST	/saida	UNKNOWN
+movimentacao_financeira_controller.py	/movimentacoes-financeiras	GET	/	UNKNOWN
+movimentacao_financeira_controller.py	/movimentacoes-financeiras	GET	/tipo/{tipo}	UNKNOWN
+movimentacao_financeira_controller.py	/movimentacoes-financeiras	POST	/periodo	UNKNOWN
+movimentacao_financeira_controller.py	/movimentacoes-financeiras	GET	/{movimentacao_id}	UNKNOWN
+movimentacao_financeira_controller.py	/movimentacoes-financeiras	GET	/pagamento/{pagamento_id}	UNKNOWN
+movimentacao_financeira_controller.py	/movimentacoes-financeiras	POST	/periodo/saldo	UNKNOWN
+movimentacao_financeira_controller.py	/movimentacoes-financeiras	GET	/resumo	UNKNOWN
+orcamento_approval_controller.py	/orcamentos/{orcamento_id}/aprovacao	POST	/aprovar	UNKNOWN
+orcamento_approval_controller.py	/orcamentos/{orcamento_id}/aprovacao	POST	/rejeitar	UNKNOWN
+orcamento_approval_controller.py	/orcamentos/{orcamento_id}/aprovacao	GET	/ordens	UNKNOWN
+orcamento_controller.py	/orcamentos	POST	/	UNKNOWN
+orcamento_controller.py	/orcamentos	GET	/	UNKNOWN
+orcamento_controller.py	/orcamentos	GET	/{orcamento_id}	UNKNOWN
+orcamento_controller.py	/orcamentos	PUT	/{orcamento_id}	UNKNOWN
+orcamento_controller.py	/orcamentos	PATCH	/{orcamento_id}/status	UNKNOWN
+orcamento_controller.py	/orcamentos	DELETE	/{orcamento_id}	UNKNOWN
+orcamento_controller.py	/orcamentos	GET	/usuario/{usuario_id}	UNKNOWN
+orcamento_controller.py	/orcamentos	GET	/veiculo/{veiculo_id}	UNKNOWN
+orcamento_item_controller.py	/orcamentos/{orcamento_id}/itens	POST	/pecas	UNKNOWN
+orcamento_item_controller.py	/orcamentos/{orcamento_id}/itens	GET	/pecas	UNKNOWN
+orcamento_item_controller.py	/orcamentos/{orcamento_id}/itens	PUT	/pecas/{peca_id}	UNKNOWN
+orcamento_item_controller.py	/orcamentos/{orcamento_id}/itens	DELETE	/pecas/{peca_id}	UNKNOWN
+orcamento_item_controller.py	/orcamentos/{orcamento_id}/itens	POST	/servicos	UNKNOWN
+orcamento_item_controller.py	/orcamentos/{orcamento_id}/itens	GET	/servicos	UNKNOWN
+orcamento_item_controller.py	/orcamentos/{orcamento_id}/itens	PUT	/servicos/{servico_id}	UNKNOWN
+orcamento_item_controller.py	/orcamentos/{orcamento_id}/itens	DELETE	/servicos/{servico_id}	UNKNOWN
+ordem_servico_controller.py	/ordens-servico	POST	/	UNKNOWN
+ordem_servico_controller.py	/ordens-servico	GET	/	UNKNOWN
+ordem_servico_controller.py	/ordens-servico	GET	/{ordem_servico_id}	UNKNOWN
+ordem_servico_controller.py	/ordens-servico	PUT	/{ordem_servico_id}	UNKNOWN
+ordem_servico_controller.py	/ordens-servico	PATCH	/{ordem_servico_id}/status	UNKNOWN
+ordem_servico_controller.py	/ordens-servico	POST	/{ordem_servico_id}/concluir	UNKNOWN
+ordem_servico_controller.py	/ordens-servico	POST	/{ordem_servico_id}/iniciar	UNKNOWN
+ordem_servico_controller.py	/ordens-servico	GET	/status/{status}	UNKNOWN
+ordem_servico_controller.py	/ordens-servico	GET	/veiculo/{veiculo_id}	UNKNOWN
+os_peca_controller.py	/ordens-servico/{os_id}/pecas	POST	/	UNKNOWN
+os_peca_controller.py	/ordens-servico/{os_id}/pecas	GET	/	UNKNOWN
+os_peca_controller.py	/ordens-servico/{os_id}/pecas	GET	/{peca_id}	UNKNOWN
+os_peca_controller.py	/ordens-servico/{os_id}/pecas	PUT	/{peca_id}	UNKNOWN
+os_peca_controller.py	/ordens-servico/{os_id}/pecas	DELETE	/{peca_id}	UNKNOWN
+os_peca_controller.py	/ordens-servico/{os_id}/pecas	GET	/valor-total	UNKNOWN
+os_peca_controller.py	/ordens-servico/{os_id}/pecas	GET	/movimentacoes	UNKNOWN
+os_servico_controller.py	/ordens-servico/{os_id}/servicos	POST	/	UNKNOWN
+os_servico_controller.py	/ordens-servico/{os_id}/servicos	GET	/	UNKNOWN
+os_servico_controller.py	/ordens-servico/{os_id}/servicos	GET	/{servico_id}	UNKNOWN
+os_servico_controller.py	/ordens-servico/{os_id}/servicos	PUT	/{servico_id}	UNKNOWN
+os_servico_controller.py	/ordens-servico/{os_id}/servicos	DELETE	/{servico_id}	UNKNOWN
+os_servico_controller.py	/ordens-servico/{os_id}/servicos	GET	/valor-total	UNKNOWN
+pagamento_controller.py	/pagamentos	POST	/	UNKNOWN
+pagamento_controller.py	/pagamentos	GET	/	UNKNOWN
+pagamento_controller.py	/pagamentos	GET	/os/{os_id}	UNKNOWN
+pagamento_controller.py	/pagamentos	GET	/status/{status}	UNKNOWN
+pagamento_controller.py	/pagamentos	GET	/{pagamento_id}	UNKNOWN
+pagamento_controller.py	/pagamentos	PUT	/{pagamento_id}	UNKNOWN
+pagamento_controller.py	/pagamentos	PATCH	/{pagamento_id}/status	UNKNOWN
+pagamento_controller.py	/pagamentos	DELETE	/{pagamento_id}	UNKNOWN
+pagamento_controller.py	/pagamentos	GET	/os/{os_id}/total	UNKNOWN
+page_controller.py		GET	/nova-pagina	UNKNOWN
+page_controller.py		GET	/	UNKNOWN
+page_controller.py		GET	/login	UNKNOWN
+page_controller.py		GET	/cadastro	UNKNOWN
+page_controller.py		GET	/servicos	UNKNOWN
+page_controller.py		GET	/logout	UNKNOWN
+page_controller.py		GET	/painel	UNKNOWN
+page_controller.py		GET	/admin/usuarios	UNKNOWN
+peca_controller.py	/pecas	GET		UNKNOWN
+peca_controller.py	/pecas	POST		UNKNOWN
+peca_controller.py	/pecas	GET	/{peca_id}	UNKNOWN
+peca_controller.py	/pecas	PATCH	/{peca_id}	UNKNOWN
+peca_controller.py	/pecas	DELETE	/{peca_id}	UNKNOWN
+pedido_controller.py	/pedidos	GET		UNKNOWN
+pedido_controller.py	/pedidos	POST		UNKNOWN
+pedido_controller.py	/pedidos	GET	/{pedido_id}	UNKNOWN
+pedido_controller.py	/pedidos	PATCH	/{pedido_id}	UNKNOWN
+pedido_controller.py	/pedidos	DELETE	/{pedido_id}	UNKNOWN
+pedido_controller.py	/pedidos	GET	/usuario/{usuario_id}	UNKNOWN
+pedido_produto_controller.py	/pedidos/{pedido_id}/itens	POST	/	UNKNOWN
+pedido_produto_controller.py	/pedidos/{pedido_id}/itens	GET	/	UNKNOWN
+pedido_produto_controller.py	/pedidos/{pedido_id}/itens	PUT	/{produto_id}	UNKNOWN
+pedido_produto_controller.py	/pedidos/{pedido_id}/itens	DELETE	/{produto_id}	UNKNOWN
+produto_controller.py	/produtos	POST	/	UNKNOWN
+produto_controller.py	/produtos	POST		UNKNOWN
+produto_controller.py	/produtos	GET	/{produto_id}	UNKNOWN
+produto_controller.py	/produtos	PATCH	/{produto_id}	UNKNOWN
+produto_controller.py	/produtos	DELETE	/{produto_id}	UNKNOWN
+relatorios_controller.py	/relatorios	POST	/faturamento	UNKNOWN
+relatorios_controller.py	/relatorios	POST	/servicos-realizados	UNKNOWN
+relatorios_controller.py	/relatorios	GET	/estoque	UNKNOWN
+relatorios_controller.py	/relatorios	POST	/ordens-servico	UNKNOWN
+relatorios_controller.py	/relatorios	POST	/financeiro-periodo	UNKNOWN
+relatorios_controller.py	/relatorios	POST	/completo	UNKNOWN
+servico_controller.py	/api/servicos	GET		UNKNOWN
+servico_controller.py	/api/servicos	POST		UNKNOWN
+servico_controller.py	/api/servicos	GET	/{servico_id}	UNKNOWN
+servico_controller.py	/api/servicos	PATCH	/{servico_id}	UNKNOWN
+servico_controller.py	/api/servicos	DELETE	/{servico_id}	UNKNOWN
+user_controller.py	/api/users	GET		UNKNOWN
+user_controller.py	/api/users	POST		UNKNOWN
+user_controller.py	/api/users	GET	/{user_id}	UNKNOWN
+user_controller.py	/api/users	PATCH	/{user_id}	UNKNOWN
+user_controller.py	/api/users	DELETE	/{user_id}	UNKNOWN
+user_controller.py	/api/users	POST	/{user_id}/upload-photo	UNKNOWN
+veiculo_controller.py	/api/clientes/{cliente_id}/veiculos	GET		UNKNOWN
+veiculo_controller.py	/api/clientes/{cliente_id}/veiculos	POST		UNKNOWN
+veiculo_controller.py	/api/clientes/{cliente_id}/veiculos	GET	/{veiculo_id}	UNKNOWN
+veiculo_controller.py	/api/clientes/{cliente_id}/veiculos	PATCH	/{veiculo_id}	UNKNOWN
+veiculo_controller.py	/api/clientes/{cliente_id}/veiculos	DELETE	/{veiculo_id}	UNKNOWN

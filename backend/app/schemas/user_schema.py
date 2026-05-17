@@ -10,9 +10,9 @@ class UserCreate(BaseModel):
     password: str = Field(..., min_length=6)
     role: str = CLIENTE
     ativo: bool = True
-    telefone: str = Field(..., max_length=20)
-    cpf_cnpj: str = Field(..., max_length=18)
-    data_nascimento: date = Field(...)
+    telefone: str | None = Field(None, max_length=20)
+    cpf_cnpj: str | None = Field(None, max_length=18)
+    data_nascimento: date | None = Field(None)
     foto_perfil: str | None = None
 
     @field_validator("email")
