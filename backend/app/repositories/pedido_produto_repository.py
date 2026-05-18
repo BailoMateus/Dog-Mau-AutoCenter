@@ -213,3 +213,24 @@ def update_valor_total_pedido(pedido_id: int, valor_total: float):
     params = (valor_total, pedido_id)
     execute_command(query, params)
     logger.info("valor total atualizado pedido=%s valor=%s", pedido_id, valor_total)
+
+def remove_produto_from_pedido(pedido_id: int, produto_id: int):
+    """Remove produto do pedido (soft delete)."""
+
+    query = """
+    UPDATE pedido_produto
+    SET
+        deleted_at = CURRENT_TIMESTAMP,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE id_pedido = %s
+      AND id_produto = %s
+      AND deleted_at IS NULL
+    """
+
+    execute_command(query, (pedido_id, produto_id))
+
+    logger.info(
+        "produto removido do pedido pedido=%s produto=%s",
+        pedido_id,
+        produto_id
+    )
