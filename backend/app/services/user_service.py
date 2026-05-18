@@ -29,6 +29,7 @@ def create_user(data: UserCreate):
         telefone=data.telefone,
         cpf_cnpj=data.cpf_cnpj,
         data_nascimento=data.data_nascimento,
+        foto_perfil=data.foto_perfil
     )
     try:
         return repo.create_user(user)
@@ -151,7 +152,7 @@ def delete_user(user_id: int, *, actor: dict):
     assert_can_modify(actor, user_id, admin_only=True)
 
     try:
-        return repo.delete_user(user)
+        return repo.soft_delete_user(user)
     except psycopg2.IntegrityError:
         logger.error("delete_user erro de integridade user_id=%s", user_id)
         raise HTTPException(

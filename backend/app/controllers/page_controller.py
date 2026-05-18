@@ -23,6 +23,8 @@ from app.core.settings import get_settings
 from app.database.db import execute_query
 from app.services.user_service import list_users
 from app.services import servico_service
+from app.services import produto_service
+from app.services import pedido_service
 
 logger = logging.getLogger(__name__)
 
@@ -143,15 +145,36 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
     # Carrega dados apenas para roles que precisam
     usuarios = []
     servicos = []
+    produtos = []
     if user.get("role") in ("admin", "mecanico"):
         usuarios = list_users()
         servicos = servico_service.list_servicos()
+        produtos = produto_service.list_produtos()
+
+    # Pedidos (Admin vê todos, cliente vê os seus)
+    pedidos_db = []
+    if user.get("role") in ("admin", "mecanico"):
+        pedidos_db = pedido_service.list_pedidos()
+    else:
+        pedidos_db = pedido_service.get_pedidos_by_usuario(int(user["user_id"]))
+        
+    pedidos = []
+    for p in pedidos_db:
+        pedidos.append({
+            "id_pedido": p.id_pedido,
+            "data_pedido": p.created_at.strftime('%Y-%m-%d') if p.created_at else "",
+            "valor_total": p.valor_total,
+            "status": p.status,
+            "qtd_itens": "—"  # Para calcularmos os itens, precisaria consultar pedido_produto
+        })
 
     return templates.TemplateResponse("pages/painel.html", {
         "request": request,
         "user": user,
         "usuarios": usuarios,
         "servicos": servicos,
+        "produtos": produtos,
+        "pedidos": pedidos,
         "tab": tab,
         "page": "painel",
     })
