@@ -29,7 +29,7 @@ _templates = Jinja2Templates(directory=str(_TEMPLATE_DIR))
 
 _IS_PRODUCTION = bool(os.environ.get("K_SERVICE"))
 
-# Schema unificado
+
 class RegisterPayloadJSON(BaseModel):
     nome: str
     email: EmailStr
@@ -46,6 +46,7 @@ class RegisterPayloadJSON(BaseModel):
     estado: Optional[str] = None
 
 def _set_auth_cookie(response, token: str):
+    """Injeta o JWT como cookie HttpOnly no response."""
     response.set_cookie(
         key="__session",
         value=token,
@@ -55,6 +56,31 @@ def _set_auth_cookie(response, token: str):
         secure=_IS_PRODUCTION,
     )
     return response
+
+@router.post("/login", response_model=TokenResponse)
+def login_user(data: FirebaseLoginRequest):  # Modificado para usar o schema importado de auth_schema
+    logger.info("POST /auth/login email=%s", data.email if hasattr(data, 'email') else "Google/Firebase")
+
+    token = login(data.email, data.password)
+
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Usuário ou senha incorretos",
+        )
+
+    response = JSONResponse(
+        content={
+            "access_token": token,
+            "token_type": "bearer",
+        }
+    )
+
+    _set_auth_cookie(response, token)
+
+    logger.info("POST /auth/login sucesso")
+    return response
+
 
 @router.post("/register")
 def register_user(request: Request, data: RegisterPayloadJSON):
@@ -82,7 +108,7 @@ def register_user(request: Request, data: RegisterPayloadJSON):
     try:
         user = user_service.create_user(user_data)
     except HTTPException as e:
-        # Se falhar no Pydantic interno ou na regra de negócio, devolve a página Jinja com o erro !!!!!
+        # Se falhar, devolve a página Jinja com o erro para o JS tratar
         return _templates.TemplateResponse("pages/cadastro.html", {
             "request": request,
             "user": None,
@@ -118,7 +144,155 @@ def register_user(request: Request, data: RegisterPayloadJSON):
     if not token:
         return JSONResponse(content={"redirect": "/login"}, status_code=200)
 
-    # Em requisições JSON controladas por Fetch API, retornamos o destino no corpo
+    # Controlado por Fetch API no front-end, passamos a rota de sucesso
     response = JSONResponse(content={"redirect": "/"}, status_code=200)
     _set_auth_cookie(response, token)
     return response
+
+@router.post("/google")
+def login_with_google(data: FirebaseLoginRequest):
+    logger.info("POST /auth/google - Validando Token com Firebase Admin")
+
+    try:
+        from firebase_admin import auth as firebase_auth
+    except ImportError:
+        logger.error("firebase-admin não instalado")
+        raise HTTPException(status_code=500, detail="Serviço Google indisponível")
+
+    try:
+        decoded_token = firebase_auth.verify_id_token(data.id_token)
+        email = decoded_token.get("email")
+        nome = decoded_token.get("name", "Usuário Google")
+    except Exception as e:
+        logger.error("Falha na validação do Firebase Token: %s", str(e))
+        raise HTTPException(status_code=401, detail="Token do Google inválido ou expirado")
+
+    from app.repositories import user_repository
+    user = user_repository.get_user_by_email(email)
+
+    if not user:
+        generic_secure_password = str(uuid.uuid4()) + "A1@"
+
+        user_data = UserCreate(
+            nome=nome,
+            email=email,
+            password=generic_secure_password,
+            role=CLIENTE,
+            ativo=True,
+        )
+        try:
+            user = user_service.create_user(user_data)
+        except HTTPException as e:
+            raise e
+        except Exception as e:
+            logger.error("Erro ao criar usuário Google: %s", e, exc_info=True)
+            raise HTTPException(status_code=500, detail="Erro ao criar conta Google")
+
+        token = login(email, generic_secure_password)
+        if not token:
+            raise HTTPException(status_code=500, detail="Erro ao gerar token")
+    else:
+        token = create_access_token(
+            {"sub": str(user.id_usuario), "role": user.role}
+        )
+
+    response = RedirectResponse(url="/", status_code=303)
+    _set_auth_cookie(response, token)
+    logger.info("POST /auth/google sucesso — cookie setado")
+    return response
+
+
+@router.get("/me")
+def me(current=Depends(get_current_user)):
+    logger.info("GET /auth/me user_id=%s role=%s", current["user_id"], current["role"])
+    return current
+
+@router.post("/forgot-password")
+def forgot_password(data: ForgotPasswordRequest):
+    """Solicita reset de senha via email."""
+    logger.info("POST /auth/forgot-password email=%s", data.email)
+    
+    from app.repositories import user_repository
+    user = user_repository.get_user_by_email(data.email)
+    
+    if not user:
+        logger.warning("Forgot password request for non-existent email: %s", data.email)
+        return {
+            "message": "Se o email está cadastrado, você receberá um link de recuperação em breve."
+        }
+    
+    from datetime import timedelta
+    from app.core.settings import get_settings
+    settings = get_settings()
+    
+    reset_token = create_access_token(
+        {"sub": str(user.id_usuario), "action": "password_reset"},
+        expires_delta=timedelta(minutes=settings.password_reset_token_expire_minutes)
+    )
+    
+    send_password_reset_email(user.email, reset_token)
+    
+    return {
+        "message": "Se o email está cadastrado, você receberá um link de recuperação em breve."
+    }
+
+
+@router.post("/reset-password", response_model=TokenResponse)
+def reset_password(data: ResetPasswordRequest):
+    """Reseta a senha usando token de recuperação."""
+    logger.info("POST /auth/reset-password")
+    
+    from jose import JWTError, jwt
+    from app.core.config import SECRET_KEY, ALGORITHM
+    
+    try:
+        payload = jwt.decode(data.token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+        action = payload.get("action")
+        
+        if action != "password_reset" or not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Token inválido ou expirado"
+            )
+    except JWTError:
+        logger.warning("Invalid password reset token")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Token inválido ou expirado"
+        )
+    
+    from app.repositories import user_repository
+    from app.core.security import hash_password
+    
+    user = user_repository.get_user_by_id(int(user_id))
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuário não encontrado"
+        )
+    
+    hashed_password = hash_password(data.nova_senha)
+    user_repository.update_user_password(user.id_usuario, hashed_password)
+    
+    logger.info("Password reset successful for user_id=%s", user_id)
+    
+    access_token = create_access_token(
+        {"sub": str(user.id_usuario), "role": user.role}
+    )
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
+
+
+@router.get("/reset-password")
+def reset_password_page(request: Request, token: str):
+    return _templates.TemplateResponse(
+        "pages/reset_password.html",
+        {
+            "request": request,
+            "token": token
+        }
+    )
