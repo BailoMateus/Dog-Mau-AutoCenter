@@ -17,6 +17,7 @@ class User:
     telefone: str = ""
     cpf_cnpj: str = ""
     data_nascimento: Optional[datetime] = None
+    foto_perfil: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
@@ -364,6 +365,7 @@ def user_to_dict(user: User) -> dict:
         'telefone': user.telefone,
         'cpf_cnpj': user.cpf_cnpj,
         'data_nascimento': user.data_nascimento,
+        'foto_perfil': user.foto_perfil,
         'created_at': user.created_at,
         'updated_at': user.updated_at,
         'deleted_at': user.deleted_at
