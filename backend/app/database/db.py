@@ -18,8 +18,27 @@ logger = logging.getLogger(__name__)
 
 _settings = get_settings()
 
-    return conn_str
+def _get_connection_string() -> str:
+    safe_password = urllib.parse.quote_plus(_settings.db_pass)
 
+    if _settings.database_url:
+        db_url = _settings.database_url.replace(
+            "postgresql+psycopg2://",
+            "postgresql://"
+        )
+        return db_url
+
+    elif _settings.instance_connection_name != "conexao_vazia":
+        return (
+            f"postgresql://{_settings.db_user}:{safe_password}"
+            f"@/{_settings.db_name}?host=/cloudsql/{_settings.instance_connection_name}"
+        )
+
+    else:
+        return (
+            f"postgresql://{_settings.db_user}:{safe_password}"
+            f"@localhost/{_settings.db_name}"
+        )
 
 @contextmanager
 def get_db_connection():
