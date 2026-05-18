@@ -135,49 +135,59 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
     Admin/Mecânico veem abas de gestão (Usuários, Produtos, OS).
     Cliente vê sua própria área (Meus Pedidos, Minhas OS).
     """
-    if not user:
-        return RedirectResponse(url="/login", status_code=302)
+    try:
+        if not user:
+            return RedirectResponse(url="/login", status_code=302)
 
-    # Define a aba padrão conforme o role
-    if not tab:
-        tab = "usuarios" if user.get("role") in ("admin", "mecanico") else "meu_usuario"
+        # Define a aba padrão conforme o role
+        if not tab:
+            tab = "usuarios" if user.get("role") in ("admin", "mecanico") else "meu_usuario"
 
-    # Carrega dados apenas para roles que precisam
-    usuarios = []
-    servicos = []
-    produtos = []
-    if user.get("role") in ("admin", "mecanico"):
-        usuarios = list_users()
-        servicos = servico_service.list_servicos()
-        produtos = produto_service.list_produtos()
+        # Carrega dados apenas para roles que precisam
+        usuarios = []
+        servicos = []
+        produtos = []
+        if user.get("role") in ("admin", "mecanico"):
+            usuarios = list_users()
+            servicos = servico_service.list_servicos()
+            produtos = produto_service.list_produtos()
 
-    # Pedidos (Admin vê todos, cliente vê os seus)
-    pedidos_db = []
-    if user.get("role") in ("admin", "mecanico"):
-        pedidos_db = pedido_service.list_pedidos()
-    else:
-        pedidos_db = pedido_service.get_pedidos_by_usuario(int(user["user_id"]))
-        
-    pedidos = []
-    for p in pedidos_db:
-        pedidos.append({
-            "id_pedido": p.id_pedido,
-            "data_pedido": p.created_at.strftime('%Y-%m-%d') if p.created_at else "",
-            "valor_total": p.valor_total,
-            "status": p.status,
-            "qtd_itens": "—"  # Para calcularmos os itens, precisaria consultar pedido_produto
+        # Pedidos (Admin vê todos, cliente vê os seus)
+        pedidos_db = []
+        if user.get("role") in ("admin", "mecanico"):
+            pedidos_db = pedido_service.list_pedidos()
+        else:
+            pedidos_db = pedido_service.get_pedidos_by_usuario(int(user["user_id"]))
+            
+        pedidos = []
+        for p in pedidos_db:
+            pedidos.append({
+                "id_pedido": p.id_pedido,
+                "data_pedido": p.created_at.strftime('%Y-%m-%d') if p.created_at else "",
+                "valor_total": p.valor_total,
+                "status": p.status,
+                "qtd_itens": "—"  # Para calcularmos os itens, precisaria consultar pedido_produto
+            })
+
+        return templates.TemplateResponse("pages/painel.html", {
+            "request": request,
+            "user": user,
+            "usuarios": usuarios,
+            "servicos": servicos,
+            "produtos": produtos,
+            "pedidos": pedidos,
+            "tab": tab,
+            "page": "painel",
         })
+    except Exception as e:
+        import traceback
+        logger.error("Error in painel_page: %s", traceback.format_exc())
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            status_code=500,
+            content={"error": str(e), "traceback": traceback.format_exc()}
+        )
 
-    return templates.TemplateResponse("pages/painel.html", {
-        "request": request,
-        "user": user,
-        "usuarios": usuarios,
-        "servicos": servicos,
-        "produtos": produtos,
-        "pedidos": pedidos,
-        "tab": tab,
-        "page": "painel",
-    })
 
 
 @router.get("/admin/usuarios", include_in_schema=False)
