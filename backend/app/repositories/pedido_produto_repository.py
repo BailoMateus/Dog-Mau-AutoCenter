@@ -73,7 +73,7 @@ def get_itens_by_pedido(pedido_id: int):
     logger.debug("get_itens_by_pedido pedido_id=%s count=%s", pedido_id, len(itens))
     return itens
 
-def add_produto_to_pedido(pedido_produto: PedidoProduto):
+def add_produto_to_pedido(pedido_produto: PedidoProduto, data):
     """Adiciona produto ao pedido."""
     query = """
     INSERT INTO pedido_produto (id_pedido, id_produto, quantidade)
