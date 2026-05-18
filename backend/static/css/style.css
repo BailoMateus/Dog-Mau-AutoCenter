@@ -32,6 +32,24 @@ h1 {
 header {
   background-color: black;
   padding: 10px 0;
+  font-family: "Orbitron", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+}
+
+header .navbar-brand {
+  font-family: "Orbitron", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+}
+
+header .nav-item {
+  font-family: "Orbitron", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
 }
 
 header .container > div {
@@ -51,6 +69,10 @@ header .nav-link {
   position: relative;
   transition: 0.3s;
   color: white !important;
+  font-family: "Orbitron", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
 }
 
 header .nav-link::after {
