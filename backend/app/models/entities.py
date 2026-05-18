@@ -107,6 +107,8 @@ class PedidoProduto:
     id_pedido: int = 0
     id_produto: int = 0
     quantidade: int = 1
+    produto_nome: Optional[str] = None
+    produto_preco: Optional[Decimal] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
