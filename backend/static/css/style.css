@@ -166,18 +166,12 @@ header .nav-link.active {
 /* CSS do Carrossel */
 
 #myCarousel {
-  height: 500px;
+  height: auto;
 }
 
 #myCarousel .carousel-item img {
-  height: 500px;
-  object-fit: cover;
-}
-
-@media (max-width: 768px) {
-  #myCarousel, #myCarousel .carousel-item img {
-    height: 350px;
-  }
+  width: 100% !important;
+  height: auto !important;
 }
 
 .carousel-fade .carousel-item {
