@@ -102,16 +102,71 @@ def update_quantidade_produto(pedido_id: int, produto_id: int, nova_quantidade: 
     # Retorna o item atualizado
     return get_pedido_produto(pedido_id, produto_id)
 
-def remove_produto_from_pedido(pedido_id: int, produto_id: int):
-    """Remove produto do pedido (soft delete)."""
+def add_produto_to_pedido(pedido_id: int, data):
+    produto_existente = fetch_one(
+        """
+        SELECT *
+        FROM pedido_produto
+        WHERE id_pedido = %s
+        AND id_produto = %s
+        """,
+        (pedido_id, data.id_produto)
+    )
+
+    # Produto existia mas foi removido (soft delete)
+    if produto_existente and produto_existente["deleted_at"] is not None:
+        query = """
+        UPDATE pedido_produto
+        SET
+            quantidade = %s,
+            deleted_at = NULL,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id_pedido = %s
+        AND id_produto = %s
+        """
+
+        execute_command(
+            query,
+            (
+                data.quantidade,
+                pedido_id,
+                data.id_produto
+            )
+        )
+
+        logger.info(
+            "produto restaurado no pedido pedido=%s produto=%s",
+            pedido_id,
+            data.id_produto
+        )
+
+        return
+
+    # Produto já ativo no pedido
+    if produto_existente and produto_existente["deleted_at"] is None:
+        raise HTTPException(
+            status_code=409,
+            detail="Produto já adicionado ao pedido"
+        )
+
+    # INSERT normal
     query = """
-    UPDATE pedido_produto 
-    SET deleted_at = %s, updated_at = CURRENT_TIMESTAMP
-    WHERE id_pedido = %s AND id_produto = %s
+    INSERT INTO pedido_produto (
+        id_pedido,
+        id_produto,
+        quantidade
+    )
+    VALUES (%s, %s, %s)
     """
-    params = (datetime.now(timezone.utc), pedido_id, produto_id)
-    execute_command(query, params)
-    logger.info("produto removido do pedido pedido=%s produto=%s", pedido_id, produto_id)
+
+    execute_command(
+        query,
+        (
+            pedido_id,
+            data.id_produto,
+            data.quantidade
+        )
+    )
 
 def check_produto_exists_in_pedido(pedido_id: int, produto_id: int):
     """Verifica se produto existe no pedido."""
