@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 from fastapi import HTTPException, status
 import psycopg2
