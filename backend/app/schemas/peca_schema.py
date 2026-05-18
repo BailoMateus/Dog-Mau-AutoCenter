@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+from datetime import datetime
 
 class PecaCreate(BaseModel):
     nome: str = Field(..., max_length=100, description="Nome da peça")
