@@ -89,23 +89,63 @@
         <div class="tab-pane fade show active" id="perfil" role="tabpanel">
             <div class="card border-0 shadow rounded" style="background-color: #111;">
                 <div class="card-body p-4">
-                    <h4 class="fw-bold text-white mb-4"><i class="bi bi-person-badge me-2"></i>Meus Dados</h4>
-                    <div class="row text-white">
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted small d-block">Nome</label>
-                            <span class="fs-5">{{ user.nome }}</span>
+                    <h4 class="fw-bold text-white mb-4"><i class="bi bi-person-badge me-2"></i>Editar Meus Dados</h4>
+                    <form id="profileForm">
+                        <div class="row text-white">
+                            <!-- Nome -->
+                            <div class="col-md-6 mb-3">
+                                <label for="nome" class="text-muted small d-block">Nome</label>
+                                <input type="text" id="nome" class="form-control form-control-sm bg-dark border-secondary text-white" value="{{ user.nome }}" placeholder="Seu nome completo">
+                                <small class="text-muted d-block mt-1">Clique em Salvar para confirmar alterações</small>
+                            </div>
+
+                            <!-- E-mail -->
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="text-muted small d-block">E-mail</label>
+                                <input type="email" id="email" class="form-control form-control-sm bg-dark border-secondary text-white" value="{{ user.email }}" placeholder="seu@email.com">
+                                <small class="text-muted d-block mt-1">Clique em Salvar para confirmar alterações</small>
+                            </div>
+
+                            <!-- Telefone -->
+                            <div class="col-md-6 mb-3">
+                                <label for="telefone" class="text-muted small d-block">Telefone</label>
+                                <input type="tel" id="telefone" class="form-control form-control-sm bg-dark border-secondary text-white" value="{{ user.telefone or '' }}" placeholder="(11) 99999-9999">
+                                <small class="text-muted d-block mt-1">Clique em Salvar para confirmar alterações</small>
+                            </div>
+
+                            <!-- CPF/CNPJ -->
+                            <div class="col-md-6 mb-3">
+                                <label for="cpf_cnpj" class="text-muted small d-block">CPF/CNPJ</label>
+                                <input type="text" id="cpf_cnpj" class="form-control form-control-sm bg-dark border-secondary text-white" value="{{ user.cpf_cnpj or '' }}" placeholder="000.000.000-00">
+                                <small class="text-muted d-block mt-1">Clique em Salvar para confirmar alterações</small>
+                            </div>
+
+                            <!-- Data de Nascimento -->
+                            <div class="col-md-6 mb-3">
+                                <label for="data_nascimento" class="text-muted small d-block">Data de Nascimento</label>
+                                <input type="date" id="data_nascimento" class="form-control form-control-sm bg-dark border-secondary text-white" value="{{ user.data_nascimento or '' }}">
+                                <small class="text-muted d-block mt-1">Clique em Salvar para confirmar alterações</small>
+                            </div>
+
+                            <!-- Cargo (somente leitura) -->
+                            <div class="col-md-6 mb-3">
+                                <label class="text-muted small d-block">Cargo</label>
+                                <span class="badge bg-info text-dark">{{ user.role | upper }}</span>
+                                <small class="text-muted d-block mt-1">Não pode ser alterado</small>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted small d-block">E-mail</label>
-                            <span class="fs-5">{{ user.email }}</span>
+
+                        <hr class="border-secondary my-4">
+                        
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-danger" id="saveBtn">
+                                <i class="bi bi-check-circle me-1"></i>Salvar Alterações
+                            </button>
+                            <button type="reset" class="btn btn-secondary">
+                                <i class="bi bi-arrow-clockwise me-1"></i>Desfazer
+                            </button>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted small d-block">Cargo</label>
-                            <span class="badge bg-info text-dark">{{ user.role | upper }}</span>
-                        </div>
-                    </div>
-                    <hr class="border-secondary my-4">
-                    <p class="text-muted small">Para alterar seus dados, entre em contato com o suporte ou use a opção "Perfil" no menu superior.</p>
+                    </form>
                 </div>
             </div>
         </div>
