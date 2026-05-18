@@ -1,28 +1,20 @@
 import logging
 import os
-from pathlib import Path
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from fastapi.responses import JSONResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
 
-from app.schemas.auth_schema import FirebaseLoginRequest, ForgotPasswordRequest, ResetPasswordRequest, TokenResponse
+from app.schemas.auth_schema import FirebaseLoginRequest
 from app.services.auth_service import login
 from app.services import user_service
 from app.schemas.user_schema import UserCreate
 from app.schemas.endereco_schema import EnderecoCreate
 from app.middlewares.auth_middleware import get_current_user
 from app.core.roles import CLIENTE
-from app.core.security import create_access_token
-from app.services.email_service import send_password_reset_email
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
-
-# Templates próprios do auth (evita dependência circular com page_controller)
-_TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "templates"
-_templates = Jinja2Templates(directory=str(_TEMPLATE_DIR))
 
 # Detecta se estamos em produção (HTTPS) ou local (HTTP)
 _IS_PRODUCTION = bool(os.environ.get("K_SERVICE"))
@@ -52,7 +44,8 @@ def login_user(request: Request, email: str = Form(...), password: str = Form(..
 
     if not token:
         # Re-renderiza a página de login com mensagem de erro
-        return _templates.TemplateResponse("pages/login.html", {
+        from app.controllers.page_controller import templates
+        return templates.TemplateResponse("pages/login.html", {
             "request": request,
             "user": None,
             "error": "Usuário ou senha incorretos.",
@@ -112,7 +105,8 @@ def register_user(
         user = user_service.create_user(user_data)
     except HTTPException as e:
         # Re-renderiza a página de cadastro com erro
-        return _templates.TemplateResponse("pages/cadastro.html", {
+        from app.controllers.page_controller import templates
+        return templates.TemplateResponse("pages/cadastro.html", {
             "request": request,
             "user": None,
             "error": e.detail,
@@ -120,7 +114,8 @@ def register_user(
         }, status_code=e.status_code)
     except Exception as e:
         logger.error("Erro inesperado ao criar usuário: %s", e, exc_info=True)
-        return _templates.TemplateResponse("pages/cadastro.html", {
+        from app.controllers.page_controller import templates
+        return templates.TemplateResponse("pages/cadastro.html", {
             "request": request,
             "user": None,
             "error": "Erro interno ao criar conta. Tente novamente.",
@@ -220,119 +215,3 @@ def login_with_google(data: FirebaseLoginRequest):
 def me(current=Depends(get_current_user)):
     logger.info("GET /auth/me user_id=%s role=%s", current["user_id"], current["role"])
     return current
-
-# Recuperação de Senha
-
-@router.post("/forgot-password")
-def forgot_password(data: ForgotPasswordRequest):
-    """Solicita reset de senha via email.
-    
-    Envia link com token JWT válido por 30 minutos.
-    """
-    logger.info("POST /auth/forgot-password email=%s", data.email)
-    
-    # Verificar se usuário existe
-    from app.repositories import user_repository
-    user = user_repository.get_user_by_email(data.email)
-    
-    if not user:
-        # Não revelar se email existe ou não (segurança)
-        logger.warning("Forgot password request for non-existent email: %s", data.email)
-        return {
-            "message": "Se o email está cadastrado, você receberá um link de recuperação em breve."
-        }
-    
-    # Gerar token de reset (válido por 30 minutos)
-    from datetime import timedelta
-    from app.core.settings import get_settings
-    settings = get_settings()
-    
-    reset_token = create_access_token(
-        {"sub": str(user.id_usuario), "action": "password_reset"},
-        expires_delta=timedelta(minutes=settings.password_reset_token_expire_minutes)
-    )
-    
-    # Enviar email
-    send_password_reset_email(user.email, reset_token)
-    
-    return {
-        "message": "Se o email está cadastrado, você receberá um link de recuperação em breve."
-    }
-
-
-@router.post("/reset-password", response_model=TokenResponse)
-def reset_password(data: ResetPasswordRequest):
-    """Reseta a senha usando token de recuperação.
-    
-    Body:
-        - token: JWT token recebido no email
-        - nova_senha: nova senha (min 8 chars, uppercase, lowercase, número, caractere especial)
-    """
-    logger.info("POST /auth/reset-password")
-    
-    # Validar token
-    from jose import JWTError, jwt
-    from app.core.config import SECRET_KEY, ALGORITHM
-    
-    try:
-        payload = jwt.decode(data.token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = payload.get("sub")
-        action = payload.get("action")
-        
-        if action != "password_reset":
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Token inválido ou expirado"
-            )
-        
-        if not user_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Token inválido"
-            )
-    except JWTError:
-        logger.warning("Invalid password reset token")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Token inválido ou expirado"
-        )
-    
-    # Atualizar senha do usuário
-    from app.repositories import user_repository
-    from app.core.security import hash_password
-    
-    user = user_repository.get_user_by_id(int(user_id))
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Usuário não encontrado"
-        )
-    
-    # Hash a nova senha
-    hashed_password = hash_password(data.nova_senha)
-    user_repository.update_user_password(user.id_usuario, hashed_password)
-    
-    logger.info("Password reset successful for user_id=%s", user_id)
-    
-    # Gerar novo token de acesso para o usuário
-    access_token = create_access_token(
-        {"sub": str(user.id_usuario), "role": user.role}
-    )
-    
-    return {
-        "access_token": access_token,
-        "token_type": "bearer"
-    }
-
-@router.get("/reset-password")
-def reset_password_page(
-    request: Request,
-    token: str
-):
-    return _templates.TemplateResponse(
-        "pages/reset_password.html",
-        {
-            "request": request,
-            "token": token
-        }
-    )
