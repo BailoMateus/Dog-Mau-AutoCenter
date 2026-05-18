@@ -6,6 +6,10 @@ from app.models.entities import Veiculo, dict_to_veiculo, veiculo_to_dict
 
 logger = logging.getLogger(__name__)
 
+def get_all_veiculos():
+    cursor.execute("SELECT * FROM veiculos")
+    return cursor.fetchall()
+
 def get_veiculo_by_id_for_user(user_id: int, veiculo_id: int):
     """Busca veículo por ID para um usuário específico."""
     query = """

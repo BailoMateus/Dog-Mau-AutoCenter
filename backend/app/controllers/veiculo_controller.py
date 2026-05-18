@@ -16,6 +16,11 @@ router = APIRouter(prefix="/api/usuarios/{usuario_id}/veiculos", tags=["Veiculos
 
 
 @router.get("", response_model=list[VeiculoPublic])
+def list_all_veiculos(_=Depends(require_role(_STAFF))):
+    logger.info("GET /api/veiculos")
+    return veiculo_service.list_all_veiculos()
+
+@router.get("", response_model=list[VeiculoPublic])
 def list_veiculos(
     usuario_id: Annotated[int, Path(ge=1)],
     _=Depends(require_role(_STAFF)),

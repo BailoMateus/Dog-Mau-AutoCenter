@@ -35,6 +35,9 @@ def create_veiculo_for_user(user_id: int, data: VeiculoCreate):
             detail="Placa já cadastrada",
         )
 
+def list_all_veiculos():
+    return repo.get_all_veiculos()
+
 def list_veiculos_by_user(user_id: int):
     user_service.get_user_or_404(user_id)
     return repo.list_veiculos_by_user(user_id)
