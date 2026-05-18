@@ -7,8 +7,15 @@ from app.models.entities import Veiculo, dict_to_veiculo, veiculo_to_dict
 logger = logging.getLogger(__name__)
 
 def get_all_veiculos():
-    cursor.execute("SELECT * FROM veiculos")
-    return cursor.fetchall()
+    query = """
+    SELECT id_veiculo, placa, ano_fabricacao, cor, id_usuario, id_modelo,
+           created_at, updated_at, deleted_at
+    FROM veiculo
+    WHERE deleted_at IS NULL
+    ORDER BY created_at DESC
+    """
+    results = execute_query(query)
+    return [dict_to_veiculo(row) for row in results]
 
 def get_veiculo_by_id_for_user(user_id: int, veiculo_id: int):
     """Busca veículo por ID para um usuário específico."""
@@ -73,9 +80,10 @@ def soft_delete_veiculo(veiculo: Veiculo):
     UPDATE veiculo 
     SET deleted_at = %s, updated_at = CURRENT_TIMESTAMP
     WHERE id_veiculo = %s
+    RETURNING id_veiculo, placa, ano_fabricacao, cor, id_usuario, id_modelo, deleted_at
     """
     params = (datetime.now(timezone.utc), veiculo.id_veiculo)
-    execute_command(query, params)
-    veiculo.deleted_at = datetime.now(timezone.utc)
+    result = execute_query(query, params, fetch="one")
+
     logger.info("veiculo soft-delete id=%s", veiculo.id_veiculo)
-    return veiculo
+    return dict_to_veiculo(result)
