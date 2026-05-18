@@ -3,7 +3,9 @@ Entidades de dados simples (sem ORM).
 Substitui os models SQLAlchemy por classes básicas e dicionários.
 """
 from dataclasses import dataclass
+from typing import Optional
 from datetime import datetime
+from decimal import Decimal
 from typing import Optional
 
 @dataclass
