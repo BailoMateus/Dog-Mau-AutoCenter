@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}DogMau Auto Center — Loja de Produtos{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="/static/css/loja.css">
+{% endblock %}
+
+{% block content %}
+<div class="loja-page">
+  <section class="loja-hero">
+    <div class="container">
+      <div class="loja-hero-glass text-center">
+        <p class="text-uppercase small mb-2" style="color: #c0252b; letter-spacing: 0.2em; font-family: 'Orbitron', sans-serif;">
+          <i class="bi bi-shop me-1"></i> E-commerce
+        </p>
+        <h1>Loja de <span class="accent">Peças e Produtos</span></h1>
+        <p class="lead">Qualidade Dog-Mau para o seu veículo — óleos, pneus, freios e muito mais.</p>
+        <div class="loja-search-wrap">
+          <div class="input-group">
+            <input type="search" id="lojaSearchInput" class="form-control" placeholder="Buscar produto..." aria-label="Buscar produto">
+            <button class="btn btn-loja-search" type="button" aria-label="Buscar">
+              <i class="bi bi-search"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="container">
+    <h2 class="loja-section-title">
+      <i class="bi bi-grid-3x3-gap me-2" style="color: #c0252b;"></i>Vitrine
+    </h2>
+
+    <p id="lojaEmptyMsg" class="loja-empty-msg">Nenhum produto encontrado para sua busca.</p>
+
+    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4" id="lojaProductGrid">
+      {% if produtos %}
+        {% for p in produtos %}
+        {% set estoque = p.quantidade_estoque | default(0) %}
+        {% set img_url = 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=600&h=600&fit=crop' %}
+        <div class="col">
+          <article class="loja-card"
+                   data-loja-card
+                   data-nome="{{ p.nome }}"
+                   data-desc="{{ p.descricao or '' }}">
+            <div class="loja-card-img-wrap">
+              <img src="{{ img_url }}" alt="{{ p.nome }}" loading="lazy">
+              {% if estoque <= 0 %}
+              <span class="loja-card-badge esgotado">Esgotado</span>
+              {% elif estoque <= 5 %}
+              <span class="loja-card-badge baixo">Estoque baixo</span>
+              {% else %}
+              <span class="loja-card-badge disponivel">Disponível</span>
+              {% endif %}
+            </div>
+            <div class="loja-card-body">
+              <h3 class="loja-card-title">{{ p.nome }}</h3>
+              <p class="loja-card-desc">{{ p.descricao or 'Produto original Dog-Mau Auto Center.' }}</p>
+              <p class="loja-card-price">
+                R$ {{ "%.2f"|format(p.preco | float) }}
+                <small> / un.</small>
+              </p>
+              <button type="button"
+                      class="btn btn-loja-comprar"
+                      data-demo="false"
+                      data-logged-in="{{ 'true' if user else 'false' }}"
+                      data-produto-id="{{ p.id_produto }}"
+                      data-preco="{{ p.preco }}"
+                      data-estoque="{{ estoque }}"
+                      {% if user %}data-user-id="{{ user.user_id }}"{% endif %}
+                      {% if estoque <= 0 %}disabled{% endif %}>
+                <i class="bi bi-bag-plus me-2"></i>
+                {% if estoque <= 0 %}Indisponível{% else %}Comprar{% endif %}
+              </button>
+            </div>
+          </article>
+        </div>
+        {% endfor %}
+      {% else %}
+        {% set demo_produtos = [
+          ('Óleo Castrol Edge 5W30', 'Óleo sintético de alta performance para motor. Proteção superior em todas as condições.', 189.90, 24, 'https://images.unsplash.com/photo-1625047509168-4b9b5d5d5b0e?w=600&h=600&fit=crop'),
+          ('Pneu Michelin Primacy 4', 'Pneu premium com excelente aderência em pista molhada e seca. Conforto e durabilidade.', 649.00, 12, 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=600&fit=crop'),
+          ('Pastilha de Freio Brembo', 'Pastilhas de cerâmica carbono com frenagem precisa e baixo ruído. Kit dianteiro.', 279.50, 8, 'https://images.unsplash.com/photo-1487754180451-c145f7ba1f0b?w=600&h=600&fit=crop'),
+          ('Filtro de Ar K&N', 'Filtro esportivo lavável. Maior fluxo de ar e resposta do motor.', 159.00, 15, 'https://images.unsplash.com/photo-1619642751031-3f9d24e4250e?w=600&h=600&fit=crop'),
+          ('Bateria Moura 60Ah', 'Bateria automotiva selada com alta capacidade de partida a frio.', 499.00, 6, 'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=600&h=600&fit=crop'),
+          ('Kit Palheta Bosch Aerotwin', 'Palhetas planas com aerodinâmica superior. Visibilidade total na chuva.', 89.90, 20, 'https://images.unsplash.com/photo-1517524008697-84bbe3c3fd97?w=600&h=600&fit=crop')
+        ] %}
+        {% for nome, desc, preco, estoque, img_url in demo_produtos %}
+        <div class="col">
+          <article class="loja-card"
+                   data-loja-card
+                   data-nome="{{ nome }}"
+                   data-desc="{{ desc }}">
+            <div class="loja-card-img-wrap">
+              <img src="{{ img_url }}" alt="{{ nome }}" loading="lazy">
+              {% if estoque <= 5 %}
+              <span class="loja-card-badge baixo">Estoque baixo</span>
+              {% else %}
+              <span class="loja-card-badge demo">Demonstração</span>
+              {% endif %}
+            </div>
+            <div class="loja-card-body">
+              <h3 class="loja-card-title">{{ nome }}</h3>
+              <p class="loja-card-desc">{{ desc }}</p>
+              <p class="loja-card-price">
+                R$ {{ "%.2f"|format(preco) }}
+                <small> / un.</small>
+              </p>
+              <button type="button"
+                      class="btn btn-loja-comprar"
+                      data-demo="true">
+                <i class="bi bi-bag-plus me-2"></i>Comprar
+              </button>
+            </div>
+          </article>
+        </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+  </section>
+</div>
+
+<div class="loja-toast-container" aria-live="polite"></div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="/static/js/loja.js"></script>
+{% endblock %}

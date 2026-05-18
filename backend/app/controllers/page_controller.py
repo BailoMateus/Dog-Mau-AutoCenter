@@ -119,6 +119,18 @@ def services_page(request: Request, user=Depends(get_page_user)):
     })
 
 
+@router.get("/loja", include_in_schema=False)
+def loja_page(request: Request, user=Depends(get_page_user)):
+    """Página pública de e-commerce (Loja de Produtos)."""
+    produtos = produto_service.list_produtos()
+    return templates.TemplateResponse("pages/loja.html", {
+        "request": request,
+        "user": user,
+        "produtos": produtos,
+        "page": "produtos",
+    })
+
+
 @router.get("/logout", include_in_schema=False)
 def logout(request: Request):
     """Limpa o cookie de autenticação e redireciona para a home."""
