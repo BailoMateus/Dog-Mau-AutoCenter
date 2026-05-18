@@ -12,54 +12,51 @@ logger = logging.getLogger(__name__)
 
 _STAFF = [ADMIN, MECANICO]
 
-router = APIRouter(prefix="/api/usuarios/{usuario_id}/veiculos", tags=["Veiculos"])
+router = APIRouter(prefix="/api/veiculos", tags=["Veiculos"])
 
 
 @router.get("", response_model=list[VeiculoPublic])
-def list_veiculos(
+def list_all_veiculos(_=Depends(require_role(_STAFF))):
+    return veiculo_service.list_all_veiculos()
+
+
+@router.get("/user/{usuario_id}", response_model=list[VeiculoPublic])
+def list_veiculos_by_user(
     usuario_id: Annotated[int, Path(ge=1)],
     _=Depends(require_role(_STAFF)),
 ):
-    logger.info("GET /api/usuarios/%s/veiculos", usuario_id)
     return veiculo_service.list_veiculos_by_user(usuario_id)
 
 
-@router.post("", response_model=VeiculoPublic, status_code=201)
+@router.post("/user/{usuario_id}", response_model=VeiculoPublic, status_code=201)
 def create_veiculo(
     usuario_id: Annotated[int, Path(ge=1)],
     data: VeiculoCreate,
     _=Depends(require_role(_STAFF)),
 ):
-    logger.info("POST /api/usuarios/%s/veiculos", usuario_id)
     return veiculo_service.create_veiculo_for_user(usuario_id, data)
 
 
 @router.get("/{veiculo_id}", response_model=VeiculoPublic)
 def get_veiculo(
-    usuario_id: Annotated[int, Path(ge=1)],
     veiculo_id: Annotated[int, Path(ge=1)],
     _=Depends(require_role(_STAFF)),
 ):
-    logger.info("GET /api/usuarios/%s/veiculos/%s", usuario_id, veiculo_id)
-    return veiculo_service.get_veiculo_by_user_or_404(usuario_id, veiculo_id)
+    return veiculo_service.get_veiculo_by_id_or_404(veiculo_id)
 
 
 @router.patch("/{veiculo_id}", response_model=VeiculoPublic)
 def update_veiculo(
-    usuario_id: Annotated[int, Path(ge=1)],
     veiculo_id: Annotated[int, Path(ge=1)],
     data: VeiculoUpdate,
     _=Depends(require_role(_STAFF)),
 ):
-    logger.info("PATCH /api/usuarios/%s/veiculos/%s", usuario_id, veiculo_id)
-    return veiculo_service.update_veiculo_by_user(usuario_id, veiculo_id, data)
+    return veiculo_service.update_veiculo(veiculo_id, data)
 
 
 @router.delete("/{veiculo_id}", response_model=VeiculoPublic)
 def delete_veiculo(
-    usuario_id: Annotated[int, Path(ge=1)],
     veiculo_id: Annotated[int, Path(ge=1)],
     _=Depends(require_role(_STAFF)),
 ):
-    logger.info("DELETE /api/usuarios/%s/veiculos/%s", usuario_id, veiculo_id)
-    return veiculo_service.delete_veiculo_by_user(usuario_id, veiculo_id)
+    return veiculo_service.delete_veiculo(veiculo_id)

@@ -18,29 +18,27 @@ logger = logging.getLogger(__name__)
 
 _settings = get_settings()
 
-# Construção da URL de conexão PostgreSQL (sem SQLAlchemy)
 def _get_connection_string() -> str:
-    """Retorna a string de conexão PostgreSQL."""
     safe_password = urllib.parse.quote_plus(_settings.db_pass)
-    
+
     if _settings.database_url:
-        # Remove o prefixo 'postgresql+psycopg2://' se existir
-        db_url = _settings.database_url.replace('postgresql+psycopg2://', 'postgresql://')
-        logger.info("Conexão PostgreSQL: usando DATABASE_URL (override)")
-        return db_url
-    elif _settings.instance_connection_name != "conexao_vazia":
-        # Conexão Cloud SQL via socket Unix
-        conn_str = (
-            f"postgresql://{_settings.db_user}:{safe_password}@/{_settings.db_name}?"
-            f"host=/cloudsql/{_settings.instance_connection_name}"
+        db_url = _settings.database_url.replace(
+            "postgresql+psycopg2://",
+            "postgresql://"
         )
-        logger.info("Conexão PostgreSQL: modo Cloud SQL (socket Unix)")
-        return conn_str
+        return db_url
+
+    elif _settings.instance_connection_name != "conexao_vazia":
+        return (
+            f"postgresql://{_settings.db_user}:{safe_password}"
+            f"@/{_settings.db_name}?host=/cloudsql/{_settings.instance_connection_name}"
+        )
+
     else:
-        # Conexão local padrão
-        conn_str = f"postgresql://{_settings.db_user}:{safe_password}@localhost/{_settings.db_name}"
-        logger.info("Conexão PostgreSQL: modo local")
-        return conn_str
+        return (
+            f"postgresql://{_settings.db_user}:{safe_password}"
+            f"@localhost/{_settings.db_name}"
+        )
 
 @contextmanager
 def get_db_connection():
