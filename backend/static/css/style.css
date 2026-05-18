@@ -32,21 +32,21 @@ h1 {
 header {
   background-color: black;
   padding: 10px 0;
-  font-family: "Orbitron", sans-serif;
+  font-family: "Orbitron", sans-serif !important;
   font-optical-sizing: auto;
   font-weight: 700;
   font-style: normal;
 }
 
 header .navbar-brand {
-  font-family: "Orbitron", sans-serif;
+  font-family: "Orbitron", sans-serif !important;
   font-optical-sizing: auto;
   font-weight: 700;
   font-style: normal;
 }
 
 header .nav-item {
-  font-family: "Orbitron", sans-serif;
+  font-family: "Orbitron", sans-serif !important;
   font-optical-sizing: auto;
   font-weight: 700;
   font-style: normal;
@@ -54,7 +54,7 @@ header .nav-item {
 
 header .container > div {
   align-items: center;
-  font-family: "Orbitron", sans-serif;
+  font-family: "Orbitron", sans-serif !important;
   font-optical-sizing: auto;
   font-weight: 700;
   font-style: normal;
@@ -69,10 +69,60 @@ header .nav-link {
   position: relative;
   transition: 0.3s;
   color: white !important;
-  font-family: "Orbitron", sans-serif;
+  font-family: "Orbitron", sans-serif !important;
   font-optical-sizing: auto;
-  font-weight: 700;
+  font-weight: 700 !important;
   font-style: normal;
+}
+
+.navbar {
+  font-family: "Orbitron", sans-serif !important;
+}
+
+.navbar-brand {
+  font-family: "Orbitron", sans-serif !important;
+}
+
+.navbar-nav {
+  font-family: "Orbitron", sans-serif !important;
+}
+
+.navbar-nav .nav-link {
+  font-family: "Orbitron", sans-serif !important;
+  font-weight: 700 !important;
+}
+
+/* Força Orbitron em todos os elementos dentro do navbar */
+.navbar * {
+  font-family: "Orbitron", sans-serif !important;
+}
+
+.navbar-brand,
+.navbar-brand span {
+  font-family: "Orbitron", sans-serif !important;
+  font-weight: 700 !important;
+}
+
+.navbar-nav .nav-item,
+.navbar-nav .nav-link,
+.navbar-nav .nav-link span {
+  font-family: "Orbitron", sans-serif !important;
+  font-weight: 700 !important;
+}
+
+.fw-semibold {
+  font-family: "Orbitron", sans-serif !important;
+  font-weight: 700 !important;
+}
+
+.dropdown-toggle {
+  font-family: "Orbitron", sans-serif !important;
+  font-weight: 700 !important;
+}
+
+.badge {
+  font-family: "Orbitron", sans-serif !important;
+  font-weight: 700 !important;
 }
 
 header .nav-link::after {
