@@ -8,7 +8,6 @@ logger = logging.getLogger(__name__)
 
 def get_pedido_produto(pedido_id: int, produto_id: int):
     """Busca item do pedido por IDs."""
-    
     query = """
     SELECT 
         pp.id_pedido,
@@ -23,17 +22,23 @@ def get_pedido_produto(pedido_id: int, produto_id: int):
     INNER JOIN produto p 
         ON pp.id_produto = p.id_produto
     WHERE pp.id_pedido = %s 
-      AND pp.id_produto = %s
+      AND pp.id_produto = %s 
       AND pp.deleted_at IS NULL
-      AND p.deleted_at IS NULL
     """
-
+    
     result = execute_query(query, (pedido_id, produto_id), fetch="one")
 
     if not result:
         return None
 
-    item = dict_to_pedido_produto(result)
+    item = PedidoProduto(
+        id_pedido=result["id_pedido"],
+        id_produto=result["id_produto"],
+        quantidade=result["quantidade"],
+        created_at=result["created_at"],
+        updated_at=result["updated_at"],
+        deleted_at=result["deleted_at"]
+    )
 
     item.produto_nome = result["produto_nome"]
     item.produto_preco = result["produto_preco"]
