@@ -17,73 +17,85 @@ def get_all_veiculos():
     results = execute_query(query)
     return [dict_to_veiculo(row) for row in results]
 
-def get_veiculo_by_id_for_user(user_id: int, veiculo_id: int):
-    """Busca veículo por ID para um usuário específico."""
+def get_veiculo_by_id(veiculo_id: int):
     query = """
-    SELECT id_veiculo, placa, ano_fabricacao, cor, id_usuario, id_modelo, 
+    SELECT id_veiculo, placa, ano_fabricacao, cor, id_usuario, id_modelo,
            created_at, updated_at, deleted_at
-    FROM veiculo 
-    WHERE id_veiculo = %s AND id_usuario = %s AND deleted_at IS NULL
+    FROM veiculo
+    WHERE id_veiculo = %s AND deleted_at IS NULL
     """
-    result = execute_query(query, (veiculo_id, user_id), fetch="one")
-    veiculo = dict_to_veiculo(result)
-    logger.debug(
-        "get_veiculo_by_id_for_user user=%s veiculo=%s found=%s",
-        user_id,
-        veiculo_id,
-        veiculo is not None,
-    )
-    return veiculo
+    result = execute_query(query, (veiculo_id,), fetch="one")
+
+    if not result:
+        return None
+
+    return dict_to_veiculo(result)
+
+
+def list_veiculos_by_user(user_id: int):
+    query = """
+    SELECT id_veiculo, placa, ano_fabricacao, cor, id_usuario, id_modelo,
+           created_at, updated_at, deleted_at
+    FROM veiculo
+    WHERE id_usuario = %s AND deleted_at IS NULL
+    ORDER BY created_at DESC
+    """
+    results = execute_query(query, (user_id,))
+    return [dict_to_veiculo(row) for row in results]
 
 def create_veiculo(veiculo: Veiculo):
-    """Cria um novo veículo."""
     query = """
     INSERT INTO veiculo (placa, ano_fabricacao, cor, id_usuario, id_modelo)
     VALUES (%s, %s, %s, %s, %s)
     RETURNING id_veiculo
     """
-    params = (veiculo.placa, veiculo.ano_fabricacao, veiculo.cor, veiculo.id_usuario, veiculo.id_modelo)
+
+    params = (
+        veiculo.placa,
+        veiculo.ano_fabricacao,
+        veiculo.cor,
+        veiculo.id_usuario,
+        veiculo.id_modelo,
+    )
+
     veiculo_id = execute_insert(query, params)
     veiculo.id_veiculo = veiculo_id
-    logger.info("veiculo criado id=%s usuario=%s", veiculo.id_veiculo, veiculo.id_usuario)
+
     return veiculo
 
-def list_veiculos_by_user(user_id: int):
-    """Lista todos os veículos de um usuário."""
-    query = """
-    SELECT id_veiculo, placa, ano_fabricacao, cor, id_usuario, id_modelo, 
-           created_at, updated_at, deleted_at
-    FROM veiculo 
-    WHERE id_usuario = %s AND deleted_at IS NULL
-    ORDER BY created_at DESC
-    """
-    results = execute_query(query, (user_id,))
-    veiculos = [dict_to_veiculo(row) for row in results]
-    logger.debug("list_veiculos_by_user user=%s count=%s", user_id, len(veiculos))
-    return veiculos
-
 def update_veiculo(veiculo: Veiculo):
-    """Atualiza um veículo."""
     query = """
-    UPDATE veiculo 
-    SET placa = %s, ano_fabricacao = %s, cor = %s, id_modelo = %s, updated_at = CURRENT_TIMESTAMP
+    UPDATE veiculo
+    SET placa = %s,
+        ano_fabricacao = %s,
+        cor = %s,
+        id_modelo = %s,
+        updated_at = CURRENT_TIMESTAMP
     WHERE id_veiculo = %s AND deleted_at IS NULL
     """
-    params = (veiculo.placa, veiculo.ano_fabricacao, veiculo.cor, veiculo.id_modelo, veiculo.id_veiculo)
+
+    params = (
+        veiculo.placa,
+        veiculo.ano_fabricacao,
+        veiculo.cor,
+        veiculo.id_modelo,
+        veiculo.id_veiculo,
+    )
+
     execute_command(query, params)
-    logger.info("veiculo atualizado id=%s", veiculo.id_veiculo)
     return veiculo
 
 def soft_delete_veiculo(veiculo: Veiculo):
-    """Soft delete de veículo."""
     query = """
-    UPDATE veiculo 
-    SET deleted_at = %s, updated_at = CURRENT_TIMESTAMP
+    UPDATE veiculo
+    SET deleted_at = %s,
+        updated_at = CURRENT_TIMESTAMP
     WHERE id_veiculo = %s
-    RETURNING id_veiculo, placa, ano_fabricacao, cor, id_usuario, id_modelo, deleted_at
     """
-    params = (datetime.now(timezone.utc), veiculo.id_veiculo)
-    result = execute_query(query, params, fetch="one")
 
-    logger.info("veiculo soft-delete id=%s", veiculo.id_veiculo)
-    return dict_to_veiculo(result)
+    params = (datetime.now(timezone.utc), veiculo.id_veiculo)
+
+    execute_command(query, params)
+    veiculo.deleted_at = datetime.now(timezone.utc)
+
+    return veiculo
