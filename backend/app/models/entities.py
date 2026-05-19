@@ -301,16 +301,30 @@ def dict_to_orcamento(data: dict) -> Orcamento:
     return Orcamento(**data)
 
 def dict_to_orcamento_peca(data: dict) -> OrcamentoPeca:
-    """Converte dicionário do banco para entidade OrcamentoPeca."""
+    """Converte dicionário do banco para entidade OrcamentoPeca.
+
+    Ignora colunas extras (ex: peca_nome, peca_preco) retornadas por JOINs.
+    """
     if not data:
         return None
-    return OrcamentoPeca(**data)
+    return OrcamentoPeca(
+        id_orcamento=data.get('id_orcamento'),
+        id_peca=data.get('id_peca'),
+        quantidade=data.get('quantidade')
+    )
 
 def dict_to_orcamento_servico(data: dict) -> OrcamentoServico:
-    """Converte dicionário do banco para entidade OrcamentoServico."""
+    """Converte dicionário do banco para entidade OrcamentoServico.
+
+    Ignora colunas extras (ex: servico_descricao, servico_preco) retornadas por JOINs.
+    """
     if not data:
         return None
-    return OrcamentoServico(**data)
+    return OrcamentoServico(
+        id_orcamento=data.get('id_orcamento'),
+        id_servico=data.get('id_servico'),
+        quantidade=data.get('quantidade')
+    )
 
 def dict_to_ordem_servico(data: dict) -> OrdemServico:
     """Converte dicionário do banco para entidade OrdemServico."""
