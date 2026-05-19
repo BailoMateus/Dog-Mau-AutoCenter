@@ -60,6 +60,13 @@
         {% endif %}
 
         <li class="nav-item" role="presentation">
+            <a class="nav-link nav-tab-link {% if tab == 'veiculos' %}active{% endif %}" href="?tab=veiculos" role="tab">
+                <i class="bi bi-car-front-fill me-1"></i>
+                {% if user.role in ['admin', 'mecanico'] %}Todos os Veículos{% else %}Meus Veículos{% endif %}
+            </a>
+        </li>
+
+        <li class="nav-item" role="presentation">
             <a class="nav-link nav-tab-link {% if tab == 'servicos' %}active{% endif %}" href="?tab=servicos" role="tab">
                 <i class="bi bi-tools me-1"></i>
                 {% if user.role in ['admin', 'mecanico'] %}Serviços{% else %}Meus Serviços{% endif %}
@@ -155,6 +162,13 @@
         {% if user.role in ['admin', 'mecanico'] and tab == 'produtos' %}
         <div class="tab-pane fade show active" id="produtos" role="tabpanel">
             {% include "partials/ProdutoPanel.html" %}
+        </div>
+        {% endif %}
+
+        {# ── Aba de Veículos ── #}
+        {% if tab == 'veiculos' %}
+        <div class="tab-pane fade show active" id="veiculos" role="tabpanel">
+            {% include "partials/VeiculoPanel.html" %}
         </div>
         {% endif %}
 
