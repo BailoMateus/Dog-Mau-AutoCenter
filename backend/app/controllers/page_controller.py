@@ -115,10 +115,27 @@ def cadastro_page(request: Request, user=Depends(get_page_user)):
 @router.get("/servicos", include_in_schema=False)
 def services_page(request: Request, user=Depends(get_page_user)):
     """Página de serviços — pública."""
+    servicos = servico_service.list_servicos()
+    marcas = marca_service.list_marcas()
+    modelos = modelo_service.list_modelos()
+    
+    # We map modelos by marca to easily build the frontend select
+    modelos_por_marca = {}
+    for mod in modelos:
+        if mod.id_marca not in modelos_por_marca:
+            modelos_por_marca[mod.id_marca] = []
+        modelos_por_marca[mod.id_marca].append({
+            "id": mod.id_modelo,
+            "nome": mod.nome_modelo
+        })
+    
     return templates.TemplateResponse("pages/services.html", {
         "request": request,
         "user": user,
         "page": "servicos",
+        "servicos": servicos,
+        "marcas": marcas,
+        "modelos_por_marca": modelos_por_marca,
     })
 
 
