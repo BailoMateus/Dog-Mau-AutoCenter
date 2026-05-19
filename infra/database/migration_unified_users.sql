@@ -70,7 +70,7 @@ INSERT INTO usuario (
 )
 SELECT 
     nome,
-    'mecanico_' || id_mecanico || '@temp.local', -- Email temporário
+    'mecanico_' || id_usuario || '@temp.local', -- Email temporário
     'temp_password_hash', -- Senha temporária que deve ser alterada
     'MECANICO',
     COALESCE(ativo, true),
@@ -98,7 +98,7 @@ WHERE c.deleted_at IS NULL;
 
 -- 6. Preencher tabela de mapeamento para mecânicos
 INSERT INTO migration_id_mapping (old_table, old_id, new_usuario_id)
-SELECT 'mecanico', id_mecanico, id_usuario
+SELECT 'mecanico', id_usuario, id_usuario
 FROM mecanico m
 JOIN usuario u ON u.nome = m.nome AND u.email LIKE 'mecanico_%@temp.local'
 WHERE m.deleted_at IS NULL;
@@ -118,12 +118,12 @@ FROM migration_id_mapping m
 WHERE m.old_table = 'cliente' 
   AND veiculo.id_cliente = m.old_id;
 
--- Ordens de Serviço (atualizar id_mecanico para id_usuario)
+-- Ordens de Serviço (atualizar id_usuario para id_usuario)
 UPDATE ordem_servico 
-SET id_mecanico = m.new_usuario_id
+SET id_usuario = m.new_usuario_id
 FROM migration_id_mapping m
 WHERE m.old_table = 'mecanico' 
-  AND ordem_servico.id_mecanico = m.old_id;
+  AND ordem_servico.id_usuario = m.old_id;
 
 -- Orçamentos
 UPDATE orcamento 
@@ -151,7 +151,7 @@ WHERE m.old_table = 'cliente'
 /*
 ALTER TABLE endereco DROP COLUMN IF EXISTS id_cliente;
 ALTER TABLE veiculo DROP COLUMN IF EXISTS id_cliente;
-ALTER TABLE ordem_servico DROP COLUMN IF EXISTS id_mecanico;
+ALTER TABLE ordem_servico DROP COLUMN IF EXISTS id_usuario;
 ALTER TABLE orcamento DROP COLUMN IF EXISTS id_cliente;
 ALTER TABLE agendamento DROP COLUMN IF EXISTS id_cliente;
 ALTER TABLE pedido DROP COLUMN IF EXISTS id_cliente;

@@ -2,6 +2,7 @@ import logging
 
 from app.database.db import execute_query, execute_command
 from app.models.entities import OrcamentoServico, dict_to_orcamento_servico, orcamento_servico_to_dict
+from app.models.entities import dict_to_orcamento_servico_response
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,7 @@ def get_orcamento_servico(orcamento_id: int, servico_id: int):
     return item
 
 def get_servicos_by_orcamento(orcamento_id: int):
-    """Lista todos os serviços de um orçamento."""
+    """Lista todos os serviços de um orçamento com dados enriquecidos."""
     query = """
     SELECT os.id_orcamento, os.id_servico, os.quantidade,
            s.descricao as servico_descricao, s.preco as servico_preco
@@ -28,15 +29,22 @@ def get_servicos_by_orcamento(orcamento_id: int):
     ORDER BY s.descricao ASC
     """
     results = execute_query(query, (orcamento_id,))
-    itens = []
-    for row in results:
-        item = dict_to_orcamento_servico(row)
-        # Adiciona informações do serviço
-        item.servico_descricao = row['servico_descricao']
-        item.servico_preco = row['servico_preco']
-        itens.append(item)
+    itens = [dict_to_orcamento_servico_response(row) for row in results]
     logger.debug("get_servicos_by_orcamento orcamento_id=%s count=%s", orcamento_id, len(itens))
     return itens
+
+def get_servico_by_orcamento(orcamento_id: int, servico_id: int):
+    """Busca serviço do orçamento com dados enriquecidos."""
+    query = """
+    SELECT os.id_orcamento, os.id_servico, os.quantidade,
+           s.descricao as servico_descricao, s.preco as servico_preco
+    FROM orcamento_servico os
+    INNER JOIN servico s ON os.id_servico = s.id_servico
+    WHERE os.id_orcamento = %s AND os.id_servico = %s
+    """
+    result = execute_query(query, (orcamento_id, servico_id), fetch="one")
+    return dict_to_orcamento_servico_response(result)
+
 
 def add_servico_to_orcamento(orcamento_servico: OrcamentoServico):
     """Adiciona serviço ao orçamento."""

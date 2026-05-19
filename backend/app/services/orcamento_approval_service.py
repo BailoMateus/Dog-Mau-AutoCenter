@@ -41,17 +41,18 @@ def aprovar_orcamento(orcamento_id: int):
         ordem_servico = OrdemServico(
             id_orcamento=orcamento_id,
             id_veiculo=orcamento.id_veiculo,
+            id_usuario=orcamento.id_usuario,
             status="aberta",
-            valor_total=orcamento.valor_total,
-            data_inicio=datetime.now(timezone.utc)
+            valor_total=float(orcamento.valor_total),
+            data_abertura=datetime.now(timezone.utc)
         )
         ordem_servico = os_repo.create_ordem_servico(ordem_servico)
         
         # Copia itens do orçamento para a OS
-        _copiar_itens_orcamento_para_os(orcamento_id, ordem_servico.id_ordem_servico)
+        _copiar_itens_orcamento_para_os(orcamento_id, ordem_servico.id_os)
         
         logger.info("orçamento aprovado e OS gerada orcamento=%s os=%s", 
-                   orcamento_id, ordem_servico.id_ordem_servico)
+                   orcamento_id, ordem_servico.id_os)
         
         return ordem_servico
         
@@ -96,13 +97,13 @@ def rejeitar_orcamento(orcamento_id: int):
             detail="Erro ao rejeitar orçamento"
         )
 
-def _copiar_itens_orcamento_para_os(orcamento_id: int, ordem_servico_id: int):
+def _copiar_itens_orcamento_para_os(orcamento_id: int, id_os: int):
     """Função interna para copiar itens do orçamento para a OS."""
     # Copia peças
     pecas_orcamento = orc_peca_repo.get_pecas_by_orcamento(orcamento_id)
     for peca_orc in pecas_orcamento:
         os_peca = OrdemServicoPeca(
-            id_ordem_servico=ordem_servico_id,
+            id_os=id_os,
             id_peca=peca_orc.id_peca,
             quantidade=peca_orc.quantidade
         )
@@ -112,14 +113,14 @@ def _copiar_itens_orcamento_para_os(orcamento_id: int, ordem_servico_id: int):
     servicos_orcamento = orc_servico_repo.get_servicos_by_orcamento(orcamento_id)
     for servico_orc in servicos_orcamento:
         os_servico = OrdemServicoServico(
-            id_ordem_servico=ordem_servico_id,
+            id_os=id_os,
             id_servico=servico_orc.id_servico,
             quantidade=servico_orc.quantidade
         )
         os_servico_repo.add_servico_to_ordem_servico(os_servico)
     
     logger.info("itens copiados para OS orcamento=%s os=%s pecas=%s servicos=%s", 
-                orcamento_id, ordem_servico_id, len(pecas_orcamento), len(servicos_orcamento))
+                orcamento_id, id_os, len(pecas_orcamento), len(servicos_orcamento))
 
 def get_ordens_by_orcamento(orcamento_id: int):
     """Lista ordens de serviço de um orçamento."""

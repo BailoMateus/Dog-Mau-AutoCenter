@@ -25,6 +25,9 @@ from app.services.user_service import list_users
 from app.services import servico_service
 from app.services import produto_service
 from app.services import pedido_service
+from app.services import veiculo_service
+from app.services import modelo_service
+from app.services import marca_service
 
 logger = logging.getLogger(__name__)
 
@@ -74,11 +77,20 @@ def get_page_user(request: Request):
 
 @router.get("/", include_in_schema=False)
 def home_page(request: Request, user=Depends(get_page_user)):
-    """Página inicial — pública, mostra header logado/deslogado."""
+    """Página inicial — pública, mostra header logado/deslogado e destaques."""
+    todos_servicos = servico_service.list_servicos()
+    todos_produtos = produto_service.list_produtos()
+    
+    # Pegar apenas os 3 primeiros para destaque na Home
+    servicos_destaque = todos_servicos[:3]
+    produtos_destaque = todos_produtos[:3]
+
     return templates.TemplateResponse("pages/index.html", {
         "request": request,
         "user": user,
         "page": "home",
+        "servicos_destaque": servicos_destaque,
+        "produtos_destaque": produtos_destaque,
     })
 
 
@@ -112,10 +124,39 @@ def cadastro_page(request: Request, user=Depends(get_page_user)):
 @router.get("/servicos", include_in_schema=False)
 def services_page(request: Request, user=Depends(get_page_user)):
     """Página de serviços — pública."""
+    servicos = servico_service.list_servicos()
+    marcas = marca_service.list_marcas()
+    modelos = modelo_service.list_modelos()
+    
+    # We map modelos by marca to easily build the frontend select
+    modelos_por_marca = {}
+    for mod in modelos:
+        if mod.id_marca not in modelos_por_marca:
+            modelos_por_marca[mod.id_marca] = []
+        modelos_por_marca[mod.id_marca].append({
+            "id": mod.id_modelo,
+            "nome": mod.nome_modelo
+        })
+    
     return templates.TemplateResponse("pages/services.html", {
         "request": request,
         "user": user,
         "page": "servicos",
+        "servicos": servicos,
+        "marcas": marcas,
+        "modelos_por_marca": modelos_por_marca,
+    })
+
+
+@router.get("/loja", include_in_schema=False)
+def loja_page(request: Request, user=Depends(get_page_user)):
+    """Página pública de e-commerce (Loja de Produtos)."""
+    produtos = produto_service.list_produtos()
+    return templates.TemplateResponse("pages/loja.html", {
+        "request": request,
+        "user": user,
+        "produtos": produtos,
+        "page": "produtos",
     })
 
 
@@ -147,10 +188,12 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
         usuarios = []
         servicos = []
         produtos = []
+        marcas = []
         if user.get("role") in ("admin", "mecanico"):
             usuarios = list_users()
             servicos = servico_service.list_servicos()
             produtos = produto_service.list_produtos()
+            marcas = marca_service.list_marcas()
 
         # Pedidos (Admin vê todos, cliente vê os seus)
         pedidos_db = []
@@ -169,6 +212,14 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
                 "qtd_itens": "—"  # Para calcularmos os itens, precisaria consultar pedido_produto
             })
 
+        # Veículos (Admin vê todos, cliente vê os seus)
+        if user.get("role") in ("admin", "mecanico"):
+            veiculos = veiculo_service.list_all_veiculos()
+        else:
+            veiculos = veiculo_service.list_veiculos_by_user(int(user["user_id"]))
+            
+        modelos = modelo_service.list_modelos()
+
         return templates.TemplateResponse("pages/painel.html", {
             "request": request,
             "user": user,
@@ -176,6 +227,9 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
             "servicos": servicos,
             "produtos": produtos,
             "pedidos": pedidos,
+            "veiculos": veiculos,
+            "modelos": modelos,
+            "marcas": marcas,
             "tab": tab,
             "page": "painel",
         })

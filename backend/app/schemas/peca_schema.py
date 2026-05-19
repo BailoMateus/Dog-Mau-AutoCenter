@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+from datetime import datetime
 
 class PecaCreate(BaseModel):
     nome: str = Field(..., max_length=100, description="Nome da peça")
@@ -15,8 +16,8 @@ class PecaPublic(BaseModel):
     nome: str
     preco_unitario: float
     quantidade_estoque: int
-    created_at: str
-    updated_at: str
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         orm_mode = True

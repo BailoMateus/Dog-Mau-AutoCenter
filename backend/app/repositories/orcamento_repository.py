@@ -158,3 +158,13 @@ def check_veiculo_pertence_usuario(veiculo_id: int, usuario_id: int):
     """
     result = execute_query(query, (veiculo_id, usuario_id), fetch="one")
     return result['count'] > 0 if result else False
+
+def check_orcamento_exists(orcamento_id: int):
+    """Verifica se orçamento existe."""
+    query = """
+    SELECT COUNT(*) as count
+    FROM orcamento
+    WHERE id_orcamento = %s AND deleted_at IS NULL
+    """
+    result = execute_query(query, (orcamento_id,), fetch="one")
+    return result['count'] > 0 if result else False

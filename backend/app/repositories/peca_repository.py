@@ -6,6 +6,18 @@ from app.models.entities import Peca, dict_to_peca, peca_to_dict
 
 logger = logging.getLogger(__name__)
 
+def check_peca_exists(id_peca: int) -> bool:
+    query = """
+    SELECT COUNT(*) as count
+    FROM peca
+    WHERE id_peca = %s
+    AND deleted_at IS NULL
+    """
+
+    result = execute_query(query, (id_peca,), fetch="one")
+
+    return result["count"] > 0 if result else False
+
 def get_peca_by_id(peca_id: int):
     """Busca peça por ID."""
     query = """
@@ -36,11 +48,14 @@ def create_peca(peca: Peca):
     query = """
     INSERT INTO peca (nome, preco_unitario, quantidade_estoque)
     VALUES (%s, %s, %s)
-    RETURNING id_peca
+    RETURNING id_peca, created_at, updated_at
     """
     params = (peca.nome, peca.preco_unitario, peca.quantidade_estoque)
-    peca_id = execute_insert(query, params)
-    peca.id_peca = peca_id
+    result = execute_query(query, params, fetch="one")
+    if result:
+        peca.id_peca = result.get("id_peca")
+        peca.created_at = result.get("created_at")
+        peca.updated_at = result.get("updated_at")
     logger.info("peça criada id=%s", peca.id_peca)
     return peca
 
@@ -50,9 +65,12 @@ def update_peca(peca: Peca):
     UPDATE peca 
     SET nome = %s, preco_unitario = %s, quantidade_estoque = %s, updated_at = CURRENT_TIMESTAMP
     WHERE id_peca = %s AND deleted_at IS NULL
+    RETURNING updated_at
     """
     params = (peca.nome, peca.preco_unitario, peca.quantidade_estoque, peca.id_peca)
-    execute_command(query, params)
+    result = execute_query(query, params, fetch="one")
+    if result:
+        peca.updated_at = result.get("updated_at")
     logger.info("peça atualizada id=%s", peca.id_peca)
     return peca
 

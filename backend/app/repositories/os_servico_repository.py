@@ -2,6 +2,7 @@ import logging
 
 from app.database.db import execute_query, execute_command
 from app.models.entities import OrdemServicoServico, dict_to_ordem_servico_servico, ordem_servico_servico_to_dict
+from app.models.entities import dict_to_ordem_servico_servico_response
 
 logger = logging.getLogger(__name__)
 
@@ -17,8 +18,21 @@ def get_os_servico(os_id: int, servico_id: int):
     logger.debug("get_os_servico os=%s servico=%s found=%s", os_id, servico_id, item is not None)
     return item
 
+def get_servico_by_os(os_id: int, servico_id: int):
+    """Busca serviço da OS com dados enriquecidos."""
+    query = """
+    SELECT oss.id_os, oss.id_servico, oss.quantidade,
+           s.descricao as servico_descricao, s.preco as servico_preco
+    FROM os_servico oss
+    INNER JOIN servico s ON oss.id_servico = s.id_servico
+    WHERE oss.id_os = %s AND oss.id_servico = %s
+    """
+    result = execute_query(query, (os_id, servico_id), fetch="one")
+    return dict_to_ordem_servico_servico_response(result)
+
+
 def get_servicos_by_os(os_id: int):
-    """Lista todos os serviços de uma OS."""
+    """Lista todos os serviços de uma OS com dados enriquecidos."""
     query = """
     SELECT oss.id_os, oss.id_servico, oss.quantidade,
            s.descricao as servico_descricao, s.preco as servico_preco
@@ -28,15 +42,7 @@ def get_servicos_by_os(os_id: int):
     ORDER BY s.descricao ASC
     """
     results = execute_query(query, (os_id,))
-    itens = []
-    for row in results:
-        item = dict_to_ordem_servico_servico(row)
-        # Adiciona informações do serviço
-        item.servico_descricao = row['servico_descricao']
-        item.servico_preco = row['servico_preco']
-        # Calcula subtotal
-        item.subtotal = item.servico_preco * item.quantidade
-        itens.append(item)
+    itens = [dict_to_ordem_servico_servico_response(row) for row in results]
     logger.debug("get_servicos_by_os os_id=%s count=%s", os_id, len(itens))
     return itens
 

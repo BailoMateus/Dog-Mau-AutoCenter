@@ -3,7 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 
 class RelatorioPeriodo(BaseModel):
-    data_inicio: datetime
+    data_abertura: datetime
     data_fim: datetime
 
 class FaturamentoDetalhe(BaseModel):
@@ -41,7 +41,7 @@ class ServicosRealizadosRelatorio(BaseModel):
 class EstoqueDetalhe(BaseModel):
     id_peca: int
     nome: str
-    estoque_atual: int
+    quantidade_estoque: int
     valor_unitario: float
     valor_total_estoque: float
     nivel_estoque: str
@@ -100,4 +100,4 @@ class RelatorioCompleto(BaseModel):
     servicos_realizados: ServicosRealizadosResumo
     ordens_servico: OrdensServicoResumo
     financeiro: FinanceiroPeriodoSaldo
-    estoque_atual: EstoqueResumo
+    quantidade_estoque: EstoqueResumo
