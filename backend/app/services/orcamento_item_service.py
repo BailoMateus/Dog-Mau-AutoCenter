@@ -105,12 +105,11 @@ def add_peca_to_orcamento(orcamento_id: int, data: OrcamentoPecaCreate):
         logger.info("peça adicionada ao orçamento orcamento=%s peca=%s quantidade=%s", 
                    orcamento_id, data.id_peca, data.quantidade)
         
-        # Retorna item com informações da peça
-        item_com_info = peca_repo.get_orcamento_peca(orcamento_id, data.id_peca)
-        item_com_info.peca_nome = peca.nome
-        item_com_info.peca_preco = peca.preco_unitario
-        
-        return item_com_info
+        # Retorna Response DTO com dados enriquecidos do banco
+        itens = peca_repo.get_pecas_by_orcamento(orcamento_id)
+        for item_response in itens:
+            if item_response.id_peca == data.id_peca:
+                return item_response
         
     except psycopg2.IntegrityError:
         logger.error("add_peca_to_orcamento erro de integridade")
@@ -141,12 +140,11 @@ def add_servico_to_orcamento(orcamento_id: int, data: OrcamentoServicoCreate):
         logger.info("serviço adicionado ao orçamento orcamento=%s servico=%s quantidade=%s", 
                    orcamento_id, data.id_servico, data.quantidade)
         
-        # Retorna item com informações do serviço
-        item_com_info = servico_repo.get_orcamento_servico(orcamento_id, data.id_servico)
-        item_com_info.servico_descricao = servico.descricao
-        item_com_info.servico_preco = servico.preco
-        
-        return item_com_info
+        # Retorna Response DTO com dados enriquecidos do banco
+        itens = servico_repo.get_servicos_by_orcamento(orcamento_id)
+        for item_response in itens:
+            if item_response.id_servico == data.id_servico:
+                return item_response
         
     except psycopg2.IntegrityError:
         logger.error("add_servico_to_orcamento erro de integridade")

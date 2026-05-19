@@ -237,6 +237,64 @@ class MovimentacaoFinanceira:
     id_pagamento: Optional[int] = None
     created_at: Optional[datetime] = None
 
+# Response DTOs com dados enriquecidos de JOINs
+@dataclass
+class OrcamentoPecaResponse:
+    """DTO Response para peça do orçamento - contém dados enriquecidos."""
+    id_orcamento: int
+    id_peca: int
+    quantidade: int
+    peca_nome: str
+    peca_preco: Decimal
+    subtotal: Decimal = 0.0
+
+    def __post_init__(self):
+        if self.subtotal == 0.0:
+            self.subtotal = Decimal(self.peca_preco) * Decimal(self.quantidade)
+
+@dataclass
+class OrcamentoServicoResponse:
+    """DTO Response para serviço do orçamento - contém dados enriquecidos."""
+    id_orcamento: int
+    id_servico: int
+    quantidade: int
+    servico_descricao: str
+    servico_preco: Decimal
+    subtotal: Decimal = 0.0
+
+    def __post_init__(self):
+        if self.subtotal == 0.0:
+            self.subtotal = Decimal(self.servico_preco) * Decimal(self.quantidade)
+
+@dataclass
+class OrdemServicoPecaResponse:
+    """DTO Response para peça da OS - contém dados enriquecidos."""
+    id_os: int
+    id_peca: int
+    quantidade: int
+    peca_nome: str
+    peca_preco: Decimal
+    peca_estoque: int
+    subtotal: Decimal = 0.0
+
+    def __post_init__(self):
+        if self.subtotal == 0.0:
+            self.subtotal = Decimal(self.peca_preco) * Decimal(self.quantidade)
+
+@dataclass
+class OrdemServicoServicoResponse:
+    """DTO Response para serviço da OS - contém dados enriquecidos."""
+    id_os: int
+    id_servico: int
+    quantidade: int
+    servico_descricao: str
+    servico_preco: Decimal
+    subtotal: Decimal = 0.0
+
+    def __post_init__(self):
+        if self.subtotal == 0.0:
+            self.subtotal = Decimal(self.servico_preco) * Decimal(self.quantidade)
+
 # Funções auxiliares para converter dicionários do banco para entidades
 def dict_to_user(data: dict) -> User:
     """Converte dicionário do banco para entidade User."""
@@ -682,3 +740,53 @@ def movimentacao_financeira_to_dict(movimentacao: MovimentacaoFinanceira) -> dic
         'id_pagamento': movimentacao.id_pagamento,
         'created_at': movimentacao.created_at
     }
+
+# Funções para criar Response DTOs a partir de dicionários com dados enriquecidos
+def dict_to_orcamento_peca_response(data: dict) -> OrcamentoPecaResponse:
+    """Converte dicionário do banco (com JOIN) para OrcamentoPecaResponse."""
+    if not data:
+        return None
+    return OrcamentoPecaResponse(
+        id_orcamento=data.get('id_orcamento'),
+        id_peca=data.get('id_peca'),
+        quantidade=data.get('quantidade'),
+        peca_nome=data.get('peca_nome'),
+        peca_preco=Decimal(str(data.get('peca_preco', 0)))
+    )
+
+def dict_to_orcamento_servico_response(data: dict) -> OrcamentoServicoResponse:
+    """Converte dicionário do banco (com JOIN) para OrcamentoServicoResponse."""
+    if not data:
+        return None
+    return OrcamentoServicoResponse(
+        id_orcamento=data.get('id_orcamento'),
+        id_servico=data.get('id_servico'),
+        quantidade=data.get('quantidade'),
+        servico_descricao=data.get('servico_descricao'),
+        servico_preco=Decimal(str(data.get('servico_preco', 0)))
+    )
+
+def dict_to_ordem_servico_peca_response(data: dict) -> OrdemServicoPecaResponse:
+    """Converte dicionário do banco (com JOIN) para OrdemServicoPecaResponse."""
+    if not data:
+        return None
+    return OrdemServicoPecaResponse(
+        id_os=data.get('id_os'),
+        id_peca=data.get('id_peca'),
+        quantidade=data.get('quantidade'),
+        peca_nome=data.get('peca_nome'),
+        peca_preco=Decimal(str(data.get('peca_preco', 0))),
+        peca_estoque=data.get('peca_estoque', 0)
+    )
+
+def dict_to_ordem_servico_servico_response(data: dict) -> OrdemServicoServicoResponse:
+    """Converte dicionário do banco (com JOIN) para OrdemServicoServicoResponse."""
+    if not data:
+        return None
+    return OrdemServicoServicoResponse(
+        id_os=data.get('id_os'),
+        id_servico=data.get('id_servico'),
+        quantidade=data.get('quantidade'),
+        servico_descricao=data.get('servico_descricao'),
+        servico_preco=Decimal(str(data.get('servico_preco', 0)))
+    )

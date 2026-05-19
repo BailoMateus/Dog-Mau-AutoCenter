@@ -2,6 +2,7 @@ import logging
 
 from app.database.db import execute_query, execute_command
 from app.models.entities import OrcamentoPeca, dict_to_orcamento_peca, orcamento_peca_to_dict
+from app.models.entities import dict_to_orcamento_peca_response
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,7 @@ def get_orcamento_peca(orcamento_id: int, peca_id: int):
     return item
 
 def get_pecas_by_orcamento(orcamento_id: int):
-    """Lista todas as peças de um orçamento."""
+    """Lista todas as peças de um orçamento com dados enriquecidos."""
     query = """
     SELECT op.id_orcamento, op.id_peca, op.quantidade,
            p.nome as peca_nome, p.preco_unitario as peca_preco
@@ -28,13 +29,7 @@ def get_pecas_by_orcamento(orcamento_id: int):
     ORDER BY p.nome ASC
     """
     results = execute_query(query, (orcamento_id,))
-    itens = []
-    for row in results:
-        item = dict_to_orcamento_peca(row)
-        # Adiciona informações da peça
-        item.peca_nome = row['peca_nome']
-        item.peca_preco = row['peca_preco']
-        itens.append(item)
+    itens = [dict_to_orcamento_peca_response(row) for row in results]
     logger.debug("get_pecas_by_orcamento orcamento_id=%s count=%s", orcamento_id, len(itens))
     return itens
 
