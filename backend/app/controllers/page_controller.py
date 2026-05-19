@@ -203,3 +203,26 @@ def admin_usuarios_page(request: Request, user=Depends(get_page_user)):
         "usuarios": usuarios,
         "page": "admin",
     })
+
+
+@router.get("/produtos", include_in_schema=False)
+def produtos_page(request: Request, user=Depends(get_page_user)):
+    """Página pública de catálogo de produtos — carrinho de compras."""
+    return templates.TemplateResponse("pages/produtos.html", {
+        "request": request,
+        "user": user,
+        "page": "produtos",
+    })
+
+
+@router.get("/checkout", include_in_schema=False)
+def checkout_page(request: Request, user=Depends(get_page_user)):
+    """Página de checkout — obrigatório estar logado."""
+    if not user:
+        return RedirectResponse(url="/cadastro", status_code=302)
+    
+    return templates.TemplateResponse("pages/checkout.html", {
+        "request": request,
+        "user": user,
+        "page": "checkout",
+    })
