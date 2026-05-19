@@ -38,44 +38,16 @@
     <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4" id="lojaProductGrid">
       {% if produtos %}
         {% for p in produtos %}
-        {% set estoque = p.quantidade_estoque | default(0) %}
-        {% set img_url = 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=600&h=600&fit=crop' %}
+        {% set p_nome = p.nome %}
+        {% set p_desc = p.descricao %}
+        {% set p_preco = p.preco %}
+        {% set p_estoque = p.quantidade_estoque | default(0) %}
+        {% set p_id = p.id_produto %}
+        {% set p_img = 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=600&h=600&fit=crop' %}
+        {% set is_demo = false %}
+        {% set showcase_mode = false %}
         <div class="col">
-          <article class="loja-card"
-                   data-loja-card
-                   data-nome="{{ p.nome }}"
-                   data-desc="{{ p.descricao or '' }}">
-            <div class="loja-card-img-wrap">
-              <img src="{{ img_url }}" alt="{{ p.nome }}" loading="lazy">
-              {% if estoque <= 0 %}
-              <span class="loja-card-badge esgotado">Esgotado</span>
-              {% elif estoque <= 5 %}
-              <span class="loja-card-badge baixo">Estoque baixo</span>
-              {% else %}
-              <span class="loja-card-badge disponivel">Disponível</span>
-              {% endif %}
-            </div>
-            <div class="loja-card-body">
-              <h3 class="loja-card-title">{{ p.nome }}</h3>
-              <p class="loja-card-desc">{{ p.descricao or 'Produto original Dog-Mau Auto Center.' }}</p>
-              <p class="loja-card-price">
-                R$ {{ "%.2f"|format(p.preco | float) }}
-                <small> / un.</small>
-              </p>
-              <button type="button"
-                      class="btn btn-loja-comprar"
-                      data-demo="false"
-                      data-logged-in="{{ 'true' if user else 'false' }}"
-                      data-produto-id="{{ p.id_produto }}"
-                      data-preco="{{ p.preco }}"
-                      data-estoque="{{ estoque }}"
-                      {% if user %}data-user-id="{{ user.user_id }}"{% endif %}
-                      {% if estoque <= 0 %}disabled{% endif %}>
-                <i class="bi bi-bag-plus me-2"></i>
-                {% if estoque <= 0 %}Indisponível{% else %}Comprar{% endif %}
-              </button>
-            </div>
-          </article>
+          {% include "partials/components/product_card.html" %}
         </div>
         {% endfor %}
       {% else %}
@@ -88,33 +60,15 @@
           ('Kit Palheta Bosch Aerotwin', 'Palhetas planas com aerodinâmica superior. Visibilidade total na chuva.', 89.90, 20, 'https://images.unsplash.com/photo-1517524008697-84bbe3c3fd97?w=600&h=600&fit=crop')
         ] %}
         {% for nome, desc, preco, estoque, img_url in demo_produtos %}
+        {% set p_nome = nome %}
+        {% set p_desc = desc %}
+        {% set p_preco = preco %}
+        {% set p_estoque = estoque %}
+        {% set p_img = img_url %}
+        {% set is_demo = true %}
+        {% set showcase_mode = false %}
         <div class="col">
-          <article class="loja-card"
-                   data-loja-card
-                   data-nome="{{ nome }}"
-                   data-desc="{{ desc }}">
-            <div class="loja-card-img-wrap">
-              <img src="{{ img_url }}" alt="{{ nome }}" loading="lazy">
-              {% if estoque <= 5 %}
-              <span class="loja-card-badge baixo">Estoque baixo</span>
-              {% else %}
-              <span class="loja-card-badge demo">Demonstração</span>
-              {% endif %}
-            </div>
-            <div class="loja-card-body">
-              <h3 class="loja-card-title">{{ nome }}</h3>
-              <p class="loja-card-desc">{{ desc }}</p>
-              <p class="loja-card-price">
-                R$ {{ "%.2f"|format(preco) }}
-                <small> / un.</small>
-              </p>
-              <button type="button"
-                      class="btn btn-loja-comprar"
-                      data-demo="true">
-                <i class="bi bi-bag-plus me-2"></i>Comprar
-              </button>
-            </div>
-          </article>
+          {% include "partials/components/product_card.html" %}
         </div>
         {% endfor %}
       {% endif %}

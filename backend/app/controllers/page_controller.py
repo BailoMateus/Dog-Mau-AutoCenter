@@ -77,11 +77,20 @@ def get_page_user(request: Request):
 
 @router.get("/", include_in_schema=False)
 def home_page(request: Request, user=Depends(get_page_user)):
-    """Página inicial — pública, mostra header logado/deslogado."""
+    """Página inicial — pública, mostra header logado/deslogado e destaques."""
+    todos_servicos = servico_service.list_servicos()
+    todos_produtos = produto_service.list_produtos()
+    
+    # Pegar apenas os 3 primeiros para destaque na Home
+    servicos_destaque = todos_servicos[:3]
+    produtos_destaque = todos_produtos[:3]
+
     return templates.TemplateResponse("pages/index.html", {
         "request": request,
         "user": user,
         "page": "home",
+        "servicos_destaque": servicos_destaque,
+        "produtos_destaque": produtos_destaque,
     })
 
 
