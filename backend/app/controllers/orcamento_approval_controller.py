@@ -15,7 +15,7 @@ def aprovar_orcamento(orcamento_id: int):
     logger.info("POST /orcamentos/%s/aprovacao/aprovar", orcamento_id)
     ordem_servico = orcamento_approval_service.aprovar_orcamento(orcamento_id)
     return OrdemServicoPublic(
-        id_ordem_servico=ordem_servico.id_ordem_servico,
+        id_os=ordem_servico.id_os,
         id_orcamento=ordem_servico.id_orcamento,
         id_veiculo=ordem_servico.id_veiculo,
         status=ordem_servico.status,
@@ -40,7 +40,7 @@ def get_ordens_by_orcamento(orcamento_id: int):
     ordens = orcamento_approval_service.get_ordens_by_orcamento(orcamento_id)
     return [
         OrdemServicoPublic(
-            id_ordem_servico=os.id_ordem_servico,
+            id_os=os.id_os,
             id_orcamento=os.id_orcamento,
             id_veiculo=os.id_veiculo,
             status=os.status,

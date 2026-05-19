@@ -51,7 +51,7 @@ def aprovar_orcamento(orcamento_id: int):
         _copiar_itens_orcamento_para_os(orcamento_id, ordem_servico.id_os)
         
         logger.info("orçamento aprovado e OS gerada orcamento=%s os=%s", 
-                   orcamento_id, ordem_servico.id_ordem_servico)
+                   orcamento_id, ordem_servico.id_os)
         
         return ordem_servico
         
@@ -102,7 +102,7 @@ def _copiar_itens_orcamento_para_os(orcamento_id: int, ordem_servico_id: int):
     pecas_orcamento = orc_peca_repo.get_pecas_by_orcamento(orcamento_id)
     for peca_orc in pecas_orcamento:
         os_peca = OrdemServicoPeca(
-            id_ordem_servico=ordem_servico_id,
+            id_os=ordem_servico_id,
             id_peca=peca_orc.id_peca,
             quantidade=peca_orc.quantidade
         )
@@ -112,7 +112,7 @@ def _copiar_itens_orcamento_para_os(orcamento_id: int, ordem_servico_id: int):
     servicos_orcamento = orc_servico_repo.get_servicos_by_orcamento(orcamento_id)
     for servico_orc in servicos_orcamento:
         os_servico = OrdemServicoServico(
-            id_ordem_servico=ordem_servico_id,
+            id_os=ordem_servico_id,
             id_servico=servico_orc.id_servico,
             quantidade=servico_orc.quantidade
         )

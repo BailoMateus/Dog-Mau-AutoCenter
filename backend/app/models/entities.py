@@ -176,7 +176,7 @@ class OrdemServico:
     deleted_at: Optional[datetime] = None
 
     @property
-    def id_ordem_servico(self) -> Optional[int]:
+    def id_os(self) -> Optional[int]:
         return self.id_os
 
     @property

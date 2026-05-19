@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict
 class OrdemServicoPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id_ordem_servico: int
+    id_os: int
     id_orcamento: int
     id_veiculo: int
     status: str
