@@ -164,16 +164,14 @@ def get_ordens_by_orcamento(orcamento_id: int):
     return ordens
 
 
-def check_mecanico_exists(mecanico_id: int):
-    """Verifica se usuário mecânico existe."""
-    
+def check_cliente_exists(usuario_id: int):
     query = """
     SELECT COUNT(*) as count
     FROM usuario
     WHERE id_usuario = %s
-    AND role = 'mecanico'
+    AND role = 'cliente'
     """
     
-    result = execute_query(query, (mecanico_id,), fetch="one")
+    result = execute_query(query, (usuario_id,), fetch="one")
     
     return result["count"] > 0 if result else False

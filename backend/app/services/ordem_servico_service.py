@@ -34,7 +34,7 @@ def validate_ordem_servico_data(id_veiculo: int = None, id_usuario: int = None, 
         )
     
     # Validação de mecânico existente
-    if id_usuario and not os_repo.check_mecanico_exists(id_usuario):
+    if id_usuario and not os_repo.check_cliente_exists(id_usuario):
         logger.warning("mecânico não encontrado mecanico_id=%s", id_usuario)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

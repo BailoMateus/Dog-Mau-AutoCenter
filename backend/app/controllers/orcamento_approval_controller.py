@@ -18,6 +18,7 @@ def aprovar_orcamento(orcamento_id: int):
         id_os=ordem_servico.id_os,
         id_orcamento=ordem_servico.id_orcamento,
         id_veiculo=ordem_servico.id_veiculo,
+        id_usuario=None,
         status=ordem_servico.status,
         valor_total=ordem_servico.valor_total,
         data_abertura=ordem_servico.data_abertura,
