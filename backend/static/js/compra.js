@@ -13,7 +13,7 @@
  */
 async function criarPedido(id_usuario, valor_total) {
     try {
-        const response = await fetch('/pedidos', {
+        const response = await fetch('/api/pedidos', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -47,7 +47,7 @@ async function criarPedido(id_usuario, valor_total) {
  */
 async function adicionarProdutoAoPedido(pedido_id, id_produto, quantidade) {
     try {
-        const response = await fetch(`/pedidos/${pedido_id}/itens`, {
+        const response = await fetch(`/api/pedidos/${pedido_id}/itens`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ async function adicionarProdutoAoPedido(pedido_id, id_produto, quantidade) {
  */
 async function atualizarQuantidadeProduto(pedido_id, produto_id, quantidade) {
     try {
-        const response = await fetch(`/pedidos/${pedido_id}/itens/${produto_id}`, {
+        const response = await fetch(`/api/pedidos/${pedido_id}/itens/${produto_id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -111,7 +111,7 @@ async function atualizarQuantidadeProduto(pedido_id, produto_id, quantidade) {
  */
 async function removerProdutoDoPedido(pedido_id, produto_id) {
     try {
-        const response = await fetch(`/pedidos/${pedido_id}/itens/${produto_id}`, {
+        const response = await fetch(`/api/pedidos/${pedido_id}/itens/${produto_id}`, {
             method: 'DELETE',
             credentials: 'include', // Envia cookies (token)
         });

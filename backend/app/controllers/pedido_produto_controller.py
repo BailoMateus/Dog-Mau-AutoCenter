@@ -8,7 +8,7 @@ from app.middlewares.auth_middleware import get_current_user
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/pedidos/{pedido_id}/itens", tags=["Itens do Pedido"])
+router = APIRouter(prefix="/api/pedidos/{pedido_id}/itens", tags=["Itens do Pedido"])
 
 @router.post("/", response_model=PedidoProdutoPublic, status_code=status.HTTP_201_CREATED)
 def add_produto_to_pedido(pedido_id: int, data: PedidoProdutoCreate, user=Depends(get_current_user)):
