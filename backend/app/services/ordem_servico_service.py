@@ -83,7 +83,7 @@ def atribuir_mecanico(id_os: int, id_usuario: int):
     ordem_servico = get_ordem_servico_or_404(id_os)
     
     # Verifica se usuário mecânico existe
-    if not os_repo.check_mecanico_exists(id_usuario):
+    if not os_repo.check_usuario_exists(id_usuario):
         logger.warning(
             "mecânico não encontrado mecanico_id=%s",
             id_usuario
