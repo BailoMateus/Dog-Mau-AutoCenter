@@ -165,7 +165,7 @@ class OrdemServico:
     id_os: Optional[int] = None
     id_orcamento: Optional[int] = None
     id_veiculo: int = 0
-    id_mecanico: int = 0
+    id_usuario: int = 0
     descricao_problema: str = ""
     valor_total: float = 0.0
     status: str = "aberta"
@@ -197,7 +197,7 @@ class OrdemServicoServico:
 
 @dataclass
 class Mecanico:
-    id_mecanico: Optional[int] = None
+    id_usuario: Optional[int] = None
     nome: str = ""
     especialidade: str = ""
     telefone: str = ""
@@ -652,7 +652,7 @@ def ordem_servico_to_dict(ordem_servico: OrdemServico) -> dict:
         'id_os': ordem_servico.id_os,
         'id_orcamento': ordem_servico.id_orcamento,
         'id_veiculo': ordem_servico.id_veiculo,
-        'id_mecanico': ordem_servico.id_mecanico,
+        'id_usuario': ordem_servico.id_usuario,
         'descricao_problema': ordem_servico.descricao_problema,
         'valor_total': ordem_servico.valor_total,
         'status': ordem_servico.status,
@@ -688,7 +688,7 @@ def mecanico_to_dict(mecanico: Mecanico) -> dict:
     if not mecanico:
         return None
     return {
-        'id_mecanico': mecanico.id_mecanico,
+        'id_usuario': mecanico.id_usuario,
         'nome': mecanico.nome,
         'especialidade': mecanico.especialidade,
         'telefone': mecanico.telefone,

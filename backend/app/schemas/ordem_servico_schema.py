@@ -4,12 +4,12 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class OrdemServicoCreate(BaseModel):
     id_veiculo: int = Field(..., gt=0)
-    id_mecanico: int = Field(..., gt=0)
+    id_usuario: int = Field(..., gt=0)
     descricao_problema: str = Field(..., min_length=1, max_length=1000)
 
 class OrdemServicoUpdate(BaseModel):
     id_veiculo: int | None = Field(None, gt=0)
-    id_mecanico: int | None = Field(None, gt=0)
+    id_usuario: int | None = Field(None, gt=0)
     descricao_problema: str | None = Field(None, min_length=1, max_length=1000)
 
 class OrdemServicoStatusUpdate(BaseModel):
@@ -20,7 +20,7 @@ class OrdemServicoPublic(BaseModel):
 
     id_os: int
     id_veiculo: int
-    id_mecanico: int
+    id_usuario: int
     descricao_problema: str
     status: str
     data_abertura: datetime | None = None

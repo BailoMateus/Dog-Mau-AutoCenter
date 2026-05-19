@@ -23,7 +23,7 @@ def get_ordem_servico_or_404(ordem_servico_id: int) -> OrdemServico:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ordem de serviço não encontrada")
     return ordem_servico
 
-def validate_ordem_servico_data(id_veiculo: int = None, id_mecanico: int = None, descricao_problema: str = None):
+def validate_ordem_servico_data(id_veiculo: int = None, id_usuario: int = None, descricao_problema: str = None):
     """Valida dados da ordem de serviço."""
     # Validação de veículo existente
     if id_veiculo and not os_repo.check_veiculo_exists(id_veiculo):
@@ -34,8 +34,8 @@ def validate_ordem_servico_data(id_veiculo: int = None, id_mecanico: int = None,
         )
     
     # Validação de mecânico existente
-    if id_mecanico and not os_repo.check_mecanico_exists(id_mecanico):
-        logger.warning("mecânico não encontrado mecanico_id=%s", id_mecanico)
+    if id_usuario and not os_repo.check_mecanico_exists(id_usuario):
+        logger.warning("mecânico não encontrado mecanico_id=%s", id_usuario)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Mecânico não encontrado"
@@ -54,14 +54,14 @@ def create_ordem_servico(data: OrdemServicoCreate):
     # Validações
     validate_ordem_servico_data(
         id_veiculo=data.id_veiculo,
-        id_mecanico=data.id_mecanico,
+        id_usuario=data.id_usuario,
         descricao_problema=data.descricao_problema
     )
     
     # Cria entidade OrdemServico
     ordem_servico = OrdemServico(
         id_veiculo=data.id_veiculo,
-        id_mecanico=data.id_mecanico,
+        id_usuario=data.id_usuario,
         descricao_problema=data.descricao_problema,
         status="aberta",
         data_abertura=datetime.now(timezone.utc)
@@ -83,15 +83,15 @@ def update_ordem_servico(ordem_servico_id: int, data: OrdemServicoUpdate):
     # Validações
     validate_ordem_servico_data(
         id_veiculo=data.id_veiculo,
-        id_mecanico=data.id_mecanico,
+        id_usuario=data.id_usuario,
         descricao_problema=data.descricao_problema
     )
     
     # Atualiza campos
     if data.id_veiculo is not None:
         ordem_servico.id_veiculo = data.id_veiculo
-    if data.id_mecanico is not None:
-        ordem_servico.id_mecanico = data.id_mecanico
+    if data.id_usuario is not None:
+        ordem_servico.id_usuario = data.id_usuario
     if data.descricao_problema is not None:
         ordem_servico.descricao_problema = data.descricao_problema
     

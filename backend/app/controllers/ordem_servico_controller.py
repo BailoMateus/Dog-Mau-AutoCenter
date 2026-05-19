@@ -14,12 +14,12 @@ router = APIRouter(prefix="/ordens-servico", tags=["Ordens de Serviço"])
 @router.post("/", response_model=OrdemServicoPublic, status_code=status.HTTP_201_CREATED)
 def create_ordem_servico(data: OrdemServicoCreate):
     """Cria uma nova ordem de serviço."""
-    logger.info("POST /ordens-servico veiculo=%s mecanico=%s", data.id_veiculo, data.id_mecanico)
+    logger.info("POST /ordens-servico veiculo=%s mecanico=%s", data.id_veiculo, data.id_usuario)
     ordem_servico = ordem_servico_service.create_ordem_servico(data)
     return OrdemServicoPublic(
         id_os=ordem_servico.id_os,
         id_veiculo=ordem_servico.id_veiculo,
-        id_mecanico=ordem_servico.id_mecanico,
+        id_usuario=ordem_servico.id_usuario,
         descricao_problema=ordem_servico.descricao_problema,
         status=ordem_servico.status,
         data_abertura=ordem_servico.data_abertura,
@@ -37,7 +37,7 @@ def list_ordens_servico():
         OrdemServicoPublic(
             id_os=os.id_os,
             id_veiculo=os.id_veiculo,
-            id_mecanico=os.id_mecanico,
+            id_usuario=os.id_usuario,
             descricao_problema=os.descricao_problema,
             status=os.status,
             data_abertura=os.data_abertura,
@@ -56,7 +56,7 @@ def get_ordem_servico(ordem_servico_id: int):
     return OrdemServicoPublic(
         id_os=ordem_servico.id_os,
         id_veiculo=ordem_servico.id_veiculo,
-        id_mecanico=ordem_servico.id_mecanico,
+        id_usuario=ordem_servico.id_usuario,
         descricao_problema=ordem_servico.descricao_problema,
         status=ordem_servico.status,
         data_abertura=ordem_servico.data_abertura,
@@ -73,7 +73,7 @@ def update_ordem_servico(ordem_servico_id: int, data: OrdemServicoUpdate):
     return OrdemServicoPublic(
         id_os=ordem_servico.id_os,
         id_veiculo=ordem_servico.id_veiculo,
-        id_mecanico=ordem_servico.id_mecanico,
+        id_usuario=ordem_servico.id_usuario,
         descricao_problema=ordem_servico.descricao_problema,
         status=ordem_servico.status,
         data_abertura=ordem_servico.data_abertura,
@@ -90,7 +90,7 @@ def update_status_ordem_servico(ordem_servico_id: int, data: OrdemServicoStatusU
     return OrdemServicoPublic(
         id_os=ordem_servico.id_os,
         id_veiculo=ordem_servico.id_veiculo,
-        id_mecanico=ordem_servico.id_mecanico,
+        id_usuario=ordem_servico.id_usuario,
         descricao_problema=ordem_servico.descricao_problema,
         status=ordem_servico.status,
         data_abertura=ordem_servico.data_abertura,
@@ -107,7 +107,7 @@ def concluir_ordem_servico(ordem_servico_id: int):
     return OrdemServicoPublic(
         id_os=ordem_servico.id_os,
         id_veiculo=ordem_servico.id_veiculo,
-        id_mecanico=ordem_servico.id_mecanico,
+        id_usuario=ordem_servico.id_usuario,
         descricao_problema=ordem_servico.descricao_problema,
         status=ordem_servico.status,
         data_abertura=ordem_servico.data_abertura,
@@ -124,7 +124,7 @@ def iniciar_ordem_servico(ordem_servico_id: int):
     return OrdemServicoPublic(
         id_os=ordem_servico.id_os,
         id_veiculo=ordem_servico.id_veiculo,
-        id_mecanico=ordem_servico.id_mecanico,
+        id_usuario=ordem_servico.id_usuario,
         descricao_problema=ordem_servico.descricao_problema,
         status=ordem_servico.status,
         data_abertura=ordem_servico.data_abertura,
@@ -142,7 +142,7 @@ def get_ordens_by_status(status: str):
         OrdemServicoPublic(
             id_os=os.id_os,
             id_veiculo=os.id_veiculo,
-            id_mecanico=os.id_mecanico,
+            id_usuario=os.id_usuario,
             descricao_problema=os.descricao_problema,
             status=os.status,
             data_abertura=os.data_abertura,
@@ -162,7 +162,7 @@ def get_ordens_by_veiculo(veiculo_id: int):
         OrdemServicoPublic(
             id_os=os.id_os,
             id_veiculo=os.id_veiculo,
-            id_mecanico=os.id_mecanico,
+            id_usuario=os.id_usuario,
             descricao_problema=os.descricao_problema,
             status=os.status,
             data_abertura=os.data_abertura,
