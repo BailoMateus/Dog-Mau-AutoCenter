@@ -165,11 +165,15 @@ def get_ordens_by_orcamento(orcamento_id: int):
 
 
 def check_mecanico_exists(mecanico_id: int):
-    """Verifica se mecânico existe."""
+    """Verifica se usuário mecânico existe."""
+    
     query = """
     SELECT COUNT(*) as count
-    FROM mecanico 
-    WHERE id_usuario = %s AND deleted_at IS NULL
+    FROM usuario
+    WHERE id_usuario = %s
+    AND role = 'mecanico'
     """
+    
     result = execute_query(query, (mecanico_id,), fetch="one")
-    return result['count'] > 0 if result else False
+    
+    return result["count"] > 0 if result else False

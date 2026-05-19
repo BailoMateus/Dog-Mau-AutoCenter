@@ -3,7 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 
 class RelatorioPeriodo(BaseModel):
-    data_inicio: datetime
+    data_abertura: datetime
     data_fim: datetime
 
 class FaturamentoDetalhe(BaseModel):

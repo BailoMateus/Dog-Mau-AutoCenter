@@ -20,7 +20,7 @@ def aprovar_orcamento(orcamento_id: int):
         id_veiculo=ordem_servico.id_veiculo,
         status=ordem_servico.status,
         valor_total=ordem_servico.valor_total,
-        data_inicio=ordem_servico.data_inicio,
+        data_abertura=ordem_servico.data_abertura,
         data_conclusao=ordem_servico.data_conclusao,
         created_at=ordem_servico.created_at,
         updated_at=ordem_servico.updated_at
@@ -45,7 +45,7 @@ def get_ordens_by_orcamento(orcamento_id: int):
             id_veiculo=os.id_veiculo,
             status=os.status,
             valor_total=os.valor_total,
-            data_inicio=os.data_inicio,
+            data_abertura=os.data_abertura,
             data_conclusao=os.data_conclusao,
             created_at=os.created_at,
             updated_at=os.updated_at

@@ -11,7 +11,7 @@ class OrdemServicoPublic(BaseModel):
     id_veiculo: int
     status: str
     valor_total: Decimal
-    data_inicio: datetime | None = None
+    data_abertura: datetime | None = None
     data_conclusao: datetime | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
