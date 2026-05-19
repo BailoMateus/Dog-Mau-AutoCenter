@@ -48,9 +48,8 @@
 
         <div class="services g-4">
             {% for servico in servicos %}
-            <div class="service transition-hover" onclick="selectService(this, '{{ servico.nome }}', 'R$ {{ servico.preco_base }}')">
-                <strong class="fs-5">{{ servico.nome }}</strong> <span class="price fs-5 fw-bold">R$ {{ servico.preco_base }}</span>
-                <p class="text-secondary mt-2 mb-0">{{ servico.descricao }}</p>
+            <div class="service transition-hover" onclick="selectService(this, '{{ servico.descricao }}', 'R$ {{ servico.preco }}')">
+                <strong class="fs-5">{{ servico.descricao }}</strong> <span class="price fs-5 fw-bold">R$ {{ servico.preco }}</span>
             </div>
             {% else %}
             <div class="col-12 text-center py-4">
