@@ -75,7 +75,8 @@ def recalcular_valor_total_orcamento(orcamento_id: int):
     """Recalcula e atualiza o valor total do orçamento."""
     valor_pecas = peca_repo.calcular_valor_total_pecas(orcamento_id)
     valor_servicos = servico_repo.calcular_valor_total_servicos(orcamento_id)
-    novo_valor_total = valor_pecas + valor_servicos
+    # Repositories may return Decimal (from psycopg2) or float; coerce to float
+    novo_valor_total = float(valor_pecas) + float(valor_servicos)
     
     orcamento_repo.update_valor_total_orcamento(orcamento_id, novo_valor_total)
     logger.info("valor total recalculado orcamento=%s novo_valor=%s", orcamento_id, novo_valor_total)
