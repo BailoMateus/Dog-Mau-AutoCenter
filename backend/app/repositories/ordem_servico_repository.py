@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 def get_ordem_servico_by_id(ordem_servico_id: int):
     """Busca ordem de serviço por ID."""
     query = """
-    SELECT id_os, id_veiculo, id_mecanico, descricao_problema, status, data_abertura,
+    SELECT id_os, id_orcamento, id_veiculo, id_mecanico, descricao_problema, valor_total, status, data_abertura,
            data_conclusao, created_at, updated_at, deleted_at
     FROM ordem_servico 
     WHERE id_os = %s AND deleted_at IS NULL
@@ -22,7 +22,7 @@ def get_ordem_servico_by_id(ordem_servico_id: int):
 def get_all_ordens_servico():
     """Lista todas as ordens de serviço."""
     query = """
-    SELECT id_os, id_veiculo, id_mecanico, descricao_problema, status, data_abertura,
+    SELECT id_os, id_orcamento, id_veiculo, id_mecanico, descricao_problema, valor_total, status, data_abertura,
            data_conclusao, created_at, updated_at, deleted_at
     FROM ordem_servico 
     WHERE deleted_at IS NULL
@@ -36,7 +36,7 @@ def get_all_ordens_servico():
 def get_ordens_by_status(status: str):
     """Lista ordens de serviço por status."""
     query = """
-    SELECT id_os, id_veiculo, id_mecanico, descricao_problema, status, data_abertura,
+    SELECT id_os, id_orcamento, id_veiculo, id_mecanico, descricao_problema, valor_total, status, data_abertura,
            data_conclusao, created_at, updated_at, deleted_at
     FROM ordem_servico 
     WHERE status = %s AND deleted_at IS NULL
@@ -50,7 +50,7 @@ def get_ordens_by_status(status: str):
 def get_ordens_by_veiculo(veiculo_id: int):
     """Lista ordens de serviço de um veículo."""
     query = """
-    SELECT id_os, id_veiculo, id_mecanico, descricao_problema, status, data_abertura,
+    SELECT id_os, id_orcamento, id_veiculo, id_mecanico, descricao_problema, valor_total, status, data_abertura,
            data_conclusao, created_at, updated_at, deleted_at
     FROM ordem_servico 
     WHERE id_veiculo = %s AND deleted_at IS NULL
@@ -64,13 +64,14 @@ def get_ordens_by_veiculo(veiculo_id: int):
 def create_ordem_servico(ordem_servico: OrdemServico):
     """Cria uma nova ordem de serviço."""
     query = """
-    INSERT INTO ordem_servico (id_veiculo, id_mecanico, descricao_problema, status, data_abertura)
-    VALUES (%s, %s, %s, %s, %s)
+    INSERT INTO ordem_servico (id_orcamento, id_veiculo, id_mecanico, descricao_problema, valor_total, status, data_abertura)
+    VALUES (%s, %s, %s, %s, %s, %s, %s)
     RETURNING id_os
     """
     params = (
-        ordem_servico.id_veiculo, ordem_servico.id_mecanico,
-        ordem_servico.descricao_problema, ordem_servico.status, ordem_servico.data_abertura
+        ordem_servico.id_orcamento, ordem_servico.id_veiculo, ordem_servico.id_mecanico,
+        ordem_servico.descricao_problema, ordem_servico.valor_total, ordem_servico.status,
+        ordem_servico.data_abertura
     )
     ordem_servico_id = execute_insert(query, params)
     ordem_servico.id_os = ordem_servico_id
@@ -83,12 +84,12 @@ def update_ordem_servico(ordem_servico: OrdemServico):
     query = """
     UPDATE ordem_servico 
     SET id_veiculo = %s, id_mecanico = %s, descricao_problema = %s, status = %s, 
-        data_conclusao = %s, updated_at = CURRENT_TIMESTAMP
+        valor_total = %s, data_conclusao = %s, updated_at = CURRENT_TIMESTAMP
     WHERE id_os = %s AND deleted_at IS NULL
     """
     params = (
         ordem_servico.id_veiculo, ordem_servico.id_mecanico, ordem_servico.descricao_problema,
-        ordem_servico.status, ordem_servico.data_conclusao, ordem_servico.id_os
+        ordem_servico.status, ordem_servico.valor_total, ordem_servico.data_conclusao, ordem_servico.id_os
     )
     execute_command(query, params)
     logger.info("ordem de serviço atualizada id=%s", ordem_servico.id_os)
@@ -147,6 +148,21 @@ def check_veiculo_exists(veiculo_id: int):
     """
     result = execute_query(query, (veiculo_id,), fetch="one")
     return result['count'] > 0 if result else False
+
+def get_ordens_by_orcamento(orcamento_id: int):
+    """Lista ordens de serviço por orçamento."""
+    query = """
+    SELECT id_os, id_orcamento, id_veiculo, id_mecanico, descricao_problema, valor_total, status, data_abertura,
+           data_conclusao, created_at, updated_at, deleted_at
+    FROM ordem_servico 
+    WHERE id_orcamento = %s AND deleted_at IS NULL
+    ORDER BY created_at DESC
+    """
+    results = execute_query(query, (orcamento_id,))
+    ordens = [dict_to_ordem_servico(row) for row in results]
+    logger.debug("get_ordens_by_orcamento orcamento_id=%s count=%s", orcamento_id, len(ordens))
+    return ordens
+
 
 def check_mecanico_exists(mecanico_id: int):
     """Verifica se mecânico existe."""

@@ -163,15 +163,25 @@ class OrcamentoServico:
 @dataclass
 class OrdemServico:
     id_os: Optional[int] = None
+    id_orcamento: Optional[int] = None
     id_veiculo: int = 0
     id_mecanico: int = 0
     descricao_problema: str = ""
+    valor_total: float = 0.0
     status: str = "aberta"
     data_abertura: Optional[datetime] = None
     data_conclusao: Optional[datetime] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
+
+    @property
+    def id_ordem_servico(self) -> Optional[int]:
+        return self.id_os
+
+    @property
+    def data_inicio(self) -> Optional[datetime]:
+        return self.data_abertura
 
 @dataclass
 class OrdemServicoPeca:
@@ -582,9 +592,11 @@ def ordem_servico_to_dict(ordem_servico: OrdemServico) -> dict:
         return None
     return {
         'id_os': ordem_servico.id_os,
+        'id_orcamento': ordem_servico.id_orcamento,
         'id_veiculo': ordem_servico.id_veiculo,
         'id_mecanico': ordem_servico.id_mecanico,
         'descricao_problema': ordem_servico.descricao_problema,
+        'valor_total': ordem_servico.valor_total,
         'status': ordem_servico.status,
         'data_abertura': ordem_servico.data_abertura,
         'data_conclusao': ordem_servico.data_conclusao,

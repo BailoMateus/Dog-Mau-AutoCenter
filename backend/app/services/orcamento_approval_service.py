@@ -42,13 +42,13 @@ def aprovar_orcamento(orcamento_id: int):
             id_orcamento=orcamento_id,
             id_veiculo=orcamento.id_veiculo,
             status="aberta",
-            valor_total=orcamento.valor_total,
-            data_inicio=datetime.now(timezone.utc)
+            valor_total=float(orcamento.valor_total),
+            data_abertura=datetime.now(timezone.utc)
         )
         ordem_servico = os_repo.create_ordem_servico(ordem_servico)
         
         # Copia itens do orçamento para a OS
-        _copiar_itens_orcamento_para_os(orcamento_id, ordem_servico.id_ordem_servico)
+        _copiar_itens_orcamento_para_os(orcamento_id, ordem_servico.id_os)
         
         logger.info("orçamento aprovado e OS gerada orcamento=%s os=%s", 
                    orcamento_id, ordem_servico.id_ordem_servico)
