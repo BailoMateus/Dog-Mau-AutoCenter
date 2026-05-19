@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException, status
 
 from app.services import peca_service
 from app.schemas.peca_schema import PecaCreate, PecaUpdate, PecaPublic
+from app.models.entities import Peca
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +76,7 @@ def delete_peca(peca_id: int):
     peca_service.delete_peca(peca_id)
     return None
 
-def to_public(peca: PecaDB) -> PecaPublic:
+def to_public(peca: Peca) -> PecaPublic:
     return PecaPublic(
         id_peca=peca.id_peca,
         nome=peca.nome,
