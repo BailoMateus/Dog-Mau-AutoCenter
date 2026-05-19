@@ -24,7 +24,6 @@ def create_produto(data: ProdutoCreate):
         updated_at=produto.updated_at
     )
 
-@router.get("/", response_model=list[ProdutoPublic])
 def list_produtos():
     """Lista todos os produtos."""
     logger.info("GET /produtos")
@@ -43,8 +42,8 @@ def list_produtos():
     ]
 
 @router.post("", response_model=ProdutoPublic, status_code=status.HTTP_201_CREATED)
-def create_produto_alt(data: ProdutoCreate):
-    """Cria um novo produto (rota alternativa)."""
+def create_produto(data: ProdutoCreate):
+    """Cria um novo produto."""
     logger.info("POST /produtos nome=%s", data.nome)
     produto = produto_service.create_produto(data)
     return ProdutoPublic(
