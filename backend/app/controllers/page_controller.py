@@ -27,6 +27,7 @@ from app.services import produto_service
 from app.services import pedido_service
 from app.services import veiculo_service
 from app.services import modelo_service
+from app.services import marca_service
 
 logger = logging.getLogger(__name__)
 
@@ -161,10 +162,12 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
         usuarios = []
         servicos = []
         produtos = []
+        marcas = []
         if user.get("role") in ("admin", "mecanico"):
             usuarios = list_users()
             servicos = servico_service.list_servicos()
             produtos = produto_service.list_produtos()
+            marcas = marca_service.list_marcas()
 
         # Pedidos (Admin vê todos, cliente vê os seus)
         pedidos_db = []
@@ -200,6 +203,7 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
             "pedidos": pedidos,
             "veiculos": veiculos,
             "modelos": modelos,
+            "marcas": marcas,
             "tab": tab,
             "page": "painel",
         })
