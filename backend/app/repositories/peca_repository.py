@@ -36,11 +36,14 @@ def create_peca(peca: Peca):
     query = """
     INSERT INTO peca (nome, preco_unitario, quantidade_estoque)
     VALUES (%s, %s, %s)
-    RETURNING id_peca
+    RETURNING id_peca, created_at, updated_at
     """
     params = (peca.nome, peca.preco_unitario, peca.quantidade_estoque)
-    peca_id = execute_insert(query, params)
-    peca.id_peca = peca_id
+    result = execute_query(query, params, fetch="one")
+    if result:
+        peca.id_peca = result.get("id_peca")
+        peca.created_at = result.get("created_at")
+        peca.updated_at = result.get("updated_at")
     logger.info("peça criada id=%s", peca.id_peca)
     return peca
 
@@ -50,9 +53,12 @@ def update_peca(peca: Peca):
     UPDATE peca 
     SET nome = %s, preco_unitario = %s, quantidade_estoque = %s, updated_at = CURRENT_TIMESTAMP
     WHERE id_peca = %s AND deleted_at IS NULL
+    RETURNING updated_at
     """
     params = (peca.nome, peca.preco_unitario, peca.quantidade_estoque, peca.id_peca)
-    execute_command(query, params)
+    result = execute_query(query, params, fetch="one")
+    if result:
+        peca.updated_at = result.get("updated_at")
     logger.info("peça atualizada id=%s", peca.id_peca)
     return peca
 
