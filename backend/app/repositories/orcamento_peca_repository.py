@@ -33,6 +33,19 @@ def get_pecas_by_orcamento(orcamento_id: int):
     logger.debug("get_pecas_by_orcamento orcamento_id=%s count=%s", orcamento_id, len(itens))
     return itens
 
+def get_peca_by_orcamento(orcamento_id: int, peca_id: int):
+    """Busca peça do orçamento com dados enriquecidos."""
+    query = """
+    SELECT op.id_orcamento, op.id_peca, op.quantidade,
+           p.nome as peca_nome, p.preco_unitario as peca_preco
+    FROM orcamento_peca op
+    INNER JOIN peca p ON op.id_peca = p.id_peca
+    WHERE op.id_orcamento = %s AND op.id_peca = %s
+    """
+    result = execute_query(query, (orcamento_id, peca_id), fetch="one")
+    return dict_to_orcamento_peca_response(result)
+
+
 def add_peca_to_orcamento(orcamento_peca: OrcamentoPeca):
     """Adiciona peça ao orçamento."""
     query = """

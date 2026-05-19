@@ -100,15 +100,13 @@ def add_peca_to_os(os_id: int, data: OsPecaCreate):
         logger.info("peça adicionada à OS os=%s peca=%s quantidade=%s estoque_anterior=%s", 
                    os_id, data.id_peca, data.quantidade, quantidade_estoque)
         
-        # Retorna item com informações da peça e subtotal
-        item_com_info = os_peca_repo.get_os_peca(os_id, data.id_peca)
-        peca_preco = os_peca_repo.get_peca_preco(data.id_peca)
-        peca_estoque = os_peca_repo.get_peca_estoque(data.id_peca)
-        item_com_info.peca_preco = peca_preco
-        item_com_info.peca_estoque = peca_estoque
-        item_com_info.subtotal = peca_preco * item_com_info.quantidade
-        
-        return item_com_info
+        item_response = os_peca_repo.get_peca_by_os(os_id, data.id_peca)
+        if not item_response:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Erro ao recuperar peça da OS"
+            )
+        return item_response
         
     except psycopg2.IntegrityError:
         logger.error("add_peca_to_os erro de integridade")
@@ -168,14 +166,13 @@ def update_quantidade_peca(os_id: int, peca_id: int, data: OsPecaUpdate):
         logger.info("quantidade atualizada os=%s peca=%s antiga=%s nova=%s estoque_anterior=%s", 
                    os_id, peca_id, item_existente.quantidade, data.quantidade, quantidade_estoque)
         
-        # Retorna item com informações da peça e subtotal
-        peca_preco = os_peca_repo.get_peca_preco(peca_id)
-        peca_estoque = os_peca_repo.get_peca_estoque(peca_id)
-        item_atualizado.peca_preco = peca_preco
-        item_atualizado.peca_estoque = peca_estoque
-        item_atualizado.subtotal = peca_preco * item_atualizado.quantidade
-        
-        return item_atualizado
+        item_response = os_peca_repo.get_peca_by_os(os_id, peca_id)
+        if not item_response:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Erro ao recuperar peça da OS"
+            )
+        return item_response
         
     except psycopg2.IntegrityError:
         logger.error("update_quantidade_peca erro de integridade")
@@ -243,22 +240,14 @@ def get_peca_by_os(os_id: int, peca_id: int):
     # Validações básicas
     validate_os_peca_data(os_id, peca_id, 1)
     
-    item = os_peca_repo.get_os_peca(os_id, peca_id)
-    if not item:
+    item_response = os_peca_repo.get_peca_by_os(os_id, peca_id)
+    if not item_response:
         logger.warning("peça não encontrada na OS os=%s peca=%s", os_id, peca_id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Peça não encontrada na ordem de serviço"
         )
-    
-    # Adiciona informações da peça e subtotal
-    peca_preco = os_peca_repo.get_peca_preco(peca_id)
-    peca_estoque = os_peca_repo.get_peca_estoque(peca_id)
-    item.peca_preco = peca_preco
-    item.peca_estoque = peca_estoque
-    item.subtotal = peca_preco * item.quantidade
-    
-    return item
+    return item_response
 
 def get_movimentacoes_by_os(os_id: int):
     """Lista movimentações de estoque de uma OS."""

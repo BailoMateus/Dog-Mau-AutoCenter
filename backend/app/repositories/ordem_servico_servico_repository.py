@@ -28,13 +28,7 @@ def get_servicos_by_ordem_servico(id_os: int):
     ORDER BY s.descricao ASC
     """
     results = execute_query(query, (id_os,))
-    itens = []
-    for row in results:
-        item = dict_to_ordem_servico_servico(row)
-        # Adiciona informações do serviço
-        item.servico_descricao = row['servico_descricao']
-        item.servico_preco = row['servico_preco']
-        itens.append(item)
+    itens = [dict_to_ordem_servico_servico_response(row) for row in results]
     logger.debug("get_servicos_by_ordem_servico id_os=%s count=%s", id_os, len(itens))
     return itens
 

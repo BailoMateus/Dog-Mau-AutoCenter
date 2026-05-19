@@ -41,6 +41,7 @@ def aprovar_orcamento(orcamento_id: int):
         ordem_servico = OrdemServico(
             id_orcamento=orcamento_id,
             id_veiculo=orcamento.id_veiculo,
+            id_usuario=orcamento.id_usuario,
             status="aberta",
             valor_total=float(orcamento.valor_total),
             data_abertura=datetime.now(timezone.utc)

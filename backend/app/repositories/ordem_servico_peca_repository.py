@@ -21,20 +21,14 @@ def get_pecas_by_ordem_servico(id_os: int):
     """Lista todas as peças de uma ordem de serviço."""
     query = """
     SELECT osp.id_os, osp.id_peca, osp.quantidade,
-           p.nome as peca_nome, p.preco_unitario as peca_preco
+           p.nome as peca_nome, p.preco_unitario as peca_preco, p.quantidade_estoque as peca_estoque
     FROM ordem_servico_peca osp
     INNER JOIN peca p ON osp.id_peca = p.id_peca
     WHERE osp.id_os = %s
     ORDER BY p.nome ASC
     """
     results = execute_query(query, (id_os,))
-    itens = []
-    for row in results:
-        item = dict_to_ordem_servico_peca(row)
-        # Adiciona informações da peça
-        item.peca_nome = row['peca_nome']
-        item.peca_preco = row['peca_preco']
-        itens.append(item)
+    itens = [dict_to_ordem_servico_peca_response(row) for row in results]
     logger.debug("get_pecas_by_ordem_servico id_os=%s count=%s", id_os, len(itens))
     return itens
 

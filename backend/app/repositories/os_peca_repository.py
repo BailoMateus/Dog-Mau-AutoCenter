@@ -18,6 +18,19 @@ def get_os_peca(os_id: int, peca_id: int):
     logger.debug("get_os_peca os=%s peca=%s found=%s", os_id, peca_id, item is not None)
     return item
 
+def get_peca_by_os(os_id: int, peca_id: int):
+    """Busca peça da OS com dados enriquecidos."""
+    query = """
+    SELECT op.id_os, op.id_peca, op.quantidade,
+           p.nome as peca_nome, p.preco_unitario as peca_preco, p.quantidade_estoque as peca_estoque
+    FROM os_peca op
+    INNER JOIN peca p ON op.id_peca = p.id_peca
+    WHERE op.id_os = %s AND op.id_peca = %s
+    """
+    result = execute_query(query, (os_id, peca_id), fetch="one")
+    return dict_to_ordem_servico_peca_response(result)
+
+
 def get_pecas_by_os(os_id: int):
     """Lista todas as peças de uma OS com dados enriquecidos."""
     query = """

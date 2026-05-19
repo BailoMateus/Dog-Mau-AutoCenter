@@ -33,6 +33,19 @@ def get_servicos_by_orcamento(orcamento_id: int):
     logger.debug("get_servicos_by_orcamento orcamento_id=%s count=%s", orcamento_id, len(itens))
     return itens
 
+def get_servico_by_orcamento(orcamento_id: int, servico_id: int):
+    """Busca serviço do orçamento com dados enriquecidos."""
+    query = """
+    SELECT os.id_orcamento, os.id_servico, os.quantidade,
+           s.descricao as servico_descricao, s.preco as servico_preco
+    FROM orcamento_servico os
+    INNER JOIN servico s ON os.id_servico = s.id_servico
+    WHERE os.id_orcamento = %s AND os.id_servico = %s
+    """
+    result = execute_query(query, (orcamento_id, servico_id), fetch="one")
+    return dict_to_orcamento_servico_response(result)
+
+
 def add_servico_to_orcamento(orcamento_servico: OrcamentoServico):
     """Adiciona serviço ao orçamento."""
     query = """
