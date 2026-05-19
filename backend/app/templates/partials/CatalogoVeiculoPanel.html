@@ -87,7 +87,7 @@
                 <thead class="table-dark text-uppercase small" style="border-bottom: 2px solid #222;">
                     <tr>
                         <th class="py-3">Modelo</th>
-                        <th class="py-3">Marca (ID)</th>
+                        <th class="py-3">Marca</th>
                         <th class="py-3">Ano</th>
                         <th class="py-3">Categoria</th>
                         {% if user.role == 'admin' %}
@@ -99,7 +99,16 @@
                     {% for mod in modelos %}
                     <tr>
                         <td class="fw-bold">{{ mod.nome_modelo }}</td>
-                        <td>{{ mod.id_marca }}</td>
+                        <td>
+                            {% set ns = namespace(found=false) %}
+                            {% for m in marcas %}
+                                {% if m.id_marca == mod.id_marca %}
+                                    <span class="badge bg-secondary">{{ m.nome }}</span>
+                                    {% set ns.found = true %}
+                                {% endif %}
+                            {% endfor %}
+                            {% if not ns.found %}{{ mod.id_marca }}{% endif %}
+                        </td>
                         <td>{{ mod.ano_lancamento or '—' }}</td>
                         <td>{{ mod.categoria or '—' }}</td>
                         {% if user.role == 'admin' %}
