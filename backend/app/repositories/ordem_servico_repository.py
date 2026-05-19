@@ -6,7 +6,7 @@ from app.models.entities import OrdemServico, dict_to_ordem_servico, ordem_servi
 
 logger = logging.getLogger(__name__)
 
-def get_ordem_servico_by_id(ordem_servico_id: int):
+def get_ordem_servico_by_id(id_os: int):
     """Busca ordem de serviço por ID."""
     query = """
     SELECT id_os, id_orcamento, id_veiculo, id_usuario, descricao_problema, valor_total, status, data_abertura,
@@ -14,9 +14,9 @@ def get_ordem_servico_by_id(ordem_servico_id: int):
     FROM ordem_servico 
     WHERE id_os = %s AND deleted_at IS NULL
     """
-    result = execute_query(query, (ordem_servico_id,), fetch="one")
+    result = execute_query(query, (id_os,), fetch="one")
     ordem = dict_to_ordem_servico(result)
-    logger.debug("get_ordem_servico_by_id id=%s found=%s", ordem_servico_id, ordem is not None)
+    logger.debug("get_ordem_servico_by_id id=%s found=%s", id_os, ordem is not None)
     return ordem
 
 def get_all_ordens_servico():
@@ -73,8 +73,8 @@ def create_ordem_servico(ordem_servico: OrdemServico):
         ordem_servico.descricao_problema, ordem_servico.valor_total, ordem_servico.status,
         ordem_servico.data_abertura
     )
-    ordem_servico_id = execute_insert(query, params)
-    ordem_servico.id_os = ordem_servico_id
+    id_os = execute_insert(query, params)
+    ordem_servico.id_os = id_os
     logger.info("ordem de serviço criada id=%s veiculo=%s mecanico=%s", 
                 ordem_servico.id_os, ordem_servico.id_veiculo, ordem_servico.id_usuario)
     return ordem_servico
@@ -95,36 +95,36 @@ def update_ordem_servico(ordem_servico: OrdemServico):
     logger.info("ordem de serviço atualizada id=%s", ordem_servico.id_os)
     return ordem_servico
 
-def update_status_ordem_servico(ordem_servico_id: int, novo_status: str):
+def update_status_ordem_servico(id_os: int, novo_status: str):
     """Atualiza apenas o status da ordem de serviço."""
     query = """
     UPDATE ordem_servico 
     SET status = %s, updated_at = CURRENT_TIMESTAMP
     WHERE id_os = %s AND deleted_at IS NULL
     """
-    params = (novo_status, ordem_servico_id)
+    params = (novo_status, id_os)
     execute_command(query, params)
-    logger.info("status da ordem de serviço atualizado id=%s novo_status=%s", ordem_servico_id, novo_status)
+    logger.info("status da ordem de serviço atualizado id=%s novo_status=%s", id_os, novo_status)
 
-def iniciar_ordem_servico(ordem_servico_id: int):
+def iniciar_ordem_servico(id_os: int):
     """Inicia uma ordem de serviço."""
     query = """
     UPDATE ordem_servico 
     SET status = 'em_andamento', updated_at = CURRENT_TIMESTAMP
     WHERE id_os = %s AND deleted_at IS NULL
     """
-    execute_command(query, (ordem_servico_id,))
-    logger.info("ordem de serviço iniciada id=%s", ordem_servico_id)
+    execute_command(query, (id_os,))
+    logger.info("ordem de serviço iniciada id=%s", id_os)
 
-def concluir_ordem_servico(ordem_servico_id: int):
+def concluir_ordem_servico(id_os: int):
     """Conclui uma ordem de serviço."""
     query = """
     UPDATE ordem_servico 
     SET status = 'concluida', data_conclusao = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
     WHERE id_os = %s AND deleted_at IS NULL
     """
-    execute_command(query, (ordem_servico_id,))
-    logger.info("ordem de serviço concluída id=%s", ordem_servico_id)
+    execute_command(query, (id_os,))
+    logger.info("ordem de serviço concluída id=%s", id_os)
 
 def soft_delete_ordem_servico(ordem_servico: OrdemServico):
     """Soft delete de ordem de serviço."""

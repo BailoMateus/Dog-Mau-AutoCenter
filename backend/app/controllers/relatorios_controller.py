@@ -88,5 +88,5 @@ def gerar_relatorio_completo(data: RelatorioPeriodo):
         servicos_realizados=relatorio["servicos_realizados"],
         ordens_servico=relatorio["ordens_servico"],
         financeiro=relatorio["financeiro"],
-        estoque_atual=relatorio["estoque_atual"]
+        quantidade_estoque=relatorio["quantidade_estoque"]
     )

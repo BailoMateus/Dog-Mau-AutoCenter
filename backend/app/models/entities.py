@@ -176,10 +176,6 @@ class OrdemServico:
     deleted_at: Optional[datetime] = None
 
     @property
-    def id_os(self) -> Optional[int]:
-        return self.id_os
-
-    @property
     def data_inicio(self) -> Optional[datetime]:
         return self.data_abertura
 

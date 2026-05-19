@@ -15,11 +15,11 @@ def list_ordens_servico():
     """Lista todas as ordens de serviço."""
     return os_repo.get_all_ordens_servico()
 
-def get_ordem_servico_or_404(ordem_servico_id: int) -> OrdemServico:
+def get_ordem_servico_or_404(id_os: int) -> OrdemServico:
     """Busca ordem de serviço por ID ou retorna 404."""
-    ordem_servico = os_repo.get_ordem_servico_by_id(ordem_servico_id)
+    ordem_servico = os_repo.get_ordem_servico_by_id(id_os)
     if not ordem_servico:
-        logger.info("ordem de serviço não encontrada id=%s", ordem_servico_id)
+        logger.info("ordem de serviço não encontrada id=%s", id_os)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ordem de serviço não encontrada")
     return ordem_servico
 
@@ -76,9 +76,9 @@ def create_ordem_servico(data: OrdemServicoCreate):
             detail="Erro ao criar ordem de serviço"
         )
 
-def update_ordem_servico(ordem_servico_id: int, data: OrdemServicoUpdate):
+def update_ordem_servico(id_os: int, data: OrdemServicoUpdate):
     """Atualiza uma ordem de serviço com validações."""
-    ordem_servico = get_ordem_servico_or_404(ordem_servico_id)
+    ordem_servico = get_ordem_servico_or_404(id_os)
     
     # Validações
     validate_ordem_servico_data(
@@ -98,15 +98,15 @@ def update_ordem_servico(ordem_servico_id: int, data: OrdemServicoUpdate):
     try:
         return os_repo.update_ordem_servico(ordem_servico)
     except psycopg2.IntegrityError:
-        logger.error("update_ordem_servico erro de integridade id=%s", ordem_servico_id)
+        logger.error("update_ordem_servico erro de integridade id=%s", id_os)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erro ao atualizar ordem de serviço"
         )
 
-def update_status_ordem_servico(ordem_servico_id: int, data: OrdemServicoStatusUpdate):
+def update_status_ordem_servico(id_os: int, data: OrdemServicoStatusUpdate):
     """Atualiza apenas o status da ordem de serviço."""
-    ordem_servico = get_ordem_servico_or_404(ordem_servico_id)
+    ordem_servico = get_ordem_servico_or_404(id_os)
     
     # Validação de status
     status_validos = ["aberta", "em_andamento", "concluida", "cancelada"]
@@ -119,56 +119,56 @@ def update_status_ordem_servico(ordem_servico_id: int, data: OrdemServicoStatusU
     
     # Validação de fluxo de status
     if ordem_servico.status == "concluida":
-        logger.warning("tentativa de alterar status de OS concluída id=%s", ordem_servico_id)
+        logger.warning("tentativa de alterar status de OS concluída id=%s", id_os)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Ordem de serviço já está concluída"
         )
     
     if ordem_servico.status == "cancelada" and data.status not in ["aberta"]:
-        logger.warning("tentativa de alterar status de OS cancelada id=%s", ordem_servico_id)
+        logger.warning("tentativa de alterar status de OS cancelada id=%s", id_os)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Ordem de serviço cancelada só pode ser reaberta"
         )
     
     try:
-        os_repo.update_status_ordem_servico(ordem_servico_id, data.status)
+        os_repo.update_status_ordem_servico(id_os, data.status)
         # Retorna ordem de serviço atualizada
-        return get_ordem_servico_or_404(ordem_servico_id)
+        return get_ordem_servico_or_404(id_os)
     except psycopg2.IntegrityError:
-        logger.error("update_status_ordem_servico erro de integridade id=%s", ordem_servico_id)
+        logger.error("update_status_ordem_servico erro de integridade id=%s", id_os)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erro ao atualizar status da ordem de serviço"
         )
 
-def concluir_ordem_servico(ordem_servico_id: int):
+def concluir_ordem_servico(id_os: int):
     """Conclui uma ordem de serviço (preenche data_conclusao)."""
-    ordem_servico = get_ordem_servico_or_404(ordem_servico_id)
+    ordem_servico = get_ordem_servico_or_404(id_os)
     
     # Validação de status
     if ordem_servico.status == "concluida":
-        logger.warning("ordem de serviço já está concluída id=%s", ordem_servico_id)
+        logger.warning("ordem de serviço já está concluída id=%s", id_os)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Ordem de serviço já está concluída"
         )
     
     if ordem_servico.status == "cancelada":
-        logger.warning("tentativa de concluir OS cancelada id=%s", ordem_servico_id)
+        logger.warning("tentativa de concluir OS cancelada id=%s", id_os)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Ordem de serviço cancelada não pode ser concluída"
         )
     
     try:
-        os_repo.concluir_ordem_servico(ordem_servico_id)
-        logger.info("ordem de serviço concluída id=%s", ordem_servico_id)
+        os_repo.concluir_ordem_servico(id_os)
+        logger.info("ordem de serviço concluída id=%s", id_os)
         # Retorna ordem de serviço atualizada
-        return get_ordem_servico_or_404(ordem_servico_id)
+        return get_ordem_servico_or_404(id_os)
     except psycopg2.IntegrityError:
-        logger.error("concluir_ordem_servico erro de integridade id=%s", ordem_servico_id)
+        logger.error("concluir_ordem_servico erro de integridade id=%s", id_os)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erro ao concluir ordem de serviço"
@@ -198,26 +198,26 @@ def get_ordens_by_veiculo(veiculo_id: int):
     
     return os_repo.get_ordens_by_veiculo(veiculo_id)
 
-def iniciar_ordem_servico(ordem_servico_id: int):
+def iniciar_ordem_servico(id_os: int):
     """Inicia uma ordem de serviço."""
-    ordem_servico = get_ordem_servico_or_404(ordem_servico_id)
+    ordem_servico = get_ordem_servico_or_404(id_os)
     
     # Validação de status
     if ordem_servico.status != "aberta":
         logger.warning("ordem de serviço não pode ser iniciada status=%s id=%s", 
-                     ordem_servico.status, ordem_servico_id)
+                     ordem_servico.status, id_os)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Apenas ordens de serviço 'abertas' podem ser iniciadas"
         )
     
     try:
-        os_repo.iniciar_ordem_servico(ordem_servico_id)
-        logger.info("ordem de serviço iniciada id=%s", ordem_servico_id)
+        os_repo.iniciar_ordem_servico(id_os)
+        logger.info("ordem de serviço iniciada id=%s", id_os)
         # Retorna ordem de serviço atualizada
-        return get_ordem_servico_or_404(ordem_servico_id)
+        return get_ordem_servico_or_404(id_os)
     except psycopg2.IntegrityError:
-        logger.error("iniciar_ordem_servico erro de integridade id=%s", ordem_servico_id)
+        logger.error("iniciar_ordem_servico erro de integridade id=%s", id_os)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erro ao iniciar ordem de serviço"

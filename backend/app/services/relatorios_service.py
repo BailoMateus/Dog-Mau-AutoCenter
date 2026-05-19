@@ -150,17 +150,17 @@ def gerar_relatorio_estoque():
     SELECT 
         p.id_peca,
         p.nome,
-        p.estoque_atual,
+        p.quantidade_estoque,
         p.valor_unitario,
-        COALESCE(p.estoque_atual * p.valor_unitario, 0) as valor_total_estoque,
+        COALESCE(p.quantidade_estoque* p.valor_unitario, 0) as valor_total_estoque,
         CASE 
-            WHEN p.estoque_atual <= 5 THEN 'baixo'
-            WHEN p.estoque_atual <= 10 THEN 'medio'
+            WHEN p.quantidade_estoque<= 5 THEN 'baixo'
+            WHEN p.quantidade_estoque<= 10 THEN 'medio'
             ELSE 'alto'
         END as nivel_estoque
     FROM peca p
     WHERE p.deleted_at IS NULL
-    ORDER BY nivel_estoque, p.estoque_atual ASC
+    ORDER BY nivel_estoque, p.quantidade_estoqueASC
     """
     
     from app.database.db import execute_query
@@ -175,7 +175,7 @@ def gerar_relatorio_estoque():
         relatorio.append({
             "id_peca": row["id_peca"],
             "nome": row["nome"],
-            "estoque_atual": row["estoque_atual"],
+            "quantidade_estoque": row["quantidade_estoque"],
             "valor_unitario": float(row["valor_unitario"]),
             "valor_total_estoque": valor_total,
             "nivel_estoque": row["nivel_estoque"]
@@ -333,5 +333,5 @@ def gerar_relatorio_completo(data: RelatorioPeriodo):
         "servicos_realizados": gerar_relatorio_servicos_realizados(data)["resumo"],
         "ordens_servico": gerar_relatorio_ordens_servico(data)["resumo"],
         "financeiro": gerar_relatorio_financeiro_periodo(data)["saldo_periodo"],
-        "estoque_atual": gerar_relatorio_estoque()["resumo"]
+        "quantidade_estoque": gerar_relatorio_estoque()["resumo"]
     }

@@ -5,19 +5,19 @@ from app.models.entities import OrdemServicoPeca, dict_to_ordem_servico_peca, or
 
 logger = logging.getLogger(__name__)
 
-def get_ordem_servico_peca(ordem_servico_id: int, peca_id: int):
+def get_ordem_servico_peca(id_os: int, peca_id: int):
     """Busca peça da ordem de serviço por IDs."""
     query = """
     SELECT id_os, id_peca, quantidade
     FROM ordem_servico_peca 
     WHERE id_os = %s AND id_peca = %s
     """
-    result = execute_query(query, (ordem_servico_id, peca_id), fetch="one")
+    result = execute_query(query, (id_os, peca_id), fetch="one")
     item = dict_to_ordem_servico_peca(result)
-    logger.debug("get_ordem_servico_peca ordem=%s peca=%s found=%s", ordem_servico_id, peca_id, item is not None)
+    logger.debug("get_ordem_servico_peca ordem=%s peca=%s found=%s", id_os, peca_id, item is not None)
     return item
 
-def get_pecas_by_ordem_servico(ordem_servico_id: int):
+def get_pecas_by_ordem_servico(id_os: int):
     """Lista todas as peças de uma ordem de serviço."""
     query = """
     SELECT osp.id_os, osp.id_peca, osp.quantidade,
@@ -27,7 +27,7 @@ def get_pecas_by_ordem_servico(ordem_servico_id: int):
     WHERE osp.id_os = %s
     ORDER BY p.nome ASC
     """
-    results = execute_query(query, (ordem_servico_id,))
+    results = execute_query(query, (id_os,))
     itens = []
     for row in results:
         item = dict_to_ordem_servico_peca(row)
@@ -35,7 +35,7 @@ def get_pecas_by_ordem_servico(ordem_servico_id: int):
         item.peca_nome = row['peca_nome']
         item.peca_preco = row['peca_preco']
         itens.append(item)
-    logger.debug("get_pecas_by_ordem_servico ordem_servico_id=%s count=%s", ordem_servico_id, len(itens))
+    logger.debug("get_pecas_by_ordem_servico id_os=%s count=%s", id_os, len(itens))
     return itens
 
 def add_peca_to_ordem_servico(ordem_servico_peca: OrdemServicoPeca):
@@ -54,42 +54,42 @@ def add_peca_to_ordem_servico(ordem_servico_peca: OrdemServicoPeca):
                 ordem_servico_peca.id_os, ordem_servico_peca.id_peca, ordem_servico_peca.quantidade)
     return ordem_servico_peca
 
-def update_quantidade_peca(ordem_servico_id: int, peca_id: int, nova_quantidade: int):
+def update_quantidade_peca(id_os: int, peca_id: int, nova_quantidade: int):
     """Atualiza quantidade de uma peça na ordem de serviço."""
     query = """
     UPDATE ordem_servico_peca 
     SET quantidade = %s
     WHERE id_os = %s AND id_peca = %s
     """
-    params = (nova_quantidade, ordem_servico_id, peca_id)
+    params = (nova_quantidade, id_os, peca_id)
     execute_command(query, params)
     logger.info("quantidade atualizada ordem=%s peca=%s nova_quantidade=%s", 
-                ordem_servico_id, peca_id, nova_quantidade)
+                id_os, peca_id, nova_quantidade)
     
     # Retorna o item atualizado
-    return get_ordem_servico_peca(ordem_servico_id, peca_id)
+    return get_ordem_servico_peca(id_os, peca_id)
 
-def remove_peca_from_ordem_servico(ordem_servico_id: int, peca_id: int):
+def remove_peca_from_ordem_servico(id_os: int, peca_id: int):
     """Remove peça da ordem de serviço."""
     query = """
     DELETE FROM ordem_servico_peca 
     WHERE id_os = %s AND id_peca = %s
     """
-    params = (ordem_servico_id, peca_id)
+    params = (id_os, peca_id)
     execute_command(query, params)
-    logger.info("peça removida da ordem de serviço ordem=%s peca=%s", ordem_servico_id, peca_id)
+    logger.info("peça removida da ordem de serviço ordem=%s peca=%s", id_os, peca_id)
 
-def check_peca_exists_in_ordem_servico(ordem_servico_id: int, peca_id: int):
+def check_peca_exists_in_ordem_servico(id_os: int, peca_id: int):
     """Verifica se peça existe na ordem de serviço."""
     query = """
     SELECT COUNT(*) as count
     FROM ordem_servico_peca 
     WHERE id_os = %s AND id_peca = %s
     """
-    result = execute_query(query, (ordem_servico_id, peca_id), fetch="one")
+    result = execute_query(query, (id_os, peca_id), fetch="one")
     return result['count'] > 0 if result else False
 
-def calcular_valor_total_pecas(ordem_servico_id: int):
+def calcular_valor_total_pecas(id_os: int):
     """Calcula valor total das peças da ordem de serviço."""
     query = """
     SELECT SUM(p.preco_unitario * osp.quantidade) as valor_total
@@ -97,5 +97,5 @@ def calcular_valor_total_pecas(ordem_servico_id: int):
     INNER JOIN peca p ON osp.id_peca = p.id_peca
     WHERE osp.id_os = %s AND p.deleted_at IS NULL
     """
-    result = execute_query(query, (ordem_servico_id,), fetch="one")
+    result = execute_query(query, (id_os,), fetch="one")
     return result['valor_total'] if result and result['valor_total'] else 0.0

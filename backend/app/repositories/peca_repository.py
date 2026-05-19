@@ -6,6 +6,18 @@ from app.models.entities import Peca, dict_to_peca, peca_to_dict
 
 logger = logging.getLogger(__name__)
 
+def check_peca_exists(id_peca: int) -> bool:
+    query = """
+    SELECT COUNT(*) as count
+    FROM peca
+    WHERE id_peca = %s
+    AND deleted_at IS NULL
+    """
+
+    result = execute_query(query, (id_peca,), fetch="one")
+
+    return result["count"] > 0 if result else False
+
 def get_peca_by_id(peca_id: int):
     """Busca peça por ID."""
     query = """

@@ -49,18 +49,18 @@ def validate_os_peca_data(os_id: int, peca_id: int, quantidade: int):
 
 def validate_estoque_disponivel(peca_id: int, quantidade: int, quantidade_existente: int = 0):
     """Valida se há estoque disponível."""
-    estoque_atual = os_peca_repo.get_peca_estoque(peca_id)
+    quantidade_estoque= os_peca_repo.get_peca_estoque(peca_id)
     quantidade_necessaria = quantidade - quantidade_existente
     
-    if quantidade_necessaria > 0 and estoque_atual < quantidade_necessaria:
+    if quantidade_necessaria > 0 and quantidade_estoque< quantidade_necessaria:
         logger.warning("estoque insuficiente peca=%s estoque=%s necessario=%s", 
-                      peca_id, estoque_atual, quantidade_necessaria)
+                      peca_id, quantidade_estoque, quantidade_necessaria)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Estoque insuficiente. Disponível: {estoque_atual}, Necessário: {quantidade_necessaria}"
+            detail=f"Estoque insuficiente. Disponível: {quantidade_estoque}, Necessário: {quantidade_necessaria}"
         )
     
-    return estoque_atual
+    return quantidade_estoque
 
 def add_peca_to_os(os_id: int, data: OsPecaCreate):
     """Adiciona peça à OS com validação de estoque."""
@@ -72,7 +72,7 @@ def add_peca_to_os(os_id: int, data: OsPecaCreate):
     quantidade_existente = item_existente.quantidade if item_existente else 0
     
     # Valida estoque disponível
-    estoque_atual = validate_estoque_disponivel(data.id_peca, data.quantidade, quantidade_existente)
+    quantidade_estoque= validate_estoque_disponivel(data.id_peca, data.quantidade, quantidade_existente)
     
     # Cria item da OS
     item = OrdemServicoPeca(
@@ -98,7 +98,7 @@ def add_peca_to_os(os_id: int, data: OsPecaCreate):
             )
         
         logger.info("peça adicionada à OS os=%s peca=%s quantidade=%s estoque_anterior=%s", 
-                   os_id, data.id_peca, data.quantidade, estoque_atual)
+                   os_id, data.id_peca, data.quantidade, quantidade_estoque)
         
         # Retorna item com informações da peça e subtotal
         item_com_info = os_peca_repo.get_os_peca(os_id, data.id_peca)
@@ -138,7 +138,7 @@ def update_quantidade_peca(os_id: int, peca_id: int, data: OsPecaUpdate):
         )
     
     # Valida estoque disponível
-    estoque_atual = validate_estoque_disponivel(peca_id, data.quantidade, item_existente.quantidade)
+    quantidade_estoque= validate_estoque_disponivel(peca_id, data.quantidade, item_existente.quantidade)
     
     try:
         # Calcula diferença para movimentação
@@ -166,7 +166,7 @@ def update_quantidade_peca(os_id: int, peca_id: int, data: OsPecaUpdate):
             )
         
         logger.info("quantidade atualizada os=%s peca=%s antiga=%s nova=%s estoque_anterior=%s", 
-                   os_id, peca_id, item_existente.quantidade, data.quantidade, estoque_atual)
+                   os_id, peca_id, item_existente.quantidade, data.quantidade, quantidade_estoque)
         
         # Retorna item com informações da peça e subtotal
         peca_preco = os_peca_repo.get_peca_preco(peca_id)

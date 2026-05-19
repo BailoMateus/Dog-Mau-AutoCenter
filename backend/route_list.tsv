@@ -75,11 +75,11 @@ orcamento_item_controller.py	/orcamentos/{orcamento_id}/itens	PUT	/servicos/{ser
 orcamento_item_controller.py	/orcamentos/{orcamento_id}/itens	DELETE	/servicos/{servico_id}	UNKNOWN
 ordem_servico_controller.py	/ordens-servico	POST	/	UNKNOWN
 ordem_servico_controller.py	/ordens-servico	GET	/	UNKNOWN
-ordem_servico_controller.py	/ordens-servico	GET	/{ordem_servico_id}	UNKNOWN
-ordem_servico_controller.py	/ordens-servico	PUT	/{ordem_servico_id}	UNKNOWN
-ordem_servico_controller.py	/ordens-servico	PATCH	/{ordem_servico_id}/status	UNKNOWN
-ordem_servico_controller.py	/ordens-servico	POST	/{ordem_servico_id}/concluir	UNKNOWN
-ordem_servico_controller.py	/ordens-servico	POST	/{ordem_servico_id}/iniciar	UNKNOWN
+ordem_servico_controller.py	/ordens-servico	GET	/{id_os}	UNKNOWN
+ordem_servico_controller.py	/ordens-servico	PUT	/{id_os}	UNKNOWN
+ordem_servico_controller.py	/ordens-servico	PATCH	/{id_os}/status	UNKNOWN
+ordem_servico_controller.py	/ordens-servico	POST	/{id_os}/concluir	UNKNOWN
+ordem_servico_controller.py	/ordens-servico	POST	/{id_os}/iniciar	UNKNOWN
 ordem_servico_controller.py	/ordens-servico	GET	/status/{status}	UNKNOWN
 ordem_servico_controller.py	/ordens-servico	GET	/veiculo/{veiculo_id}	UNKNOWN
 os_peca_controller.py	/ordens-servico/{os_id}/pecas	POST	/	UNKNOWN
