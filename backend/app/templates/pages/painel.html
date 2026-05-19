@@ -57,6 +57,8 @@
                 <i class="bi bi-box-seam me-1"></i>Produtos
             </a>
         </li>
+        {% endif %}
+
         {% if user.role in ['admin', 'mecanico'] %}
         <li class="nav-item" role="presentation">
             <a class="nav-link nav-tab-link {% if tab == 'catalogo_veiculos' %}active{% endif %}" href="?tab=catalogo_veiculos" role="tab">
