@@ -22,7 +22,7 @@
         <thead class="table-dark text-uppercase small" style="border-bottom: 2px solid #222;">
             <tr>
                 <th class="py-3">Placa</th>
-                <th class="py-3">Modelo (ID)</th>
+                <th class="py-3">Modelo</th>
                 <th class="py-3">Ano</th>
                 <th class="py-3">Cor</th>
                 {% if user.role in ['admin', 'mecanico'] %}
@@ -35,7 +35,16 @@
             {% for v in veiculos %}
             <tr>
                 <td class="text-uppercase fw-bold">{{ v.placa }}</td>
-                <td>{{ v.id_modelo }}</td>
+                <td>
+                    {% set ns = namespace(found=false) %}
+                    {% for m in modelos %}
+                        {% if m.id_modelo == v.id_modelo %}
+                            <span class="badge bg-secondary">{{ m.nome_modelo }}</span>
+                            {% set ns.found = true %}
+                        {% endif %}
+                    {% endfor %}
+                    {% if not ns.found %}{{ v.id_modelo }}{% endif %}
+                </td>
                 <td>{{ v.ano_fabricacao }}</td>
                 <td>{{ v.cor }}</td>
                 {% if user.role in ['admin', 'mecanico'] %}
