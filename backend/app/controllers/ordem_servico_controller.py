@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, status
 
 from app.services import ordem_servico_service
 from app.schemas.ordem_servico_schema import (
-    OrdemServicoCreate, OrdemServicoUpdate, OrdemServicoStatusUpdate, OrdemServicoPublic
+    OrdemServicoAtribuirMecanico, OrdemServicoCreate, OrdemServicoUpdate, OrdemServicoStatusUpdate, OrdemServicoPublic
 )
 
 logger = logging.getLogger(__name__)
@@ -121,6 +121,39 @@ def iniciar_ordem_servico(id_os: int):
     """Inicia uma ordem de serviço."""
     logger.info("POST /ordens-servico/%s/iniciar", id_os)
     ordem_servico = ordem_servico_service.iniciar_ordem_servico(id_os)
+    return OrdemServicoPublic(
+        id_os=ordem_servico.id_os,
+        id_veiculo=ordem_servico.id_veiculo,
+        id_usuario=ordem_servico.id_usuario,
+        descricao_problema=ordem_servico.descricao_problema,
+        status=ordem_servico.status,
+        data_abertura=ordem_servico.data_abertura,
+        data_conclusao=ordem_servico.data_conclusao,
+        created_at=ordem_servico.created_at,
+        updated_at=ordem_servico.updated_at
+    )
+
+@router.patch(
+    "/{id_os}/atribuir-mecanico",
+    response_model=OrdemServicoPublic
+)
+def atribuir_mecanico(
+    id_os: int,
+    data: OrdemServicoAtribuirMecanico
+):
+    """Atribui mecânico à ordem de serviço."""
+    
+    logger.info(
+        "PATCH /ordens-servico/%s/atribuir-mecanico mecanico=%s",
+        id_os,
+        data.id_usuario
+    )
+    
+    ordem_servico = ordem_servico_service.atribuir_mecanico(
+        id_os=id_os,
+        id_usuario=data.id_usuario
+    )
+    
     return OrdemServicoPublic(
         id_os=ordem_servico.id_os,
         id_veiculo=ordem_servico.id_veiculo,

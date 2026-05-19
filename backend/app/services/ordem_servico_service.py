@@ -76,6 +76,43 @@ def create_ordem_servico(data: OrdemServicoCreate):
             detail="Erro ao criar ordem de serviço"
         )
 
+def atribuir_mecanico(id_os: int, id_usuario: int):
+    """Atribui mecânico à ordem de serviço."""
+    
+    # Verifica se OS existe
+    ordem_servico = get_ordem_servico_or_404(id_os)
+    
+    # Verifica se usuário mecânico existe
+    if not os_repo.check_mecanico_exists(id_usuario):
+        logger.warning(
+            "mecânico não encontrado mecanico_id=%s",
+            id_usuario
+        )
+        
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Mecânico não encontrado"
+        )
+    
+    # Atribui mecânico
+    updated = os_repo.atribuir_mecanico_os(
+        id_os=id_os,
+        id_usuario=id_usuario
+    )
+    
+    if not updated:
+        logger.error(
+            "erro ao atribuir mecânico os=%s",
+            id_os
+        )
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro ao atribuir mecânico"
+        )
+    
+    return OrdemServico(**updated)
+
 def update_ordem_servico(id_os: int, data: OrdemServicoUpdate):
     """Atualiza uma ordem de serviço com validações."""
     ordem_servico = get_ordem_servico_or_404(id_os)

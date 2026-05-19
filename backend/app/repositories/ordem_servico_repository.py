@@ -163,6 +163,31 @@ def get_ordens_by_orcamento(orcamento_id: int):
     logger.debug("get_ordens_by_orcamento orcamento_id=%s count=%s", orcamento_id, len(ordens))
     return ordens
 
+def atribuir_mecanico_os(id_os: int, id_usuario: int):
+    """Atribui mecânico à OS."""
+    
+    query = """
+    UPDATE ordem_servico
+    SET id_usuario = %s,
+        updated_at = NOW()
+    WHERE id_os = %s
+    RETURNING *
+    """
+    
+    result = execute_query(
+        query,
+        (id_usuario, id_os),
+        fetch="one"
+    )
+    
+    if result:
+        logger.info(
+            "mecânico atribuído os=%s mecanico=%s",
+            id_os,
+            id_usuario
+        )
+    
+    return result
 
 def check_cliente_exists(usuario_id: int):
     query = """

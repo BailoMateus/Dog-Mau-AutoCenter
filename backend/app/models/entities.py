@@ -165,7 +165,7 @@ class OrdemServico:
     id_os: Optional[int] = None
     id_orcamento: Optional[int] = None
     id_veiculo: int = 0
-    id_usuario: int = 0
+    id_usuario: Optional[int] = None
     descricao_problema: str = ""
     valor_total: float = 0.0
     status: str = "aberta"

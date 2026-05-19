@@ -27,3 +27,6 @@ class OrdemServicoPublic(BaseModel):
     data_conclusao: datetime | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
+
+class OrdemServicoAtribuirMecanico(BaseModel):
+    id_usuario: int
