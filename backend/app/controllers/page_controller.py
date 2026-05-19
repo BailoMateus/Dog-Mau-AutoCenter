@@ -25,6 +25,8 @@ from app.services.user_service import list_users
 from app.services import servico_service
 from app.services import produto_service
 from app.services import pedido_service
+from app.services import veiculo_service
+from app.services import modelo_service
 
 logger = logging.getLogger(__name__)
 
@@ -181,6 +183,14 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
                 "qtd_itens": "—"  # Para calcularmos os itens, precisaria consultar pedido_produto
             })
 
+        # Veículos (Admin vê todos, cliente vê os seus)
+        if user.get("role") in ("admin", "mecanico"):
+            veiculos = veiculo_service.list_all_veiculos()
+        else:
+            veiculos = veiculo_service.list_veiculos_by_user(int(user["user_id"]))
+            
+        modelos = modelo_service.list_modelos()
+
         return templates.TemplateResponse("pages/painel.html", {
             "request": request,
             "user": user,
@@ -188,6 +198,8 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
             "servicos": servicos,
             "produtos": produtos,
             "pedidos": pedidos,
+            "veiculos": veiculos,
+            "modelos": modelos,
             "tab": tab,
             "page": "painel",
         })

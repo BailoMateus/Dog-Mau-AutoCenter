@@ -1,0 +1,317 @@
+{# ──────────────────────────────────────────────────────────────────
+   Partial: VeiculoPanel.html
+   Conteúdo reutilizável de gerenciamento de veículos.
+
+   Requer no contexto:
+     - user      (dict com .role e .user_id)
+     - veiculos  (lista de dicts de veículos)
+     - modelos   (lista de dicts de modelos)
+   ────────────────────────────────────────────────────────────────── #}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <h2 class="fw-bold m-0" style="color: rgba(192, 37, 43); font-family: 'Orbitron', sans-serif;">
+        <i class="bi bi-car-front-fill me-2"></i>{% if user.role in ['admin', 'mecanico'] %}Todos os Veículos{% else %}Meus Veículos{% endif %}
+    </h2>
+    <button class="btn btn-primary px-4 py-2" onclick="openVeiculoModal('create', null)">
+        <i class="bi bi-plus-circle-fill me-2"></i>Novo Veículo
+    </button>
+</div>
+
+<div class="table-responsive rounded shadow card p-0 border-0" style="background-color: #111;">
+    <table class="table table-dark table-hover align-middle mb-0" style="background-color: transparent;">
+        <thead class="table-dark text-uppercase small" style="border-bottom: 2px solid #222;">
+            <tr>
+                <th class="py-3">Placa</th>
+                <th class="py-3">Modelo (ID)</th>
+                <th class="py-3">Ano</th>
+                <th class="py-3">Cor</th>
+                {% if user.role in ['admin', 'mecanico'] %}
+                <th class="py-3">ID Dono</th>
+                {% endif %}
+                <th class="text-center py-3">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for v in veiculos %}
+            <tr>
+                <td class="text-uppercase fw-bold">{{ v.placa }}</td>
+                <td>{{ v.id_modelo }}</td>
+                <td>{{ v.ano_fabricacao }}</td>
+                <td>{{ v.cor }}</td>
+                {% if user.role in ['admin', 'mecanico'] %}
+                <td><span class="badge bg-secondary">User #{{ v.id_usuario }}</span></td>
+                {% endif %}
+                <td class="text-center">
+                    <button class="btn btn-sm btn-outline-primary me-2" 
+                            onclick="openVeiculoModal('edit', this)" 
+                            data-veiculo-id="{{ v.id_veiculo }}" 
+                            data-veiculo-placa="{{ v.placa }}" 
+                            data-veiculo-modelo="{{ v.id_modelo }}" 
+                            data-veiculo-ano="{{ v.ano_fabricacao }}" 
+                            data-veiculo-cor="{{ v.cor }}"
+                            data-veiculo-usuario="{{ v.id_usuario }}">
+                        <i class="bi bi-pencil"></i> Editar
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="openDeleteVeiculoModal(this)" data-veiculo-id="{{ v.id_veiculo }}" data-veiculo-placa="{{ v.placa }}">
+                        <i class="bi bi-trash"></i> Excluir
+                    </button>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="{% if user.role in ['admin', 'mecanico'] %}6{% else %}5{% endif %}" class="text-center py-4 text-muted">Nenhum veículo encontrado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal Formulário (Criar/Editar) -->
+<div id="veiculoFormModal" class="custom-modal d-none">
+    <div class="custom-modal-content rounded shadow card p-0" style="background-color: #111; border: 1px solid #222; max-width: 500px;">
+        <div class="custom-modal-header border-bottom border-secondary p-3 d-flex justify-content-between align-items-center">
+            <h5 class="m-0 fw-bold" id="veiculoModalTitle" style="color: rgba(192, 37, 43);">Novo Veículo</h5>
+            <button type="button" class="btn-close btn-close-white" onclick="closeVeiculoModal('veiculoFormModal')"></button>
+        </div>
+        <div class="custom-modal-body p-4">
+            <form id="veiculoForm" class="form-signin w-100 m-auto" style="max-width: 100%;">
+                <input type="hidden" id="veiculoId" name="id" />
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="form-floating">
+                            <input type="text" class="form-control text-white text-uppercase" style="background-color: #0b0b0b; border-color: #333;" id="veiculoPlaca" name="placa" placeholder="ABC-1234" required>
+                            <label for="veiculoPlaca" class="text-white-50">Placa</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="form-floating">
+                            <input type="number" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="veiculoAno" name="ano_fabricacao" placeholder="2020" required>
+                            <label for="veiculoAno" class="text-white-50">Ano Fabricação</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="veiculoCor" name="cor" placeholder="Preto" required>
+                    <label for="veiculoCor" class="text-white-50">Cor</label>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <select class="form-select text-white" style="background-color: #0b0b0b; border-color: #333;" id="veiculoModelo" name="id_modelo" required>
+                        <option value="" disabled selected>Selecione um modelo...</option>
+                        {% for m in modelos %}
+                        <option value="{{ m.id_modelo }}">{{ m.nome_modelo }}</option>
+                        {% endfor %}
+                    </select>
+                    <label for="veiculoModelo" class="text-white-50">Modelo</label>
+                </div>
+                
+                {% if user.role in ['admin', 'mecanico'] %}
+                <div class="form-floating mb-3">
+                    <input type="number" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="veiculoUsuario" name="id_usuario" placeholder="ID Cliente" required>
+                    <label for="veiculoUsuario" class="text-white-50">ID do Cliente (Dono)</label>
+                </div>
+                {% endif %}
+                
+                <div id="veiculoFormError" class="alert alert-danger d-none small"></div>
+                
+                <div class="d-flex justify-content-between gap-2 mt-4">
+                    <button type="button" class="btn btn-outline-secondary w-50 py-2" onclick="closeVeiculoModal('veiculoFormModal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary w-50 py-2" id="saveVeiculoButton">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmação de Exclusão -->
+<div id="deleteVeiculoModal" class="custom-modal d-none">
+    <div class="custom-modal-content rounded shadow card p-0" style="max-width: 400px; background-color: #111; border: 1px solid #222;">
+        <div class="custom-modal-header border-bottom border-secondary p-3 text-center position-relative">
+            <h5 class="m-0 text-danger w-100 fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Atenção</h5>
+            <button type="button" class="btn-close btn-close-white position-absolute top-50 end-0 translate-middle-y me-3" onclick="closeVeiculoModal('deleteVeiculoModal')"></button>
+        </div>
+        <div class="custom-modal-body p-4 text-center">
+            <p class="mb-0 text-white">Tem certeza que deseja excluir o veículo placa <br><strong id="deleteVeiculoPlaca" style="color: rgba(192, 37, 43);"></strong>?</p>
+            <p class="text-muted small mt-2">Esta ação é irreversível.</p>
+            <input type="hidden" id="deleteVeiculoId">
+            <div id="deleteVeiculoError" class="alert alert-danger d-none small mt-3"></div>
+        </div>
+        <div class="custom-modal-footer border-top border-secondary p-3 d-flex justify-content-between gap-2">
+            <button type="button" class="btn btn-outline-secondary w-50 py-2" onclick="closeVeiculoModal('deleteVeiculoModal')">Cancelar</button>
+            <button type="button" class="btn btn-danger w-50 py-2" onclick="confirmDeleteVeiculo()" id="btnConfirmDeleteVeiculo">Confirmar Exclusão</button>
+        </div>
+    </div>
+</div>
+
+{# ── Estilos e Scripts ── #}
+<style>
+.custom-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 1055;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(3px);
+}
+.custom-modal-content {
+    background-color: var(--bs-body-bg);
+    width: 100%;
+    max-width: 500px;
+    margin: 1rem;
+    animation: modalFadeIn 0.2s ease-out;
+}
+</style>
+
+<script>
+    let veiculoMode = 'create';
+    const userRole = "{{ user.role }}";
+
+    function openVeiculoModal(mode, btnElement) {
+        veiculoMode = mode;
+        const form = document.getElementById('veiculoForm');
+        form.reset();
+        document.getElementById('veiculoFormError').classList.add('d-none');
+
+        const title = document.getElementById('veiculoModalTitle');
+
+        if (mode === 'create') {
+            title.textContent = 'Novo Veículo';
+            document.getElementById('veiculoId').value = '';
+        } else if (mode === 'edit' && btnElement) {
+            title.textContent = 'Editar Veículo';
+            document.getElementById('veiculoId').value = btnElement.getAttribute('data-veiculo-id');
+            document.getElementById('veiculoPlaca').value = btnElement.getAttribute('data-veiculo-placa');
+            document.getElementById('veiculoAno').value = btnElement.getAttribute('data-veiculo-ano');
+            document.getElementById('veiculoCor').value = btnElement.getAttribute('data-veiculo-cor');
+            document.getElementById('veiculoModelo').value = btnElement.getAttribute('data-veiculo-modelo');
+            
+            if (userRole === 'admin' || userRole === 'mecanico') {
+                document.getElementById('veiculoUsuario').value = btnElement.getAttribute('data-veiculo-usuario');
+            }
+        }
+
+        document.getElementById('veiculoFormModal').classList.remove('d-none');
+    }
+
+    function openDeleteVeiculoModal(btnElement) {
+        const id = btnElement.getAttribute('data-veiculo-id');
+        const placa = btnElement.getAttribute('data-veiculo-placa');
+        document.getElementById('deleteVeiculoId').value = id;
+        document.getElementById('deleteVeiculoPlaca').textContent = placa;
+        document.getElementById('deleteVeiculoError').classList.add('d-none');
+        document.getElementById('deleteVeiculoModal').classList.remove('d-none');
+    }
+
+    function closeVeiculoModal(modalId) {
+        document.getElementById(modalId).classList.add('d-none');
+    }
+
+    document.querySelectorAll('.custom-modal').forEach(modal => {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeVeiculoModal(this.id);
+            }
+        });
+    });
+
+    document.getElementById('veiculoForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const saveBtn = document.getElementById('saveVeiculoButton');
+        const errBox = document.getElementById('veiculoFormError');
+        errBox.classList.add('d-none');
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Salvando...';
+
+        const id = document.getElementById('veiculoId').value;
+        const payload = {
+            placa: document.getElementById('veiculoPlaca').value,
+            ano_fabricacao: parseInt(document.getElementById('veiculoAno').value),
+            cor: document.getElementById('veiculoCor').value,
+            id_modelo: parseInt(document.getElementById('veiculoModelo').value)
+        };
+
+        if (userRole === 'admin' || userRole === 'mecanico') {
+            const userId = document.getElementById('veiculoUsuario').value;
+            if(userId) {
+                payload.id_usuario = parseInt(userId);
+            }
+        }
+
+        // Se currentMode for create, nós precisamos da URL correta.
+        // O backend precisa ter a rota de criação e update.
+        // As rotas deveriam ser algo como /api/veiculos.
+        let url = '/api/veiculos';
+        let method = 'POST';
+
+        if (veiculoMode === 'edit') {
+            url = `/api/veiculos/${id}`;
+            method = 'PATCH';
+        }
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                errBox.textContent = data.detail || 'Erro ao salvar o veículo.';
+                errBox.classList.remove('d-none');
+            }
+        } catch (error) {
+            console.error(error);
+            errBox.textContent = 'Erro de rede ao se comunicar com o servidor.';
+            errBox.classList.remove('d-none');
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = 'Salvar';
+        }
+    });
+
+    async function confirmDeleteVeiculo() {
+        const id = document.getElementById('deleteVeiculoId').value;
+        const btn = document.getElementById('btnConfirmDeleteVeiculo');
+        const errBox = document.getElementById('deleteVeiculoError');
+        
+        errBox.classList.add('d-none');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Excluindo...';
+
+        try {
+            const response = await fetch(`/api/veiculos/${id}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                errBox.textContent = data.detail || 'Veículo não pôde ser excluído.';
+                errBox.classList.remove('d-none');
+            }
+        } catch (error) {
+            console.error(error);
+            errBox.textContent = 'Erro de rede ao se comunicar com o servidor.';
+            errBox.classList.remove('d-none');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Confirmar Exclusão';
+        }
+    }
+</script>
