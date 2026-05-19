@@ -74,3 +74,13 @@ def delete_peca(peca_id: int):
     logger.info("DELETE /pecas/%s", peca_id)
     peca_service.delete_peca(peca_id)
     return None
+
+def to_public(peca: PecaDB) -> PecaPublic:
+    return PecaPublic(
+        id_peca=peca.id_peca,
+        nome=peca.nome,
+        preco_unitario=peca.preco_unitario,
+        quantidade_estoque=peca.quantidade_estoque,
+        created_at=peca.created_at,
+        updated_at=peca.updated_at,
+    )
