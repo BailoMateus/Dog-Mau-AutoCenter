@@ -1,0 +1,481 @@
+{# ──────────────────────────────────────────────────────────────────
+   Partial: CatalogoVeiculoPanel.html
+   Conteúdo reutilizável de gerenciamento de Marcas e Modelos.
+
+   Requer no contexto:
+     - user      (dict com .role)
+     - marcas    (lista de dicts de marcas)
+     - modelos   (lista de dicts de modelos)
+   ────────────────────────────────────────────────────────────────── #}
+
+<div class="row g-4">
+    {# ── Coluna de Marcas ── #}
+    <div class="col-12 col-xl-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold m-0" style="color: rgba(192, 37, 43); font-family: 'Orbitron', sans-serif;">
+                <i class="bi bi-bookmark-star-fill me-2"></i>Marcas
+            </h4>
+            {% if user.role == 'admin' %}
+            <button class="btn btn-sm btn-primary px-3" onclick="openMarcaModal('create', null)">
+                <i class="bi bi-plus-circle me-1"></i>Nova Marca
+            </button>
+            {% endif %}
+        </div>
+
+        <div class="table-responsive rounded shadow card p-0 border-0" style="background-color: #111;">
+            <table class="table table-dark table-hover align-middle mb-0" style="background-color: transparent;">
+                <thead class="table-dark text-uppercase small" style="border-bottom: 2px solid #222;">
+                    <tr>
+                        <th class="py-3">Nome</th>
+                        <th class="py-3">Origem</th>
+                        {% if user.role == 'admin' %}
+                        <th class="text-center py-3">Ações</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in marcas %}
+                    <tr>
+                        <td class="fw-bold">{{ m.nome }}</td>
+                        <td>{{ m.pais_origem or '—' }}</td>
+                        {% if user.role == 'admin' %}
+                        <td class="text-center text-nowrap">
+                            <button class="btn btn-sm btn-outline-primary me-1" 
+                                    onclick="openMarcaModal('edit', this)" 
+                                    data-marca-id="{{ m.id_marca }}" 
+                                    data-marca-nome="{{ m.nome }}" 
+                                    data-marca-pais="{{ m.pais_origem or '' }}" 
+                                    data-marca-site="{{ m.site_oficial or '' }}"
+                                    title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="openDeleteMarcaModal(this)" 
+                                    data-marca-id="{{ m.id_marca }}" 
+                                    data-marca-nome="{{ m.nome }}"
+                                    title="Excluir">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="{% if user.role == 'admin' %}3{% else %}2{% endif %}" class="text-center py-4 text-muted">Nenhuma marca cadastrada.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {# ── Coluna de Modelos ── #}
+    <div class="col-12 col-xl-7">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold m-0" style="color: rgba(192, 37, 43); font-family: 'Orbitron', sans-serif;">
+                <i class="bi bi-car-front me-2"></i>Modelos
+            </h4>
+            {% if user.role == 'admin' %}
+            <button class="btn btn-sm btn-primary px-3" onclick="openModeloModal('create', null)">
+                <i class="bi bi-plus-circle me-1"></i>Novo Modelo
+            </button>
+            {% endif %}
+        </div>
+
+        <div class="table-responsive rounded shadow card p-0 border-0" style="background-color: #111;">
+            <table class="table table-dark table-hover align-middle mb-0" style="background-color: transparent;">
+                <thead class="table-dark text-uppercase small" style="border-bottom: 2px solid #222;">
+                    <tr>
+                        <th class="py-3">Modelo</th>
+                        <th class="py-3">Marca (ID)</th>
+                        <th class="py-3">Ano</th>
+                        <th class="py-3">Categoria</th>
+                        {% if user.role == 'admin' %}
+                        <th class="text-center py-3">Ações</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mod in modelos %}
+                    <tr>
+                        <td class="fw-bold">{{ mod.nome_modelo }}</td>
+                        <td>{{ mod.id_marca }}</td>
+                        <td>{{ mod.ano_lancamento or '—' }}</td>
+                        <td>{{ mod.categoria or '—' }}</td>
+                        {% if user.role == 'admin' %}
+                        <td class="text-center text-nowrap">
+                            <button class="btn btn-sm btn-outline-primary me-1" 
+                                    onclick="openModeloModal('edit', this)" 
+                                    data-modelo-id="{{ mod.id_modelo }}" 
+                                    data-modelo-marca="{{ mod.id_marca }}" 
+                                    data-modelo-nome="{{ mod.nome_modelo }}" 
+                                    data-modelo-ano="{{ mod.ano_lancamento or '' }}" 
+                                    data-modelo-combustivel="{{ mod.tipo_combustivel or '' }}"
+                                    data-modelo-categoria="{{ mod.categoria or '' }}"
+                                    data-modelo-portas="{{ mod.num_portas or '' }}"
+                                    title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="openDeleteModeloModal(this)" 
+                                    data-modelo-id="{{ mod.id_modelo }}" 
+                                    data-modelo-nome="{{ mod.nome_modelo }}"
+                                    title="Excluir">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="{% if user.role == 'admin' %}5{% else %}4{% endif %}" class="text-center py-4 text-muted">Nenhum modelo cadastrado.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if user.role == 'admin' %}
+<!-- Modais de Marcas -->
+<div id="marcaFormModal" class="custom-modal d-none">
+    <div class="custom-modal-content rounded shadow card p-0" style="background-color: #111; border: 1px solid #222; max-width: 450px;">
+        <div class="custom-modal-header border-bottom border-secondary p-3 d-flex justify-content-between align-items-center">
+            <h5 class="m-0 fw-bold" id="marcaModalTitle" style="color: rgba(192, 37, 43);">Nova Marca</h5>
+            <button type="button" class="btn-close btn-close-white" onclick="closeModal('marcaFormModal')"></button>
+        </div>
+        <div class="custom-modal-body p-4">
+            <form id="marcaForm">
+                <input type="hidden" id="marcaId" />
+                
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="marcaNome" required placeholder="Nome">
+                    <label class="text-white-50">Nome da Marca</label>
+                </div>
+                
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="marcaPais" placeholder="País">
+                    <label class="text-white-50">País de Origem (Opcional)</label>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input type="url" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="marcaSite" placeholder="https://...">
+                    <label class="text-white-50">Site Oficial (Opcional)</label>
+                </div>
+                
+                <div id="marcaFormError" class="alert alert-danger d-none small"></div>
+                
+                <div class="d-flex justify-content-between gap-2 mt-4">
+                    <button type="button" class="btn btn-outline-secondary w-50 py-2" onclick="closeModal('marcaFormModal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary w-50 py-2" id="saveMarcaBtn">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="deleteMarcaModal" class="custom-modal d-none">
+    <div class="custom-modal-content rounded shadow card p-0" style="max-width: 400px; background-color: #111; border: 1px solid #222;">
+        <div class="custom-modal-header border-bottom border-secondary p-3 text-center position-relative">
+            <h5 class="m-0 text-danger w-100 fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Atenção</h5>
+            <button type="button" class="btn-close btn-close-white position-absolute top-50 end-0 translate-middle-y me-3" onclick="closeModal('deleteMarcaModal')"></button>
+        </div>
+        <div class="custom-modal-body p-4 text-center">
+            <p class="mb-0 text-white">Excluir a marca <strong id="deleteMarcaNome" style="color: rgba(192, 37, 43);"></strong>?</p>
+            <p class="text-muted small mt-2">Isto pode falhar se houver modelos vinculados a ela.</p>
+            <input type="hidden" id="deleteMarcaId">
+            <div id="deleteMarcaError" class="alert alert-danger d-none small mt-3"></div>
+        </div>
+        <div class="custom-modal-footer border-top border-secondary p-3 d-flex gap-2">
+            <button type="button" class="btn btn-outline-secondary w-50" onclick="closeModal('deleteMarcaModal')">Cancelar</button>
+            <button type="button" class="btn btn-danger w-50" onclick="confirmDeleteMarca()" id="btnConfirmDeleteMarca">Excluir</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modais de Modelos -->
+<div id="modeloFormModal" class="custom-modal d-none">
+    <div class="custom-modal-content rounded shadow card p-0" style="background-color: #111; border: 1px solid #222; max-width: 500px;">
+        <div class="custom-modal-header border-bottom border-secondary p-3 d-flex justify-content-between align-items-center">
+            <h5 class="m-0 fw-bold" id="modeloModalTitle" style="color: rgba(192, 37, 43);">Novo Modelo</h5>
+            <button type="button" class="btn-close btn-close-white" onclick="closeModal('modeloFormModal')"></button>
+        </div>
+        <div class="custom-modal-body p-4">
+            <form id="modeloForm">
+                <input type="hidden" id="modeloId" />
+                
+                <div class="form-floating mb-3">
+                    <select class="form-select text-white" style="background-color: #0b0b0b; border-color: #333;" id="modeloMarca" required>
+                        <option value="" disabled selected>Selecione a marca...</option>
+                        {% for m in marcas %}
+                        <option value="{{ m.id_marca }}">{{ m.nome }}</option>
+                        {% endfor %}
+                    </select>
+                    <label class="text-white-50">Marca Relacionada</label>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="modeloNome" required placeholder="Nome">
+                    <label class="text-white-50">Nome do Modelo</label>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="form-floating">
+                            <input type="number" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="modeloAno" placeholder="Ano">
+                            <label class="text-white-50">Ano Lançamento</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="form-floating">
+                            <input type="text" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="modeloCombustivel" placeholder="Combustível">
+                            <label class="text-white-50">Combustível</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="form-floating">
+                            <input type="text" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="modeloCategoria" placeholder="Categoria">
+                            <label class="text-white-50">Categoria (Ex: SUV)</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="form-floating">
+                            <input type="number" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="modeloPortas" placeholder="Portas">
+                            <label class="text-white-50">Qtd. Portas</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="modeloFormError" class="alert alert-danger d-none small"></div>
+                
+                <div class="d-flex justify-content-between gap-2 mt-4">
+                    <button type="button" class="btn btn-outline-secondary w-50 py-2" onclick="closeModal('modeloFormModal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary w-50 py-2" id="saveModeloBtn">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="deleteModeloModal" class="custom-modal d-none">
+    <div class="custom-modal-content rounded shadow card p-0" style="max-width: 400px; background-color: #111; border: 1px solid #222;">
+        <div class="custom-modal-header border-bottom border-secondary p-3 text-center position-relative">
+            <h5 class="m-0 text-danger w-100 fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Atenção</h5>
+            <button type="button" class="btn-close btn-close-white position-absolute top-50 end-0 translate-middle-y me-3" onclick="closeModal('deleteModeloModal')"></button>
+        </div>
+        <div class="custom-modal-body p-4 text-center">
+            <p class="mb-0 text-white">Excluir o modelo <strong id="deleteModeloNome" style="color: rgba(192, 37, 43);"></strong>?</p>
+            <p class="text-muted small mt-2">Veículos vinculados a este modelo poderão apresentar erros.</p>
+            <input type="hidden" id="deleteModeloId">
+            <div id="deleteModeloError" class="alert alert-danger d-none small mt-3"></div>
+        </div>
+        <div class="custom-modal-footer border-top border-secondary p-3 d-flex gap-2">
+            <button type="button" class="btn btn-outline-secondary w-50" onclick="closeModal('deleteModeloModal')">Cancelar</button>
+            <button type="button" class="btn btn-danger w-50" onclick="confirmDeleteModelo()" id="btnConfirmDeleteModelo">Excluir</button>
+        </div>
+    </div>
+</div>
+
+{# ── Estilos e Scripts ── #}
+<style>
+.custom-modal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 1055;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(3px);
+}
+.custom-modal-content {
+    background-color: var(--bs-body-bg);
+    width: 100%;
+    margin: 1rem;
+    animation: modalFadeIn 0.2s ease-out;
+}
+</style>
+
+<script>
+    function closeModal(id) {
+        document.getElementById(id).classList.add('d-none');
+    }
+    document.querySelectorAll('.custom-modal').forEach(m => {
+        m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
+    });
+
+    // --- MARCAS ---
+    let marcaMode = 'create';
+    function openMarcaModal(mode, btn) {
+        marcaMode = mode;
+        document.getElementById('marcaForm').reset();
+        document.getElementById('marcaFormError').classList.add('d-none');
+        
+        if (mode === 'create') {
+            document.getElementById('marcaModalTitle').innerText = 'Nova Marca';
+            document.getElementById('marcaId').value = '';
+        } else {
+            document.getElementById('marcaModalTitle').innerText = 'Editar Marca';
+            document.getElementById('marcaId').value = btn.getAttribute('data-marca-id');
+            document.getElementById('marcaNome').value = btn.getAttribute('data-marca-nome');
+            document.getElementById('marcaPais').value = btn.getAttribute('data-marca-pais');
+            document.getElementById('marcaSite').value = btn.getAttribute('data-marca-site');
+        }
+        document.getElementById('marcaFormModal').classList.remove('d-none');
+    }
+
+    function openDeleteMarcaModal(btn) {
+        document.getElementById('deleteMarcaId').value = btn.getAttribute('data-marca-id');
+        document.getElementById('deleteMarcaNome').innerText = btn.getAttribute('data-marca-nome');
+        document.getElementById('deleteMarcaError').classList.add('d-none');
+        document.getElementById('deleteMarcaModal').classList.remove('d-none');
+    }
+
+    document.getElementById('marcaForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const btn = document.getElementById('saveMarcaBtn');
+        const err = document.getElementById('marcaFormError');
+        err.classList.add('d-none');
+        btn.disabled = true;
+        btn.innerText = 'Salvando...';
+
+        const id = document.getElementById('marcaId').value;
+        const payload = {
+            nome: document.getElementById('marcaNome').value,
+            pais_origem: document.getElementById('marcaPais').value || null,
+            site_oficial: document.getElementById('marcaSite').value || null
+        };
+
+        const url = marcaMode === 'create' ? '/api/marcas' : `/api/marcas/${id}`;
+        const method = marcaMode === 'create' ? 'POST' : 'PATCH';
+
+        try {
+            const res = await fetch(url, {
+                method, headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            if (res.ok) location.reload();
+            else {
+                const data = await res.json();
+                err.innerText = data.detail || 'Erro ao salvar marca.';
+                err.classList.remove('d-none');
+            }
+        } catch (error) {
+            err.innerText = 'Erro de rede.';
+            err.classList.remove('d-none');
+        } finally {
+            btn.disabled = false; btn.innerText = 'Salvar';
+        }
+    });
+
+    async function confirmDeleteMarca() {
+        const id = document.getElementById('deleteMarcaId').value;
+        const btn = document.getElementById('btnConfirmDeleteMarca');
+        const err = document.getElementById('deleteMarcaError');
+        err.classList.add('d-none'); btn.disabled = true; btn.innerText = 'Excluindo...';
+        try {
+            const res = await fetch(`/api/marcas/${id}`, { method: 'DELETE' });
+            if (res.ok) location.reload();
+            else {
+                const data = await res.json();
+                err.innerText = data.detail || 'Erro ao excluir.';
+                err.classList.remove('d-none');
+            }
+        } catch (error) {
+            err.innerText = 'Erro de rede.'; err.classList.remove('d-none');
+        } finally {
+            btn.disabled = false; btn.innerText = 'Excluir';
+        }
+    }
+
+    // --- MODELOS ---
+    let modeloMode = 'create';
+    function openModeloModal(mode, btn) {
+        modeloMode = mode;
+        document.getElementById('modeloForm').reset();
+        document.getElementById('modeloFormError').classList.add('d-none');
+        
+        if (mode === 'create') {
+            document.getElementById('modeloModalTitle').innerText = 'Novo Modelo';
+            document.getElementById('modeloId').value = '';
+        } else {
+            document.getElementById('modeloModalTitle').innerText = 'Editar Modelo';
+            document.getElementById('modeloId').value = btn.getAttribute('data-modelo-id');
+            document.getElementById('modeloMarca').value = btn.getAttribute('data-modelo-marca');
+            document.getElementById('modeloNome').value = btn.getAttribute('data-modelo-nome');
+            document.getElementById('modeloAno').value = btn.getAttribute('data-modelo-ano');
+            document.getElementById('modeloCombustivel').value = btn.getAttribute('data-modelo-combustivel');
+            document.getElementById('modeloCategoria').value = btn.getAttribute('data-modelo-categoria');
+            document.getElementById('modeloPortas').value = btn.getAttribute('data-modelo-portas');
+        }
+        document.getElementById('modeloFormModal').classList.remove('d-none');
+    }
+
+    function openDeleteModeloModal(btn) {
+        document.getElementById('deleteModeloId').value = btn.getAttribute('data-modelo-id');
+        document.getElementById('deleteModeloNome').innerText = btn.getAttribute('data-modelo-nome');
+        document.getElementById('deleteModeloError').classList.add('d-none');
+        document.getElementById('deleteModeloModal').classList.remove('d-none');
+    }
+
+    document.getElementById('modeloForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const btn = document.getElementById('saveModeloBtn');
+        const err = document.getElementById('modeloFormError');
+        err.classList.add('d-none'); btn.disabled = true; btn.innerText = 'Salvando...';
+
+        const id = document.getElementById('modeloId').value;
+        const payload = {
+            id_marca: parseInt(document.getElementById('modeloMarca').value),
+            nome_modelo: document.getElementById('modeloNome').value,
+            ano_lancamento: document.getElementById('modeloAno').value ? parseInt(document.getElementById('modeloAno').value) : null,
+            tipo_combustivel: document.getElementById('modeloCombustivel').value || null,
+            categoria: document.getElementById('modeloCategoria').value || null,
+            num_portas: document.getElementById('modeloPortas').value ? parseInt(document.getElementById('modeloPortas').value) : null
+        };
+
+        const url = modeloMode === 'create' ? '/api/modelos' : `/api/modelos/${id}`;
+        const method = modeloMode === 'create' ? 'POST' : 'PATCH';
+
+        try {
+            const res = await fetch(url, {
+                method, headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            if (res.ok) location.reload();
+            else {
+                const data = await res.json();
+                err.innerText = data.detail || 'Erro ao salvar modelo.';
+                err.classList.remove('d-none');
+            }
+        } catch (error) {
+            err.innerText = 'Erro de rede.'; err.classList.remove('d-none');
+        } finally {
+            btn.disabled = false; btn.innerText = 'Salvar';
+        }
+    });
+
+    async function confirmDeleteModelo() {
+        const id = document.getElementById('deleteModeloId').value;
+        const btn = document.getElementById('btnConfirmDeleteModelo');
+        const err = document.getElementById('deleteModeloError');
+        err.classList.add('d-none'); btn.disabled = true; btn.innerText = 'Excluindo...';
+        try {
+            const res = await fetch(`/api/modelos/${id}`, { method: 'DELETE' });
+            if (res.ok) location.reload();
+            else {
+                const data = await res.json();
+                err.innerText = data.detail || 'Erro ao excluir.';
+                err.classList.remove('d-none');
+            }
+        } catch (error) {
+            err.innerText = 'Erro de rede.'; err.classList.remove('d-none');
+        } finally {
+            btn.disabled = false; btn.innerText = 'Excluir';
+        }
+    }
+</script>
+{% endif %}
