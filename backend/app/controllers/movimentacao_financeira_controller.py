@@ -78,7 +78,7 @@ def list_movimentacoes_by_tipo(tipo: str, limit: int = Query(default=50, le=200)
 @router.post("/periodo", response_model=list[MovimentacaoFinanceiraPublic])
 def list_movimentacoes_by_periodo(data: MovimentacaoFinanceiraPeriodo):
     """Lista movimentações por período."""
-    logger.info("POST /movimentacoes-financeiras/periodo inicio=%s fim=%s", data.data_inicio, data.data_fim)
+    logger.info("POST /movimentacoes-financeiras/periodo inicio=%s fim=%s", data.data_abertura, data.data_fim)
     movimentacoes = movimentacao_financeira_service.list_movimentacoes_by_periodo(data)
     return [
         MovimentacaoFinanceiraPublic(
@@ -126,7 +126,7 @@ def list_movimentacoes_by_pagamento(pagamento_id: int):
 @router.post("/periodo/saldo", response_model=SaldoPeriodo)
 def calcular_saldo_periodo(data: MovimentacaoFinanceiraPeriodo):
     """Calcula saldo de entradas e saídas em um período."""
-    logger.info("POST /movimentacoes-financeiras/periodo/saldo inicio=%s fim=%s", data.data_inicio, data.data_fim)
+    logger.info("POST /movimentacoes-financeiras/periodo/saldo inicio=%s fim=%s", data.data_abertura, data.data_fim)
     saldo = movimentacao_financeira_service.calcular_saldo_periodo(data)
     return SaldoPeriodo(
         entradas=saldo["entradas"],
@@ -136,12 +136,12 @@ def calcular_saldo_periodo(data: MovimentacaoFinanceiraPeriodo):
 
 @router.get("/resumo", response_model=list[ResumoFinanceiro])
 def get_resumo_financeiro(
-    data_inicio: datetime = Query(default=None),
+    data_abertura: datetime = Query(default=None),
     data_fim: datetime = Query(default=None)
 ):
     """Gera resumo financeiro geral ou por período."""
-    logger.info("GET /movimentacoes-financeiras/resumo inicio=%s fim=%s", data_inicio, data_fim)
-    resumo = movimentacao_financeira_service.get_resumo_financeiro(data_inicio, data_fim)
+    logger.info("GET /movimentacoes-financeiras/resumo inicio=%s fim=%s", data_abertura, data_fim)
+    resumo = movimentacao_financeira_service.get_resumo_financeiro(data_abertura, data_fim)
     return [
         ResumoFinanceiro(
             mes=item["mes"],

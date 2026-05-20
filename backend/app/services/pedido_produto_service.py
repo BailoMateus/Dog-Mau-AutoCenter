@@ -65,13 +65,13 @@ def add_produto_to_pedido(pedido_id: int, data: PedidoProdutoCreate):
         )
     
     # Verifica estoque disponível
-    estoque_atual = repo.get_produto_stock(data.id_produto)
-    if estoque_atual < data.quantidade:
+    quantidade_estoque= repo.get_produto_stock(data.id_produto)
+    if quantidade_estoque< data.quantidade:
         logger.warning("estoque insuficiente produto=%s estoque=%s solicitado=%s", 
-                       data.id_produto, estoque_atual, data.quantidade)
+                       data.id_produto, quantidade_estoque, data.quantidade)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Estoque insuficiente. Disponível: {estoque_atual}, Solicitado: {data.quantidade}"
+            detail=f"Estoque insuficiente. Disponível: {quantidade_estoque}, Solicitado: {data.quantidade}"
         )
     
     # Cria item do pedido
@@ -86,7 +86,7 @@ def add_produto_to_pedido(pedido_id: int, data: PedidoProdutoCreate):
         repo.add_produto_to_pedido(item)
         
         # Atualiza estoque
-        novo_estoque = estoque_atual - data.quantidade
+        novo_estoque = quantidade_estoque- data.quantidade
         repo.update_produto_stock(data.id_produto, novo_estoque)
         
         # Recalcula valor total do pedido
@@ -129,13 +129,13 @@ def update_quantidade_produto(pedido_id: int, produto_id: int, data: PedidoProdu
     
     # Verifica estoque para aumento
     if diferenca > 0:
-        estoque_atual = repo.get_produto_stock(produto_id)
-        if estoque_atual < diferenca:
+        quantidade_estoque= repo.get_produto_stock(produto_id)
+        if quantidade_estoque< diferenca:
             logger.warning("estoque insuficiente para aumento produto=%s estoque=%s necessario=%s", 
-                           produto_id, estoque_atual, diferenca)
+                           produto_id, quantidade_estoque, diferenca)
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Estoque insuficiente. Disponível: {estoque_atual}, Necessário: {diferenca}"
+                detail=f"Estoque insuficiente. Disponível: {quantidade_estoque}, Necessário: {diferenca}"
             )
     
     try:
@@ -185,8 +185,8 @@ def remove_produto_from_pedido(pedido_id: int, produto_id: int):
         repo.remove_produto_from_pedido(pedido_id, produto_id)
         
         # Devolve ao estoque
-        estoque_atual = repo.get_produto_stock(produto_id)
-        novo_estoque = estoque_atual + item_existente.quantidade
+        quantidade_estoque= repo.get_produto_stock(produto_id)
+        novo_estoque = quantidade_estoque+ item_existente.quantidade
         repo.update_produto_stock(produto_id, novo_estoque)
         
         # Recalcula valor total do pedido

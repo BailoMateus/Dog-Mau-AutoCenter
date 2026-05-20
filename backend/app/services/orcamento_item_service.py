@@ -105,13 +105,13 @@ def add_peca_to_orcamento(orcamento_id: int, data: OrcamentoPecaCreate):
         logger.info("peça adicionada ao orçamento orcamento=%s peca=%s quantidade=%s", 
                    orcamento_id, data.id_peca, data.quantidade)
         
-        # Retorna item com informações da peça
-        item_com_info = peca_repo.get_orcamento_peca(orcamento_id, data.id_peca)
-        item_com_info.peca_nome = peca.nome
-        item_com_info.peca_preco = peca.preco_unitario
-        
-        return item_com_info
-        
+        item_response = peca_repo.get_peca_by_orcamento(orcamento_id, data.id_peca)
+        if not item_response:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Erro ao recuperar item do orçamento"
+            )
+        return item_response
     except psycopg2.IntegrityError:
         logger.error("add_peca_to_orcamento erro de integridade")
         raise HTTPException(
@@ -141,13 +141,13 @@ def add_servico_to_orcamento(orcamento_id: int, data: OrcamentoServicoCreate):
         logger.info("serviço adicionado ao orçamento orcamento=%s servico=%s quantidade=%s", 
                    orcamento_id, data.id_servico, data.quantidade)
         
-        # Retorna item com informações do serviço
-        item_com_info = servico_repo.get_orcamento_servico(orcamento_id, data.id_servico)
-        item_com_info.servico_descricao = servico.descricao
-        item_com_info.servico_preco = servico.preco
-        
-        return item_com_info
-        
+        item_response = servico_repo.get_servico_by_orcamento(orcamento_id, data.id_servico)
+        if not item_response:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Erro ao recuperar item do orçamento"
+            )
+        return item_response
     except psycopg2.IntegrityError:
         logger.error("add_servico_to_orcamento erro de integridade")
         raise HTTPException(
@@ -171,7 +171,7 @@ def update_quantidade_peca(orcamento_id: int, peca_id: int, data: OrcamentoPecaU
     
     try:
         # Atualiza quantidade
-        item_atualizado = peca_repo.update_quantidade_peca(orcamento_id, peca_id, data.quantidade)
+        peca_repo.update_quantidade_peca(orcamento_id, peca_id, data.quantidade)
         
         # Recalcula valor total do orçamento
         recalcular_valor_total_orcamento(orcamento_id)
@@ -179,11 +179,13 @@ def update_quantidade_peca(orcamento_id: int, peca_id: int, data: OrcamentoPecaU
         logger.info("quantidade atualizada orcamento=%s peca=%s nova_quantidade=%s", 
                    orcamento_id, peca_id, data.quantidade)
         
-        # Retorna item com informações da peça
-        item_atualizado.peca_nome = peca.nome
-        item_atualizado.peca_preco = peca.preco_unitario
-        
-        return item_atualizado
+        item_response = peca_repo.get_peca_by_orcamento(orcamento_id, peca_id)
+        if not item_response:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Erro ao recuperar item do orçamento"
+            )
+        return item_response
         
     except psycopg2.IntegrityError:
         logger.error("update_quantidade_peca erro de integridade")
@@ -208,7 +210,7 @@ def update_quantidade_servico(orcamento_id: int, servico_id: int, data: Orcament
     
     try:
         # Atualiza quantidade
-        item_atualizado = servico_repo.update_quantidade_servico(orcamento_id, servico_id, data.quantidade)
+        servico_repo.update_quantidade_servico(orcamento_id, servico_id, data.quantidade)
         
         # Recalcula valor total do orçamento
         recalcular_valor_total_orcamento(orcamento_id)
@@ -216,11 +218,13 @@ def update_quantidade_servico(orcamento_id: int, servico_id: int, data: Orcament
         logger.info("quantidade atualizada orcamento=%s servico=%s nova_quantidade=%s", 
                    orcamento_id, servico_id, data.quantidade)
         
-        # Retorna item com informações do serviço
-        item_atualizado.servico_descricao = servico.descricao
-        item_atualizado.servico_preco = servico.preco
-        
-        return item_atualizado
+        item_response = servico_repo.get_servico_by_orcamento(orcamento_id, servico_id)
+        if not item_response:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Erro ao recuperar item do orçamento"
+            )
+        return item_response
         
     except psycopg2.IntegrityError:
         logger.error("update_quantidade_servico erro de integridade")

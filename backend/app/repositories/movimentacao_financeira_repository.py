@@ -45,7 +45,7 @@ def get_movimentacoes_by_tipo(tipo: str, limit: int = 50):
     logger.debug("get_movimentacoes_by_tipo tipo=%s count=%s", tipo, len(movimentacoes))
     return movimentacoes
 
-def get_movimentacoes_by_periodo(data_inicio: datetime, data_fim: datetime, limit: int = 100):
+def get_movimentacoes_by_periodo(data_abertura: datetime, data_fim: datetime, limit: int = 100):
     """Lista movimentações por período."""
     query = """
     SELECT id_movimentacao_financeira, tipo_movimentacao, valor, descricao, id_pagamento, created_at
@@ -54,9 +54,9 @@ def get_movimentacoes_by_periodo(data_inicio: datetime, data_fim: datetime, limi
     ORDER BY created_at DESC
     LIMIT %s
     """
-    results = execute_query(query, (data_inicio, data_fim, limit))
+    results = execute_query(query, (data_abertura, data_fim, limit))
     movimentacoes = [dict_to_movimentacao_financeira(row) for row in results]
-    logger.debug("get_movimentacoes_by_periodo periodo=%s a %s count=%s", data_inicio, data_fim, len(movimentacoes))
+    logger.debug("get_movimentacoes_by_periodo periodo=%s a %s count=%s", data_abertura, data_fim, len(movimentacoes))
     return movimentacoes
 
 def get_movimentacoes_by_pagamento(pagamento_id: int):
@@ -132,7 +132,7 @@ def registrar_saida_financeira(valor: float, descricao: str, pagamento_id: int =
     
     return create_movimentacao_financeira(movimentacao)
 
-def calcular_saldo_periodo(data_inicio: datetime, data_fim: datetime):
+def calcular_saldo_periodo(data_abertura: datetime, data_fim: datetime):
     """Calcula saldo de entradas e saídas em um período."""
     query = """
     SELECT 
@@ -142,7 +142,7 @@ def calcular_saldo_periodo(data_inicio: datetime, data_fim: datetime):
     WHERE created_at BETWEEN %s AND %s
     GROUP BY tipo_movimentacao
     """
-    results = execute_query(query, (data_inicio, data_fim))
+    results = execute_query(query, (data_abertura, data_fim))
     
     saldo = {"entradas": 0.0, "saidas": 0.0, "saldo": 0.0}
     
@@ -155,14 +155,14 @@ def calcular_saldo_periodo(data_inicio: datetime, data_fim: datetime):
     saldo["saldo"] = saldo["entradas"] - saldo["saidas"]
     
     logger.debug("calcular_saldo_periodo periodo=%s a %s entradas=%s saidas=%s saldo=%s", 
-                data_inicio, data_fim, saldo["entradas"], saldo["saidas"], saldo["saldo"])
+                data_abertura, data_fim, saldo["entradas"], saldo["saidas"], saldo["saldo"])
     
     return saldo
 
-def get_resumo_financeiro(data_inicio: datetime = None, data_fim: datetime = None):
+def get_resumo_financeiro(data_abertura: datetime = None, data_fim: datetime = None):
     """Gera resumo financeiro geral ou por período."""
-    if not data_inicio:
-        data_inicio = datetime.now(timezone.utc).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    if not data_abertura:
+        data_abertura = datetime.now(timezone.utc).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     if not data_fim:
         data_fim = datetime.now(timezone.utc)
     
@@ -177,7 +177,7 @@ def get_resumo_financeiro(data_inicio: datetime = None, data_fim: datetime = Non
     GROUP BY tipo_movimentacao, DATE_TRUNC('month', created_at)
     ORDER BY mes DESC, tipo_movimentacao
     """
-    results = execute_query(query, (data_inicio, data_fim))
+    results = execute_query(query, (data_abertura, data_fim))
     
     resumo = []
     for row in results:
@@ -189,6 +189,6 @@ def get_resumo_financeiro(data_inicio: datetime = None, data_fim: datetime = Non
         })
     
     logger.debug("get_resumo_financeiro periodo=%s a %s resumo_count=%s", 
-                data_inicio, data_fim, len(resumo))
+                data_abertura, data_fim, len(resumo))
     
     return resumo

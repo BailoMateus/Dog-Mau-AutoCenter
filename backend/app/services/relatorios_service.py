@@ -16,15 +16,15 @@ logger = logging.getLogger(__name__)
 
 def validate_periodo(data: RelatorioPeriodo):
     """Valida período do relatório."""
-    if data.data_inicio >= data.data_fim:
-        logger.warning("período inválido inicio=%s fim=%s", data.data_inicio, data.data_fim)
+    if data.data_abertura >= data.data_fim:
+        logger.warning("período inválido inicio=%s fim=%s", data.data_abertura, data.data_fim)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Data de início deve ser anterior à data de fim"
         )
     
     # Validação de período máximo (1 ano)
-    diferenca = data.data_fim - data.data_inicio
+    diferenca = data.data_fim - data.data_abertura
     if diferenca.days > 365:
         logger.warning("período muito longo dias=%s", diferenca.days)
         raise HTTPException(
@@ -52,7 +52,7 @@ def gerar_relatorio_faturamento(data: RelatorioPeriodo):
     """
     
     from app.database.db import execute_query
-    results = execute_query(query, (data.data_inicio, data.data_fim))
+    results = execute_query(query, (data.data_abertura, data.data_fim))
     
     relatorio = []
     valor_total_geral = 0.0
@@ -70,11 +70,11 @@ def gerar_relatorio_faturamento(data: RelatorioPeriodo):
         quantidade_total += row["quantidade_pagamentos"]
     
     logger.info("relatório faturamento período=%s a %s total=%.2f", 
-                data.data_inicio, data.data_fim, valor_total_geral)
+                data.data_abertura, data.data_fim, valor_total_geral)
     
     return {
         "periodo": {
-            "data_inicio": data.data_inicio,
+            "data_abertura": data.data_abertura,
             "data_fim": data.data_fim
         },
         "resumo": {
@@ -107,7 +107,7 @@ def gerar_relatorio_servicos_realizados(data: RelatorioPeriodo):
     """
     
     from app.database.db import execute_query
-    results = execute_query(query, (data.data_inicio, data.data_fim))
+    results = execute_query(query, (data.data_abertura, data.data_fim))
     
     relatorio = []
     valor_total_geral = 0.0
@@ -128,11 +128,11 @@ def gerar_relatorio_servicos_realizados(data: RelatorioPeriodo):
         servicos_total += row["total_servicos"]
     
     logger.info("relatório serviços realizados período=%s a %s os=%s servicos=%s", 
-                data.data_inicio, data.data_fim, os_total, servicos_total)
+                data.data_abertura, data.data_fim, os_total, servicos_total)
     
     return {
         "periodo": {
-            "data_inicio": data.data_inicio,
+            "data_abertura": data.data_abertura,
             "data_fim": data.data_fim
         },
         "resumo": {
@@ -150,17 +150,17 @@ def gerar_relatorio_estoque():
     SELECT 
         p.id_peca,
         p.nome,
-        p.estoque_atual,
+        p.quantidade_estoque,
         p.valor_unitario,
-        COALESCE(p.estoque_atual * p.valor_unitario, 0) as valor_total_estoque,
+        COALESCE(p.quantidade_estoque* p.valor_unitario, 0) as valor_total_estoque,
         CASE 
-            WHEN p.estoque_atual <= 5 THEN 'baixo'
-            WHEN p.estoque_atual <= 10 THEN 'medio'
+            WHEN p.quantidade_estoque<= 5 THEN 'baixo'
+            WHEN p.quantidade_estoque<= 10 THEN 'medio'
             ELSE 'alto'
         END as nivel_estoque
     FROM peca p
     WHERE p.deleted_at IS NULL
-    ORDER BY nivel_estoque, p.estoque_atual ASC
+    ORDER BY nivel_estoque, p.quantidade_estoqueASC
     """
     
     from app.database.db import execute_query
@@ -175,7 +175,7 @@ def gerar_relatorio_estoque():
         relatorio.append({
             "id_peca": row["id_peca"],
             "nome": row["nome"],
-            "estoque_atual": row["estoque_atual"],
+            "quantidade_estoque": row["quantidade_estoque"],
             "valor_unitario": float(row["valor_unitario"]),
             "valor_total_estoque": valor_total,
             "nivel_estoque": row["nivel_estoque"]
@@ -229,7 +229,7 @@ def gerar_relatorio_ordens_servico(data: RelatorioPeriodo):
     """
     
     from app.database.db import execute_query
-    results = execute_query(query, (data.data_inicio, data.data_fim))
+    results = execute_query(query, (data.data_abertura, data.data_fim))
     
     relatorio = []
     valor_total_geral = 0.0
@@ -247,11 +247,11 @@ def gerar_relatorio_ordens_servico(data: RelatorioPeriodo):
         os_total += row["quantidade"]
     
     logger.info("relatório ordens serviço período=%s a %s os=%s valor=%.2f", 
-                data.data_inicio, data.data_fim, os_total, valor_total_geral)
+                data.data_abertura, data.data_fim, os_total, valor_total_geral)
     
     return {
         "periodo": {
-            "data_inicio": data.data_inicio,
+            "data_abertura": data.data_abertura,
             "data_fim": data.data_fim
         },
         "resumo": {
@@ -269,7 +269,7 @@ def gerar_relatorio_financeiro_periodo(data: RelatorioPeriodo):
     from app.services.movimentacao_financeira_service import get_resumo_financeiro
     
     # Busca resumo financeiro
-    resumo = get_resumo_financeira(data.data_inicio, data.data_fim)
+    resumo = get_resumo_financeira(data.data_abertura, data.data_fim)
     
     # Busca saldo do período
     from app.services.movimentacao_financeira_service import calcular_saldo_periodo
@@ -290,7 +290,7 @@ def gerar_relatorio_financeiro_periodo(data: RelatorioPeriodo):
     """
     
     from app.database.db import execute_query
-    pagamentos_results = execute_query(query, (data.data_inicio, data.data_fim))
+    pagamentos_results = execute_query(query, (data.data_abertura, data.data_fim))
     
     pagamentos = []
     for row in pagamentos_results:
@@ -302,11 +302,11 @@ def gerar_relatorio_financeiro_periodo(data: RelatorioPeriodo):
         })
     
     logger.info("relatório financeiro período=%s a %s saldo=%.2f", 
-                data.data_inicio, data.data_fim, saldo_info["saldo"])
+                data.data_abertura, data.data_fim, saldo_info["saldo"])
     
     return {
         "periodo": {
-            "data_inicio": data.data_inicio,
+            "data_abertura": data.data_abertura,
             "data_fim": data.data_fim
         },
         "movimentacoes_financeiras": resumo,
@@ -322,16 +322,16 @@ def gerar_relatorio_completo(data: RelatorioPeriodo):
     """Gera relatório completo com todos os dados."""
     validate_periodo(data)
     
-    logger.info("gerando relatório completo período=%s a %s", data.data_inicio, data.data_fim)
+    logger.info("gerando relatório completo período=%s a %s", data.data_abertura, data.data_fim)
     
     return {
         "periodo": {
-            "data_inicio": data.data_inicio,
+            "data_abertura": data.data_abertura,
             "data_fim": data.data_fim
         },
         "faturamento": gerar_relatorio_faturamento(data)["resumo"],
         "servicos_realizados": gerar_relatorio_servicos_realizados(data)["resumo"],
         "ordens_servico": gerar_relatorio_ordens_servico(data)["resumo"],
         "financeiro": gerar_relatorio_financeiro_periodo(data)["saldo_periodo"],
-        "estoque_atual": gerar_relatorio_estoque()["resumo"]
+        "quantidade_estoque": gerar_relatorio_estoque()["resumo"]
     }

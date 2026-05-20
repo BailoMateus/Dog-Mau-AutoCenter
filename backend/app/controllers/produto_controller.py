@@ -6,7 +6,7 @@ from app.schemas.produto_schema import ProdutoCreate, ProdutoUpdate, ProdutoPubl
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/produtos", tags=["Produtos"])
+router = APIRouter(prefix="/api/produtos", tags=["Produtos"])
 
 
 def _to_public(produto):

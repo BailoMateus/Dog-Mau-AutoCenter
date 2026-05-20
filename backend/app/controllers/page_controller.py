@@ -148,6 +148,7 @@ def services_page(request: Request, user=Depends(get_page_user)):
     })
 
 
+@router.get("/produtos", include_in_schema=False)
 @router.get("/loja", include_in_schema=False)
 def loja_page(request: Request, user=Depends(get_page_user)):
     """Página pública de e-commerce (Loja de Produtos)."""

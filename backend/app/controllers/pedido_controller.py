@@ -8,7 +8,7 @@ from app.middlewares.auth_middleware import get_current_user
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/pedidos", tags=["Pedidos"])
+router = APIRouter(prefix="/api/pedidos", tags=["Pedidos"])
 
 @router.get("", response_model=list[PedidoPublic])
 def list_pedidos():
