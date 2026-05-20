@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 
+from app.core.file_storage import ensure_upload_subdirs, get_uploads_root
 from app.core.settings import get_settings
 
 _settings = get_settings()
@@ -53,6 +54,10 @@ _BACKEND_DIR = Path(__file__).resolve().parent.parent
 _STATIC_DIR = _BACKEND_DIR / "static"
 if _STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
+
+_UPLOADS_DIR = ensure_upload_subdirs()
+app.mount("/uploads", StaticFiles(directory=str(_UPLOADS_DIR)), name="uploads")
+logger.info("StaticFiles /uploads -> %s", get_uploads_root())
 
 app.add_middleware(
     CORSMiddleware,
@@ -111,6 +116,7 @@ async def log_requests(request: Request, call_next):
 
 @app.on_event("startup")
 async def on_startup():
+    ensure_upload_subdirs()
     from app.core.firebase import init_firebase
     try:
         init_firebase()

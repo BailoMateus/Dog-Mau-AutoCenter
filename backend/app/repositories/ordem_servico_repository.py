@@ -139,6 +139,16 @@ def soft_delete_ordem_servico(ordem_servico: OrdemServico):
     logger.info("ordem de serviço soft-delete id=%s", ordem_servico.id_os)
     return ordem_servico
 
+def check_usuario_exists(usuario_id: int):
+    """Verifica se usuario existe."""
+    query = """
+    SELECT COUNT(*) as count
+    FROM usuario 
+    WHERE id_usuario = %s AND deleted_at IS NULL AND ativo = TRUE
+    """
+    result = execute_query(query, (usuario_id,), fetch="one")
+    return result['count'] > 0 if result else False
+
 def check_veiculo_exists(veiculo_id: int):
     """Verifica se veículo existe."""
     query = """

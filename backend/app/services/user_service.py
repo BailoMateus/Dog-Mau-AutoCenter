@@ -2,9 +2,8 @@ import logging
 
 from fastapi import HTTPException, status, UploadFile
 import psycopg2
-import os
-from uuid import uuid4
 
+from app.core.file_storage import save_image_upload
 from app.core.roles import ADMIN, CLIENTE, MECANICO
 from app.core.security import hash_password
 from app.models.entities import User
@@ -160,16 +159,12 @@ def delete_user(user_id: int, *, actor: dict):
             detail="Erro ao excluir usuário",
         )
 
-def save_user_photo(user_id: int, file: UploadFile) -> str:
-    """Salva a foto do usuário no sistema de arquivos."""
-    upload_dir = os.path.join("uploads", "users")
-    os.makedirs(upload_dir, exist_ok=True)
+def assert_can_update(actor: dict, target_id: int):
+    assert_can_modify(actor, target_id, admin_only=False)
 
-    file_extension = file.filename.split(".")[-1]
-    file_name = f"{user_id}_{uuid4().hex}.{file_extension}"
-    file_path = os.path.join(upload_dir, file_name)
-
-    with open(file_path, "wb") as f:
-        f.write(file.file.read())
-
-    return file_path
+def upload_user_photo(user_id: int, file: UploadFile, *, actor: dict):
+    get_user_or_404(user_id)
+    assert_can_update(actor, user_id)
+    photo_url = save_image_upload("perfil", user_id, file)
+    repo.update_user_photo(user_id, photo_url)
+    return get_user_or_404(user_id)

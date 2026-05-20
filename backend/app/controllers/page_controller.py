@@ -258,3 +258,56 @@ def admin_usuarios_page(request: Request, user=Depends(get_page_user)):
         "usuarios": usuarios,
         "page": "admin",
     })
+
+
+@router.get("/relatorios", include_in_schema=False)
+def relatorios_page(request: Request, user=Depends(get_page_user)):
+    """Página de relatórios executivos — apenas para ADMIN."""
+    if not user or user.get("role") != "admin":
+        return RedirectResponse(url="/", status_code=302)
+    
+    return templates.TemplateResponse("pages/relatorios.html", {
+        "request": request,
+        "user": user,
+        "page": "relatorios",
+    })
+
+
+@router.get("/movimentacoes-estoque", include_in_schema=False)
+def movimentacoes_estoque_page(request: Request, user=Depends(get_page_user)):
+    """Página de movimentações de estoque — Admin/Mecânico."""
+    if not user or user.get("role") not in ("admin", "mecanico"):
+        return RedirectResponse(url="/", status_code=302)
+    
+    return templates.TemplateResponse("pages/movimentacoes_estoque.html", {
+        "request": request,
+        "user": user,
+        "page": "movimentacoes_estoque",
+    })
+
+
+@router.get("/movimentacoes-financeiras", include_in_schema=False)
+def movimentacoes_financeiras_page(request: Request, user=Depends(get_page_user)):
+    """Página de movimentações financeiras — apenas para ADMIN."""
+    if not user or user.get("role") != "admin":
+        return RedirectResponse(url="/", status_code=302)
+    
+    return templates.TemplateResponse("pages/movimentacoes_financeiras.html", {
+        "request": request,
+        "user": user,
+        "page": "movimentacoes_financeiras",
+    })
+
+
+@router.get("/ordem-servico/{os_id}", include_in_schema=False)
+def ordem_servico_detail_page(request: Request, os_id: int, user=Depends(get_page_user)):
+    """Página de detalhes de uma ordem de serviço."""
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
+    
+    return templates.TemplateResponse("pages/ordem_servico_detail.html", {
+        "request": request,
+        "user": user,
+        "os_id": os_id,
+        "page": "ordem_servico",
+    })

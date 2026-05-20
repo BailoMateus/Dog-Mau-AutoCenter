@@ -101,3 +101,21 @@ class RelatorioCompleto(BaseModel):
     ordens_servico: OrdensServicoResumo
     financeiro: FinanceiroPeriodoSaldo
     quantidade_estoque: EstoqueResumo
+
+class PecaMaisUtilizada(BaseModel):
+    nome: str
+    qtd_usada: int
+
+class ProdutoMaisVendido(BaseModel):
+    nome: str
+    qtd_vendida: int
+
+class DashboardRelatorio(BaseModel):
+    lucro_total: float
+    faturamento: float
+    prejuizo_despesas_total: float
+    total_movimentado_financeiramente: float
+    quantidade_servicos_concluidos: int
+    quantidade_pedidos_concluidos: int
+    pecas_mais_utilizadas: list[PecaMaisUtilizada]
+    produtos_mais_vendidos: list[ProdutoMaisVendido]

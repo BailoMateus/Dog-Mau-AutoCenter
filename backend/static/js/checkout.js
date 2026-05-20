@@ -37,8 +37,8 @@ class CheckoutManager {
       .map(item => `
         <div class="checkout-item">
           <div class="checkout-item-image">
-            ${item.imagem ? 
-              `<img src="${item.imagem}" alt="${item.nome}">` :
+            ${item.imagem_produto ?
+              `<img src="${item.imagem_produto}" alt="${item.nome}">` :
               '<i class="bi bi-box" style="font-size: 2em; color: #555;"></i>'
             }
           </div>

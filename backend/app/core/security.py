@@ -46,20 +46,12 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     logger.debug("access token emitido sub=%s", to_encode.get("sub"))
     return encoded_jwt
 
-def validate_file(file, allowed_types, max_size):
-    """Valida tipo e tamanho do arquivo."""
-    if file.content_type not in allowed_types:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Tipo de arquivo não permitido."
-        )
+def validate_file(file, allowed_types=None, max_size=None):
+    """Valida upload de imagem (JPG, JPEG, PNG)."""
+    from app.core.file_storage import MAX_IMAGE_SIZE_BYTES, validate_image_upload
 
-    if len(file.file.read()) > max_size:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Arquivo excede o tamanho máximo permitido."
-        )
-    file.file.seek(0)  # Resetar ponteiro do arquivo
+    _ = allowed_types
+    validate_image_upload(file, max_size=max_size or MAX_IMAGE_SIZE_BYTES)
 
 def require_role(allowed_roles: list):
     def role_checker(user=Depends(get_current_user)):
