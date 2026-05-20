@@ -1,8 +1,11 @@
 import logging
 
-from fastapi import HTTPException, status
+from decimal import Decimal
+
+from fastapi import HTTPException, UploadFile, status
 import psycopg2
 
+from app.core.file_storage import save_image_upload
 from app.models.entities import Produto
 from app.repositories import produto_repository as repo
 from app.schemas.produto_schema import ProdutoCreate, ProdutoUpdate
@@ -109,3 +112,48 @@ def delete_produto(produto_id: int):
     """Remove (soft delete) um produto."""
     produto = get_produto_or_404(produto_id)
     return repo.soft_delete_produto(produto)
+
+def save_produto_imagem_produto(produto_id: int, file: UploadFile) -> Produto:
+    get_produto_or_404(produto_id)
+    imagem_produto_url = save_image_upload("produtos", produto_id, file)
+    repo.update_produto_imagem_produto(produto_id, imagem_produto_url)
+    return get_produto_or_404(produto_id)
+
+def create_produto_with_image(data: ProdutoCreate, file: UploadFile | None):
+    produto = create_produto(data)
+    if file and file.filename:
+        return save_produto_imagem_produto(produto.id_produto, file)
+    return produto
+
+def update_produto_with_image(produto_id: int, data: ProdutoUpdate, file: UploadFile | None):
+    produto = update_produto(produto_id, data)
+    if file and file.filename:
+        return save_produto_imagem_produto(produto_id, file)
+    return produto
+
+def parse_produto_form_fields(
+    nome: str | None,
+    descricao: str | None,
+    preco: str | None,
+    quantidade_estoque: str | None,
+    *,
+    is_create: bool,
+) -> ProdutoCreate | ProdutoUpdate:
+    if is_create:
+        if not nome or preco is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Campos obrigatórios: nome e preco",
+            )
+        return ProdutoCreate(
+            nome=nome,
+            descricao=descricao,
+            preco=Decimal(preco),
+            quantidade_estoque=int(quantidade_estoque or 0),
+        )
+    return ProdutoUpdate(
+        nome=nome,
+        descricao=descricao,
+        preco=Decimal(preco) if preco is not None else None,
+        quantidade_estoque=int(quantidade_estoque) if quantidade_estoque is not None else None,
+    )

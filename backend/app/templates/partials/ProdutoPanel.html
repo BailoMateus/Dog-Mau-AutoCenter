@@ -39,16 +39,16 @@
             <tr>
                 <td>{{ p.id_produto }}</td>
                 <td class="text-center">
-                    <img src="{{ p.imagem_url or 'https://via.placeholder.com/50x50?text=Sem+Imagem' }}" alt="{{ p.nome }}" class="img-thumbnail rounded" style="width: 50px; height: 50px; object-fit: cover; background-color: #222; border-color: #333; padding: 2px;">
+                    <img src="{{ p.imagem_produto or 'https://via.placeholder.com/50x50?text=Sem+Imagem' }}" alt="{{ p.nome }}" class="img-thumbnail rounded" style="width: 50px; height: 50px; object-fit: cover; background-color: #222; border-color: #333; padding: 2px;">
                 </td>
                 <td>{{ p.nome }}</td>
                 <td class="d-none d-md-table-cell">{{ p.descricao }}</td>
                 <td>R$ {{ "%.2f" | format(p.preco | float) }}</td>
                 <td>
-                    {% if p.estoque is defined and p.estoque <= 5 %}
-                    <span class="badge bg-danger">{{ p.estoque }}</span>
-                    {% elif p.estoque is defined %}
-                    <span class="badge bg-success">{{ p.estoque }}</span>
+                    {% if p.quantidade_estoque is defined and p.quantidade_estoque <= 5 %}
+                    <span class="badge bg-danger">{{ p.quantidade_estoque }}</span>
+                    {% elif p.quantidade_estoque is defined %}
+                    <span class="badge bg-success">{{ p.quantidade_estoque }}</span>
                     {% else %}
                     <span class="badge bg-secondary">—</span>
                     {% endif %}
@@ -58,11 +58,11 @@
                     <button class="btn btn-sm btn-outline-primary me-2"
                             onclick="openProdutoModal('edit', this)"
                             data-prod-id="{{ p.id_produto }}"
-                            data-prod-imagem="{{ p.imagem_url or '' }}"
+                            data-prod-imagem-produto="{{ p.imagem_produto or '' }}"
                             data-prod-nome="{{ p.nome }}"
                             data-prod-descricao="{{ p.descricao }}"
                             data-prod-preco="{{ p.preco }}"
-                            data-prod-estoque="{{ p.estoque }}">
+                            data-prod-estoque="{{ p.quantidade_estoque }}">
                         <i class="bi bi-pencil"></i> Editar
                     </button>
                     <button class="btn btn-sm btn-outline-danger"
@@ -99,9 +99,9 @@
                     <img id="produtoImagemPreview" src="https://via.placeholder.com/150x150?text=Sem+Imagem" alt="Preview da Imagem" class="img-thumbnail rounded shadow-sm" style="width: 120px; height: 120px; object-fit: cover; background-color: #0b0b0b; border-color: #333;">
                 </div>
 
-                <div class="form-floating mb-3">
-                    <input type="url" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="produtoImagemUrl" name="imagem_url" placeholder="URL da Imagem">
-                    <label for="produtoImagemUrl" class="text-white-50">URL da Imagem</label>
+                <div class="mb-3">
+                    <label for="produtoImagemProduto" class="form-label text-white-50">Imagem do produto (JPG, PNG)</label>
+                    <input type="file" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="produtoImagemProduto" name="imagem_produto" accept="image/jpeg,image/png,image/jpg">
                 </div>
 
                 <div class="form-floating mb-3">
@@ -204,13 +204,13 @@
         if (mode === 'create') {
             title.textContent = 'Novo Produto';
             document.getElementById('produtoId').value = '';
-            document.getElementById('produtoImagemUrl').value = '';
+            document.getElementById('produtoImagemProduto').value = '';
             document.getElementById('produtoImagemPreview').src = 'https://via.placeholder.com/150x150?text=Sem+Imagem';
         } else if (mode === 'edit' && btnElement) {
             title.textContent = 'Editar Produto';
             document.getElementById('produtoId').value = btnElement.getAttribute('data-prod-id');
-            const imgUrl = btnElement.getAttribute('data-prod-imagem');
-            document.getElementById('produtoImagemUrl').value = imgUrl;
+            const imgUrl = btnElement.getAttribute('data-prod-imagem-produto');
+            document.getElementById('produtoImagemProduto').value = '';
             document.getElementById('produtoImagemPreview').src = imgUrl || 'https://via.placeholder.com/150x150?text=Sem+Imagem';
             document.getElementById('produtoNome').value = btnElement.getAttribute('data-prod-nome');
             document.getElementById('produtoDescricao').value = btnElement.getAttribute('data-prod-descricao');
@@ -243,18 +243,11 @@
         });
     });
 
-    // Atualizar preview da imagem ao digitar a URL
-    document.getElementById('produtoImagemUrl').addEventListener('input', function(e) {
+    document.getElementById('produtoImagemProduto').addEventListener('change', function(e) {
         const preview = document.getElementById('produtoImagemPreview');
-        const url = e.target.value.trim();
-        if (url) {
-            preview.src = url;
-            // Se a imagem falhar ao carregar, exibe o placeholder de erro
-            preview.onerror = function() {
-                this.src = 'https://via.placeholder.com/150x150?text=Erro+na+Imagem';
-            };
-        } else {
-            preview.src = 'https://via.placeholder.com/150x150?text=Sem+Imagem';
+        const file = e.target.files && e.target.files[0];
+        if (file) {
+            preview.src = URL.createObjectURL(file);
         }
     });
 
@@ -273,10 +266,16 @@
         const descricao = document.getElementById('produtoDescricao').value;
         const preco = parseFloat(document.getElementById('produtoPreco').value);
         const estoque = parseInt(document.getElementById('produtoEstoque').value, 10);
-        // O frontend lê a imagem, mas por enquanto, não precisamos enviá-la ao backend (já que o backend não espera)
-        // const imagem_url = document.getElementById('produtoImagemUrl').value;
+        const imagemInput = document.getElementById('produtoImagemProduto');
 
-        const payload = { nome, descricao, preco, estoque };
+        const formData = new FormData();
+        formData.append('nome', nome);
+        formData.append('descricao', descricao);
+        formData.append('preco', String(preco));
+        formData.append('quantidade_estoque', String(estoque));
+        if (imagemInput.files && imagemInput.files[0]) {
+            formData.append('imagem_produto', imagemInput.files[0]);
+        }
 
         const url = prodCurrentMode === 'create' ? '/api/produtos' : `/api/produtos/${id}`;
         const method = prodCurrentMode === 'create' ? 'POST' : 'PATCH';
@@ -284,9 +283,8 @@
         try {
             const response = await fetch(url, {
                 method: method,
-                headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify(payload)
+                body: formData
             });
 
             if (response.ok) {

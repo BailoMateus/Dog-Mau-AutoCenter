@@ -269,7 +269,7 @@ def gerar_relatorio_financeiro_periodo(data: RelatorioPeriodo):
     from app.services.movimentacao_financeira_service import get_resumo_financeiro
     
     # Busca resumo financeiro
-    resumo = get_resumo_financeira(data.data_abertura, data.data_fim)
+    resumo = get_resumo_financeiro(data.data_abertura, data.data_fim)
     
     # Busca saldo do período
     from app.services.movimentacao_financeira_service import calcular_saldo_periodo
@@ -334,4 +334,69 @@ def gerar_relatorio_completo(data: RelatorioPeriodo):
         "ordens_servico": gerar_relatorio_ordens_servico(data)["resumo"],
         "financeiro": gerar_relatorio_financeiro_periodo(data)["saldo_periodo"],
         "quantidade_estoque": gerar_relatorio_estoque()["resumo"]
+    }
+
+def gerar_relatorio_dashboard():
+    """Gera o dashboard completo com métricas solicitadas, independente de período estrito."""
+    from app.database.db import execute_query
+    
+    # Saldo financeiro, Entradas (faturamento) e Saídas (prejuizo / despesas / custo pecas)
+    query_fin = """
+    SELECT tipo_movimentacao, COALESCE(SUM(valor), 0) as total
+    FROM movimentacao_financeira
+    """
+    res_fin = execute_query(query_fin)
+    entradas = 0.0
+    saidas = 0.0
+    for r in res_fin:
+        if r['tipo_movimentacao'] == 'entrada':
+            entradas += float(r['total'])
+        elif r['tipo_movimentacao'] == 'saida':
+            saidas += float(r['total'])
+    
+    lucro_total = entradas - saidas
+    total_movimentado = entradas + saidas
+    
+    # Qtd servicos (OS) concluídos e qtd pedidos concluídos
+    os_res = execute_query("SELECT COUNT(*) as qtd FROM ordem_servico WHERE status = 'concluida'")
+    qtd_os_concluidas = os_res[0]['qtd'] if os_res else 0
+    
+    ped_res = execute_query("SELECT COUNT(*) as qtd FROM pedido WHERE status = 'concluido'")
+    qtd_pedidos_concluidos = ped_res[0]['qtd'] if ped_res else 0
+    
+    # Peças mais utilizadas
+    query_pecas = """
+    SELECT p.nome, SUM(op.quantidade) as qtd_usada
+    FROM os_peca op
+    JOIN peca p ON p.id_peca = op.id_peca
+    JOIN ordem_servico os ON os.id_os = op.id_os
+    WHERE os.status = 'concluida'
+    GROUP BY p.nome
+    ORDER BY qtd_usada DESC
+    LIMIT 5
+    """
+    pecas_mais_utilizadas = execute_query(query_pecas)
+    
+    # Produtos mais vendidos
+    query_produtos = """
+    SELECT p.nome, SUM(pp.quantidade) as qtd_vendida
+    FROM pedido_produto pp
+    JOIN produto p ON p.id_produto = pp.id_produto
+    JOIN pedido ped ON ped.id_pedido = pp.id_pedido
+    WHERE ped.status = 'concluido'
+    GROUP BY p.nome
+    ORDER BY qtd_vendida DESC
+    LIMIT 5
+    """
+    produtos_mais_vendidos = execute_query(query_produtos)
+    
+    return {
+        "lucro_total": lucro_total,
+        "faturamento": entradas,
+        "prejuizo_despesas_total": saidas,
+        "total_movimentado_financeiramente": total_movimentado,
+        "quantidade_servicos_concluidos": qtd_os_concluidas,
+        "quantidade_pedidos_concluidos": qtd_pedidos_concluidos,
+        "pecas_mais_utilizadas": pecas_mais_utilizadas,
+        "produtos_mais_vendidos": produtos_mais_vendidos
     }

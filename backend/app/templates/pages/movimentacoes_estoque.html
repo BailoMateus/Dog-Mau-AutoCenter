@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block title %}Movimentações de Estoque - Dog Mau AutoCenter{% endblock %}
+
+{% block extra_head %}
+<style>
+    .movimentacao-header {
+        background: linear-gradient(135deg, #1a1a1a 0%, #111 100%);
+        border: 1px solid #333;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+    }
+    
+    .btn-nova-movimentacao {
+        background: rgba(192, 37, 43);
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+    }
+    
+    .btn-nova-movimentacao:hover {
+        background: #8a1a1a;
+    }
+    
+    .movimentacao-table {
+        background: #111;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .movimentacao-table table {
+        margin-bottom: 0;
+    }
+    
+    .movimentacao-table thead {
+        background-color: #1a1a1a;
+        border-bottom: 2px solid #333;
+    }
+    
+    .movimentacao-table th {
+        color: rgba(192, 37, 43);
+        font-weight: bold;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        padding: 15px;
+        letter-spacing: 0.5px;
+    }
+    
+    .movimentacao-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #222;
+    }
+    
+    .movimentacao-table tbody tr:hover {
+        background-color: #1a1a1a;
+    }
+    
+    .tipo-entrada {
+        color: #28a745;
+    }
+    
+    .tipo-saida {
+        color: #f44336;
+    }
+    
+    .filtro-form {
+        background: #1a1a1a;
+        border: 1px solid #333;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    
+    .filtro-form .form-control,
+    .filtro-form .form-select {
+        background: #111;
+        border: 1px solid #333;
+        color: white;
+        border-radius: 4px;
+    }
+    
+    .filtro-form .form-control:focus,
+    .filtro-form .form-select:focus {
+        background: #111;
+        border-color: rgba(192, 37, 43, 0.5);
+        color: white;
+        box-shadow: 0 0 0 0.2rem rgba(192, 37, 43, 0.25);
+    }
+    
+    .loading-spinner {
+        display: none;
+        text-align: center;
+        padding: 40px 20px;
+    }
+    
+    .loading-spinner.active {
+        display: block;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #aaa;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        color: #333;
+        margin-bottom: 15px;
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Cabeçalho -->
+    <div class="row mb-4 align-items-center">
+        <div class="col">
+            <h1 class="fw-bold m-0" style="color: rgba(192, 37, 43); font-family: 'Orbitron', sans-serif; text-align: left;">
+                <i class="bi bi-arrow-left-right me-2"></i>Movimentações de Estoque
+            </h1>
+            <p class="text-muted mt-2 mb-0">Histórico de entradas e saídas de peças</p>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-nova-movimentacao text-white" data-bs-toggle="modal" data-bs-target="#novaMovimentacaoModal">
+                <i class="bi bi-plus-circle me-2"></i>Nova Movimentação
+            </button>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filtro-form">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Tipo de Movimentação</label>
+                <select class="form-select" id="filtroTipo">
+                    <option value="">Todos</option>
+                    <option value="entrada">Entrada</option>
+                    <option value="saida">Saída</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Peça</label>
+                <select class="form-select" id="filtroPeca">
+                    <option value="">Todas as Peças</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Período</label>
+                <div class="input-group">
+                    <input type="date" class="form-control" id="filtroDataInicio">
+                    <span class="input-group-text">até</span>
+                    <input type="date" class="form-control" id="filtroDataFim">
+                </div>
+            </div>
+            <div class="col-md-2 d-flex align-items-end gap-2">
+                <button class="btn btn-primary w-100" id="btnFiltrar">
+                    <i class="bi bi-search me-1"></i>Filtrar
+                </button>
+                <button class="btn btn-secondary w-100" id="btnLimparFiltro">
+                    <i class="bi bi-x-lg me-1"></i>Limpar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela de Movimentações -->
+    <div id="movimentacaoLoader" class="loading-spinner active">
+        <div class="spinner-border" style="color: rgba(192, 37, 43);" role="status">
+            <span class="visually-hidden">Carregando...</span>
+        </div>
+        <p class="mt-3 text-muted">Carregando movimentações...</p>
+    </div>
+
+    <div id="movimentacaoContent" style="display: none;">
+        <div class="movimentacao-table table-responsive">
+            <table class="table table-dark table-hover">
+                <thead>
+                    <tr>
+                        <th>#ID</th>
+                        <th>Peça</th>
+                        <th>Tipo</th>
+                        <th class="text-end">Quantidade</th>
+                        <th>Motivo</th>
+                        <th>Data</th>
+                    </tr>
+                </thead>
+                <tbody id="movimentacaoBody">
+                    <!-- Dados preenchidos via JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="emptyMovimentacao" class="empty-state" style="display: none;">
+        <i class="bi bi-inbox"></i>
+        <p>Nenhuma movimentação encontrada</p>
+    </div>
+</div>
+
+<!-- Modal Nova Movimentação -->
+<div class="modal fade" id="novaMovimentacaoModal" tabindex="-1" aria-labelledby="novaMovimentacaoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title" id="novaMovimentacaoLabel">
+                    <i class="bi bi-plus-circle me-2"></i>Nova Movimentação de Estoque
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formNovaMovimentacao">
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de Movimentação</label>
+                        <select class="form-select bg-dark text-white border-secondary" id="tipoMovimentacao" required>
+                            <option value="">Selecione...</option>
+                            <option value="entrada">Entrada</option>
+                            <option value="saida">Saída</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Peça</label>
+                        <select class="form-select bg-dark text-white border-secondary" id="pecaSelect" required>
+                            <option value="">Carregando peças...</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Quantidade</label>
+                        <input type="number" class="form-control bg-dark text-white border-secondary" 
+                               id="quantidade" min="1" required placeholder="Ex: 10">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Motivo</label>
+                        <textarea class="form-control bg-dark text-white border-secondary" id="motivo" 
+                                  rows="3" required placeholder="Descreva o motivo da movimentação"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnSalvarMovimentacao">Salvar Movimentação</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="/static/js/movimentacoes_estoque.js"></script>
+{% endblock %}

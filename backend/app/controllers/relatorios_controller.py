@@ -1,17 +1,19 @@
 import logging
 
-from fastapi import APIRouter, HTTPException, status
+from app.core.security import require_role
+from app.core.roles import ADMIN
+from fastapi import APIRouter, HTTPException, status, Depends
 
 from app.services import relatorios_service
 from app.schemas.relatorios_schema import (
     RelatorioPeriodo, FaturamentoRelatorio, ServicosRealizadosRelatorio,
     EstoqueRelatorio, OrdensServicoRelatorio, FinanceiroPeriodoRelatorio,
-    RelatorioCompleto
+    RelatorioCompleto, DashboardRelatorio
 )
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/relatorios", tags=["Relatórios"])
+router = APIRouter(prefix="/relatorios", tags=["Relatórios"], dependencies=[Depends(require_role([ADMIN]))])
 
 @router.post("/faturamento", response_model=FaturamentoRelatorio)
 def gerar_relatorio_faturamento(data: RelatorioPeriodo):
@@ -90,3 +92,9 @@ def gerar_relatorio_completo(data: RelatorioPeriodo):
         financeiro=relatorio["financeiro"],
         quantidade_estoque=relatorio["quantidade_estoque"]
     )
+
+@router.get("/dashboard", response_model=DashboardRelatorio)
+def gerar_relatorio_dashboard():
+    """Gera relatório de dashboard executivo com métricas financeiras gerais."""
+    logger.info("GET /relatorios/dashboard")
+    return relatorios_service.gerar_relatorio_dashboard()

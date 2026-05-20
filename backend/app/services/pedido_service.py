@@ -75,6 +75,7 @@ def update_pedido(pedido_id: int, data: PedidoUpdate):
     )
     
     # Atualiza campos
+    status_anterior = pedido.status
     if data.id_usuario is not None:
         pedido.id_usuario = data.id_usuario
     if data.valor_total is not None:
@@ -83,7 +84,36 @@ def update_pedido(pedido_id: int, data: PedidoUpdate):
         pedido.status = data.status
     
     try:
-        return repo.update_pedido(pedido)
+        updated_pedido = repo.update_pedido(pedido)
+        
+        # --- Lógica de Automação de Estoque e Financeiro ---
+        if status_anterior != "concluido" and pedido.status == "concluido":
+            from app.repositories import pedido_produto_repository
+            from app.repositories import movimentacao_estoque_repository
+            from app.repositories import movimentacao_financeira_repository
+            
+            # 1. Baixar estoque dos produtos
+            produtos_do_pedido = pedido_produto_repository.get_itens_by_pedido(pedido_id)
+            for pp in produtos_do_pedido:
+                try:
+                    movimentacao_estoque_repository.registrar_saida_estoque_produto(
+                        produto_id=pp.id_produto,
+                        quantidade=pp.quantidade,
+                        motivo=f"Venda no Pedido #{pedido_id}"
+                    )
+                except Exception as e:
+                    logger.error("Erro ao dar baixa no estoque do produto=%s: %s", pp.id_produto, e)
+            
+            # 2. Registrar Entrada Financeira
+            valor_total = float(pedido.valor_total) if pedido.valor_total else 0.0
+            if valor_total > 0:
+                movimentacao_financeira_repository.registrar_entrada_financeira(
+                    valor=valor_total,
+                    descricao=f"Faturamento do Pedido #{pedido_id}"
+                )
+        # ----------------------------------------------------
+        
+        return updated_pedido
     except psycopg2.IntegrityError:
         logger.error("update_pedido erro de integridade id=%s", pedido_id)
         raise HTTPException(

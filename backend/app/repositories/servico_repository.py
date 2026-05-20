@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 def get_servico_by_id(servico_id: int):
     """Busca serviço por ID."""
     query = """
-    SELECT id_servico, descricao, preco, created_at, updated_at, deleted_at
+    SELECT id_servico, nome_servico, descricao, tempo_estimado, preco, created_at, updated_at, deleted_at
     FROM servico 
     WHERE id_servico = %s AND deleted_at IS NULL
     """
@@ -21,7 +21,7 @@ def get_servico_by_id(servico_id: int):
 def get_all_servicos():
     """Lista todos os serviços."""
     query = """
-    SELECT id_servico, descricao, preco, created_at, updated_at, deleted_at
+    SELECT id_servico, nome_servico, descricao, tempo_estimado, preco, created_at, updated_at, deleted_at
     FROM servico 
     WHERE deleted_at IS NULL
     ORDER BY descricao ASC
@@ -34,11 +34,11 @@ def get_all_servicos():
 def create_servico(servico: Servico):
     """Cria um novo serviço."""
     query = """
-    INSERT INTO servico (descricao, preco)
-    VALUES (%s, %s)
+    INSERT INTO servico (nome_servico, descricao, tempo_estimado, preco)
+    VALUES (%s, %s, %s, %s)
     RETURNING id_servico
     """
-    params = (servico.descricao, servico.preco)
+    params = (servico.nome_servico, servico.descricao, servico.tempo_estimado, servico.preco)
     servico_id = execute_insert(query, params)
     servico.id_servico = servico_id
     logger.info("servico criado id=%s", servico.id_servico)
@@ -48,10 +48,10 @@ def update_servico(servico: Servico):
     """Atualiza um serviço."""
     query = """
     UPDATE servico 
-    SET descricao = %s, preco = %s, updated_at = CURRENT_TIMESTAMP
+    SET nome_servico = %s, descricao = %s, tempo_estimado = %s, preco = %s, updated_at = CURRENT_TIMESTAMP
     WHERE id_servico = %s AND deleted_at IS NULL
     """
-    params = (servico.descricao, servico.preco, servico.id_servico)
+    params = (servico.nome_servico, servico.descricao, servico.tempo_estimado, servico.preco, servico.id_servico)
     execute_command(query, params)
     logger.info("servico atualizado id=%s", servico.id_servico)
     return servico
