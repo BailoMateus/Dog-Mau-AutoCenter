@@ -912,3 +912,34 @@ select, textarea {
         transform: translateY(0);
     }
 }
+
+/* ===== LAYOUT FLEXÍVEL PARA FOOTER ===== */
+html {
+    height: 100%;
+}
+
+body.d-flex {
+    height: 100vh;
+    min-height: 100vh;
+}
+
+main.flex-grow-1 {
+    flex: 1 1 auto;
+    overflow-y: auto;
+}
+
+.footer {
+    flex-shrink: 0;
+    width: 100%;
+}
+
+/* Responsividade do layout flexível */
+@media (max-width: 768px) {
+    body.d-flex {
+        flex-direction: column;
+    }
+    
+    main.flex-grow-1 {
+        flex: 1 1 auto;
+    }
+}
