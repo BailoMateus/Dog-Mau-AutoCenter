@@ -282,8 +282,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             return `
                 <div class="produto-card">
                     <div class="produto-imagem">
-                        ${produto.imagem ? 
-                            `<img src="${produto.imagem}" alt="${produto.nome}">` :
+                        ${produto.imagem_produto ? 
+                            `<img src="${produto.imagem_produto}" alt="${produto.nome}">` :
                             '<div class="produto-imagem-placeholder"><i class="bi bi-box"></i></div>'
                         }
                     </div>
@@ -311,7 +311,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             </button>
                             <button 
                                 class="btn-carrinho" 
-                                onclick="addToCart({id_produto: ${produto.id_produto}, nome: '${produto.nome.replace(/'/g, "\\'")}', preco: ${produto.preco}, imagem: '${produto.imagem || ''}'${!temEstoque ? ', disabled: true' : ''}})"
+                                onclick="addToCart({id_produto: ${produto.id_produto}, nome: '${produto.nome.replace(/'/g, "\\'")}', preco: ${produto.preco}, imagem_produto: '${produto.imagem_produto || ''}'${!temEstoque ? ', disabled: true' : ''}})"
                                 ${!temEstoque ? 'disabled' : ''}
                                 title="Adicionar ao carrinho"
                             >

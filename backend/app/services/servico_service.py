@@ -13,7 +13,9 @@ def list_servicos():
 
 def create_servico(data: ServicoCreate):
     servico = Servico(
+        nome_servico=data.nome_servico,
         descricao=data.descricao,
+        tempo_estimado=data.tempo_estimado,
         preco=data.preco,
     )
     return repo.create_servico(servico)
@@ -28,8 +30,12 @@ def get_servico_or_404(servico_id: int) -> Servico:
 def update_servico(servico_id: int, data: ServicoUpdate):
     servico = get_servico_or_404(servico_id)
 
+    if data.nome_servico is not None:
+        servico.nome_servico = data.nome_servico
     if data.descricao is not None:
         servico.descricao = data.descricao
+    if data.tempo_estimado is not None:
+        servico.tempo_estimado = data.tempo_estimado
     if data.preco is not None:
         servico.preco = data.preco
 

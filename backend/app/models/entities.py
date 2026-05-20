@@ -77,7 +77,9 @@ class Veiculo:
 @dataclass
 class Servico:
     id_servico: Optional[int] = None
+    nome_servico: str = ""
     descricao: str = ""
+    tempo_estimado: Optional[str] = None
     preco: float = 0.0
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
@@ -90,6 +92,7 @@ class Produto:
     descricao: str = ""
     preco: float = 0.0
     quantidade_estoque: int = 0
+    imagem_produto: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
@@ -121,6 +124,7 @@ class Peca:
     nome: str = ""
     preco_unitario: float = 0.0
     quantidade_estoque: int = 0
+    imagem_peca: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
@@ -521,7 +525,9 @@ def servico_to_dict(servico: Servico) -> dict:
         return None
     return {
         'id_servico': servico.id_servico,
+        'nome_servico': servico.nome_servico,
         'descricao': servico.descricao,
+        'tempo_estimado': servico.tempo_estimado,
         'preco': servico.preco,
         'created_at': servico.created_at,
         'updated_at': servico.updated_at,
@@ -538,6 +544,7 @@ def produto_to_dict(produto: Produto) -> dict:
         'descricao': produto.descricao,
         'preco': produto.preco,
         'quantidade_estoque': produto.quantidade_estoque,
+        'imagem_produto': produto.imagem_produto,
         'created_at': produto.created_at,
         'updated_at': produto.updated_at,
         'deleted_at': produto.deleted_at
@@ -580,6 +587,7 @@ def peca_to_dict(peca: Peca) -> dict:
         'nome': peca.nome,
         'preco_unitario': peca.preco_unitario,
         'quantidade_estoque': peca.quantidade_estoque,
+        'imagem_peca': peca.imagem_peca,
         'created_at': peca.created_at,
         'updated_at': peca.updated_at,
         'deleted_at': peca.deleted_at

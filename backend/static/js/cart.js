@@ -45,7 +45,7 @@ class ShoppingCart {
         nome: produto.nome,
         preco: produto.preco,
         quantidade: 1,
-        imagem: produto.imagem || null
+        imagem_produto: produto.imagem_produto || null
       });
     }
     
@@ -225,7 +225,7 @@ class ShoppingCart {
     return `
       <div class="cart-item" data-produto-id="${item.id_produto}">
         <div class="cart-item-info">
-          ${item.imagem ? `<img src="${item.imagem}" alt="${item.nome}" class="cart-item-image">` : ''}
+          ${item.imagem_produto ? `<img src="${item.imagem_produto}" alt="${item.nome}" class="cart-item-image">` : ''}
           <div class="cart-item-details">
             <h6 class="cart-item-name">${item.nome}</h6>
             <p class="cart-item-price">${this.formatPrice(item.preco)}</p>

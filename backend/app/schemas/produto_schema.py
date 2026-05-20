@@ -1,7 +1,9 @@
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from app.core.file_storage import normalize_stored_image_url
 
 class ProdutoCreate(BaseModel):
     nome: str = Field(..., min_length=1, max_length=150)
@@ -23,5 +25,11 @@ class ProdutoPublic(BaseModel):
     descricao: str | None = None
     preco: Decimal
     quantidade_estoque: int
+    imagem_produto: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
+
+    @field_validator("imagem_produto", mode="before")
+    @classmethod
+    def normalize_imagem_produto(cls, v: str | None) -> str | None:
+        return normalize_stored_image_url(v)

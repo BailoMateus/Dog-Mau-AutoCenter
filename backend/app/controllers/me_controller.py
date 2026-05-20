@@ -1,7 +1,7 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Path
+from fastapi import APIRouter, Depends, File, Path, UploadFile
 
 from app.core.roles import CLIENTE
 from app.core.security import require_role
@@ -47,6 +47,16 @@ def update_my_profile(
     logger.info("PATCH /me/profile user_id=%s", current["user_id"])
     user = get_my_user(current)
     return user_service.update_user(user.id_usuario, data, actor=current)
+
+
+@router.post("/foto-perfil", response_model=UserPublic)
+def upload_my_profile_photo(
+    file: UploadFile = File(...),
+    current=Depends(require_cliente),
+):
+    """Cliente atualiza a foto de perfil (multipart/form-data)."""
+    logger.info("POST /me/foto-perfil user_id=%s", current["user_id"])
+    return user_service.upload_user_photo(int(current["user_id"]), file, actor=current)
 
 
 # Endereços do cliente

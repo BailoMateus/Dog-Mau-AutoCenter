@@ -1,3 +1,6 @@
+# Uploads locais
+backend/uploads/
+
 # Python
 __pycache__/
 *.py[cod]
