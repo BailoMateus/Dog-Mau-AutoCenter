@@ -5,10 +5,23 @@ from uuid import uuid4
 
 from fastapi import HTTPException, UploadFile, status
 
+from app.core.settings import get_settings
+
 logger = logging.getLogger(__name__)
 
-_BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
-UPLOADS_ROOT = _BACKEND_DIR / "uploads"
+_BACKEND_DIR = Path(__file__).resolve().parents[2]
+UPLOAD_SUBDIRS = ("produtos", "pecas", "perfil")
+
+
+def get_uploads_root() -> Path:
+    """Raiz de uploads: backend/uploads ou UPLOADS_DIR (absoluto no container/host)."""
+    override = get_settings().uploads_dir
+    if override:
+        return Path(override).expanduser().resolve()
+    return (_BACKEND_DIR / "uploads").resolve()
+
+
+UPLOADS_ROOT = get_uploads_root()
 
 ALLOWED_IMAGE_CONTENT_TYPES = {
     "image/jpeg",
@@ -17,6 +30,21 @@ ALLOWED_IMAGE_CONTENT_TYPES = {
 }
 ALLOWED_IMAGE_EXTENSIONS = {"jpg", "jpeg", "png"}
 MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024
+
+
+def ensure_upload_subdirs() -> Path:
+    """Cria uploads/ e subpastas produtos, pecas, perfil."""
+    root = get_uploads_root()
+    root.mkdir(parents=True, exist_ok=True)
+    for name in UPLOAD_SUBDIRS:
+        (root / name).mkdir(parents=True, exist_ok=True)
+    logger.info(
+        "uploads prontos backend_dir=%s uploads_root=%s cwd=%s",
+        _BACKEND_DIR.resolve(),
+        root,
+        Path.cwd(),
+    )
+    return root
 
 
 def _normalize_extension(filename: str | None, content_type: str | None) -> str:
@@ -62,18 +90,44 @@ def save_image_upload(subdir: str, entity_id: int, file: UploadFile) -> str:
             detail="Não foi possível determinar o formato da imagem.",
         )
 
-    target_dir = UPLOADS_ROOT / subdir
+    uploads_root = get_uploads_root()
+    target_dir = uploads_root / subdir
     target_dir.mkdir(parents=True, exist_ok=True)
 
     file_name = f"{entity_id}_{uuid4().hex}.{ext}"
-    disk_path = target_dir / file_name
+    file_path = target_dir / file_name
 
     content = file.file.read()
-    with open(disk_path, "wb") as f:
-        f.write(content)
+    if not content:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Arquivo de imagem vazio ou já consumido.",
+        )
+
+    logger.info("Saving file at %s", file_path.resolve())
+    file_path.write_bytes(content)
+    logger.info("File exists after save: %s", file_path.exists())
+    if not file_path.exists() or file_path.stat().st_size != len(content):
+        logger.error(
+            "falha ao persistir upload subdir=%s path=%s size_esperado=%s size_disco=%s",
+            subdir,
+            file_path.resolve(),
+            len(content),
+            file_path.stat().st_size if file_path.exists() else None,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Não foi possível salvar a imagem no disco.",
+        )
 
     public_url = f"/uploads/{subdir}/{file_name}"
-    logger.info("imagem salva entity_id=%s url=%s", entity_id, public_url)
+    logger.info(
+        "imagem salva entity_id=%s subdir=%s url=%s bytes=%s",
+        entity_id,
+        subdir,
+        public_url,
+        len(content),
+    )
     return public_url
 
 

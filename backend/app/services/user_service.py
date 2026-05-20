@@ -165,6 +165,6 @@ def assert_can_update(actor: dict, target_id: int):
 def upload_user_photo(user_id: int, file: UploadFile, *, actor: dict):
     get_user_or_404(user_id)
     assert_can_update(actor, user_id)
-    photo_url = save_image_upload("users", user_id, file)
+    photo_url = save_image_upload("perfil", user_id, file)
     repo.update_user_photo(user_id, photo_url)
     return get_user_or_404(user_id)
