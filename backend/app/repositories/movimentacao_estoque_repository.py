@@ -9,26 +9,26 @@ logger = logging.getLogger(__name__)
 def create_movimentacao_estoque(movimentacao: MovimentacaoEstoque):
     """Cria uma nova movimentação de estoque."""
     query = """
-    INSERT INTO movimentacao_estoque (id_peca, tipo_movimentacao, quantidade, motivo)
-    VALUES (%s, %s, %s, %s)
+    INSERT INTO movimentacao_estoque (id_peca, id_produto, tipo_movimentacao, quantidade, motivo)
+    VALUES (%s, %s, %s, %s, %s)
     RETURNING id_movimentacao
     """
     params = (
-        movimentacao.id_peca, movimentacao.tipo_movimentacao, 
+        movimentacao.id_peca, movimentacao.id_produto, movimentacao.tipo_movimentacao, 
         movimentacao.quantidade, movimentacao.motivo
     )
     movimentacao_id = execute_insert(query, params)
     movimentacao.id_movimentacao = movimentacao_id
     movimentacao.created_at = datetime.now(timezone.utc)
-    logger.info("movimentação de estoque criada id=%s peca=%s tipo=%s quantidade=%s", 
-                movimentacao.id_movimentacao, movimentacao.id_peca, 
+    logger.info("movimentação de estoque criada id=%s peca=%s produto=%s tipo=%s quantidade=%s", 
+                movimentacao.id_movimentacao, movimentacao.id_peca, movimentacao.id_produto, 
                 movimentacao.tipo_movimentacao, movimentacao.quantidade)
     return movimentacao
 
 def get_movimentacoes_by_peca(peca_id: int, limit: int = 50):
     """Lista movimentações de uma peça."""
     query = """
-    SELECT id_movimentacao, id_peca, tipo_movimentacao, quantidade, motivo, created_at
+    SELECT id_movimentacao, id_peca, id_produto, tipo_movimentacao, quantidade, motivo, created_at
     FROM movimentacao_estoque 
     WHERE id_peca = %s
     ORDER BY created_at DESC
@@ -39,10 +39,24 @@ def get_movimentacoes_by_peca(peca_id: int, limit: int = 50):
     logger.debug("get_movimentacoes_by_peca peca_id=%s count=%s", peca_id, len(movimentacoes))
     return movimentacoes
 
+def get_movimentacoes_by_produto(produto_id: int, limit: int = 50):
+    """Lista movimentações de um produto."""
+    query = """
+    SELECT id_movimentacao, id_peca, id_produto, tipo_movimentacao, quantidade, motivo, created_at
+    FROM movimentacao_estoque 
+    WHERE id_produto = %s
+    ORDER BY created_at DESC
+    LIMIT %s
+    """
+    results = execute_query(query, (produto_id, limit))
+    movimentacoes = [dict_to_movimentacao_estoque(row) for row in results]
+    logger.debug("get_movimentacoes_by_produto produto_id=%s count=%s", produto_id, len(movimentacoes))
+    return movimentacoes
+
 def get_all_movimentacoes(limit: int = 100):
     """Lista todas as movimentações de estoque."""
     query = """
-    SELECT id_movimentacao, id_peca, tipo_movimentacao, quantidade, motivo, created_at
+    SELECT id_movimentacao, id_peca, id_produto, tipo_movimentacao, quantidade, motivo, created_at
     FROM movimentacao_estoque 
     ORDER BY created_at DESC
     LIMIT %s
@@ -55,7 +69,7 @@ def get_all_movimentacoes(limit: int = 100):
 def get_movimentacoes_by_tipo(tipo: str, limit: int = 50):
     """Lista movimentações por tipo (entrada/saida)."""
     query = """
-    SELECT id_movimentacao, id_peca, tipo_movimentacao, quantidade, motivo, created_at
+    SELECT id_movimentacao, id_peca, id_produto, tipo_movimentacao, quantidade, motivo, created_at
     FROM movimentacao_estoque 
     WHERE tipo_movimentacao = %s
     ORDER BY created_at DESC
@@ -69,7 +83,7 @@ def get_movimentacoes_by_tipo(tipo: str, limit: int = 50):
 def get_ultima_movimentacao_peca(peca_id: int):
     """Busca última movimentação de uma peça."""
     query = """
-    SELECT id_movimentacao, id_peca, tipo_movimentacao, quantidade, motivo, created_at
+    SELECT id_movimentacao, id_peca, id_produto, tipo_movimentacao, quantidade, motivo, created_at
     FROM movimentacao_estoque 
     WHERE id_peca = %s
     ORDER BY created_at DESC
@@ -79,7 +93,7 @@ def get_ultima_movimentacao_peca(peca_id: int):
     return dict_to_movimentacao_estoque(result) if result else None
 
 def registrar_saida_estoque(peca_id: int, quantidade: int, motivo: str = ""):
-    """Registra saída de estoque."""
+    """Registra saída de estoque de uma peça."""
     # Buscar estoque atual
     from app.repositories.os_peca_repository import get_peca_estoque
     estoque_anterior = get_peca_estoque(peca_id)
@@ -88,7 +102,7 @@ def registrar_saida_estoque(peca_id: int, quantidade: int, motivo: str = ""):
     if estoque_anterior < quantidade:
         logger.error("estoque insuficiente peca=%s estoque=%s saida=%s", 
                     peca_id, estoque_anterior, quantidade)
-        raise ValueError(f"Estoque insuficiente. Disponível: {estoque_anterior}, Solicitado: {quantidade}")
+        raise ValueError(f"Estoque insuficiente de peca. Disponível: {estoque_anterior}, Solicitado: {quantidade}")
     
     # Calcular novo estoque
     estoque_posterior = estoque_anterior - quantidade
@@ -96,6 +110,7 @@ def registrar_saida_estoque(peca_id: int, quantidade: int, motivo: str = ""):
     # Criar movimentação
     movimentacao = MovimentacaoEstoque(
         id_peca=peca_id,
+        id_produto=None,
         tipo_movimentacao="saida",
         quantidade=quantidade,
         motivo=motivo or "Saída manual"
@@ -109,7 +124,7 @@ def registrar_saida_estoque(peca_id: int, quantidade: int, motivo: str = ""):
     return create_movimentacao_estoque(movimentacao)
 
 def registrar_entrada_estoque(peca_id: int, quantidade: int, motivo: str = ""):
-    """Registra entrada de estoque."""
+    """Registra entrada de estoque de uma peça."""
     # Buscar estoque atual
     from app.repositories.os_peca_repository import get_peca_estoque
     estoque_anterior = get_peca_estoque(peca_id)
@@ -120,6 +135,7 @@ def registrar_entrada_estoque(peca_id: int, quantidade: int, motivo: str = ""):
     # Criar movimentação
     movimentacao = MovimentacaoEstoque(
         id_peca=peca_id,
+        id_produto=None,
         tipo_movimentacao="entrada",
         quantidade=quantidade,
         motivo=motivo or "Entrada manual"
@@ -132,10 +148,43 @@ def registrar_entrada_estoque(peca_id: int, quantidade: int, motivo: str = ""):
     # Criar registro de movimentação
     return create_movimentacao_estoque(movimentacao)
 
+def registrar_saida_estoque_produto(produto_id: int, quantidade: int, motivo: str = ""):
+    """Registra saída de estoque de um produto."""
+    from app.repositories.produto_repository import get_produto_by_id, update_produto
+    produto = get_produto_by_id(produto_id)
+    if not produto:
+        raise ValueError(f"Produto {produto_id} não encontrado")
+        
+    estoque_anterior = produto.quantidade_estoque
+    
+    # Validar estoque suficiente
+    if estoque_anterior < quantidade:
+        logger.error("estoque insuficiente produto=%s estoque=%s saida=%s", 
+                    produto_id, estoque_anterior, quantidade)
+        raise ValueError(f"Estoque insuficiente de produto. Disponível: {estoque_anterior}, Solicitado: {quantidade}")
+    
+    # Calcular novo estoque
+    produto.quantidade_estoque = estoque_anterior - quantidade
+    
+    # Criar movimentação
+    movimentacao = MovimentacaoEstoque(
+        id_peca=None,
+        id_produto=produto_id,
+        tipo_movimentacao="saida",
+        quantidade=quantidade,
+        motivo=motivo or "Saída manual"
+    )
+    
+    # Atualizar estoque do produto
+    update_produto(produto)
+    
+    # Criar registro de movimentação
+    return create_movimentacao_estoque(movimentacao)
+
 def get_historico_estoque(peca_id: int, dias: int = 30):
     """Busca histórico de estoque de uma peça nos últimos dias."""
     query = """
-    SELECT id_movimentacao, id_peca, tipo_movimentacao, quantidade, motivo, created_at
+    SELECT id_movimentacao, id_peca, id_produto, tipo_movimentacao, quantidade, motivo, created_at
     FROM movimentacao_estoque 
     WHERE id_peca = %s AND created_at >= CURRENT_DATE - INTERVAL '%s days'
     ORDER BY created_at DESC

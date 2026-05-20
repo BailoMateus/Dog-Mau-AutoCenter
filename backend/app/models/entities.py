@@ -206,7 +206,8 @@ class Mecanico:
 @dataclass
 class MovimentacaoEstoque:
     id_movimentacao: Optional[int] = None
-    id_peca: int = 0
+    id_peca: Optional[int] = None
+    id_produto: Optional[int] = None
     tipo_movimentacao: str = ""  # 'saida' ou 'entrada'
     quantidade: int = 0
     motivo: str = ""
@@ -706,6 +707,7 @@ def movimentacao_estoque_to_dict(movimentacao: MovimentacaoEstoque) -> dict:
     return {
         'id_movimentacao': movimentacao.id_movimentacao,
         'id_peca': movimentacao.id_peca,
+        'id_produto': getattr(movimentacao, 'id_produto', None),
         'tipo_movimentacao': movimentacao.tipo_movimentacao,
         'quantidade': movimentacao.quantidade,
         'motivo': movimentacao.motivo,
