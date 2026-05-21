@@ -29,15 +29,11 @@ def list_pedidos():
 
 @router.post("", response_model=PedidoPublic, status_code=status.HTTP_201_CREATED)
 def create_pedido(data: PedidoCreate, user=Depends(get_current_user)):
-    """Cria um novo pedido. Requer autenticação.
-    
-    O id_usuario é extraído do usuário autenticado (via JWT no cookie).
-    """
-    user_id = int(user["user_id"])
-    logger.info("POST /pedidos usuario=%s valor=%s", user_id, data.valor_total)
-    
-    # Cria pedido com id_usuario do usuário autenticado
-    pedido = pedido_service.create_pedido_for_user(user_id, data)
+    """Cria um novo pedido. Requer autenticação."""
+    logger.info("POST /pedidos usuario=%s valor=%s", user["user_id"], data.valor_total)
+    if data.id_usuario is None:
+        data.id_usuario = int(user["user_id"])
+    pedido = pedido_service.create_pedido(data)
     return PedidoPublic(
         id_pedido=pedido.id_pedido,
         id_usuario=pedido.id_usuario,

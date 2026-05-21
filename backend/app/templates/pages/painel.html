@@ -104,6 +104,20 @@
             </a>
         </li>
 
+        <li class="nav-item" role="presentation">
+            <a class="nav-link nav-tab-link {% if tab == 'orcamentos' %}active{% endif %}" href="?tab=orcamentos" role="tab">
+                <i class="bi bi-file-earmark-text me-1"></i>
+                {% if user.role == 'admin' %}Orçamentos Pendentes{% else %}Meus Orçamentos{% endif %}
+            </a>
+        </li>
+
+        <li class="nav-item" role="presentation">
+            <a class="nav-link nav-tab-link {% if tab == 'ordens_servico' %}active{% endif %}" href="?tab=ordens_servico" role="tab">
+                <i class="bi bi-wrench-adjustable me-1"></i>
+                {% if user.role == 'admin' %}Gestão de OS{% elif user.role == 'mecanico' %}Minhas OS{% else %}Minhas OS{% endif %}
+            </a>
+        </li>
+
         {% if user.role not in ['admin', 'mecanico'] %}
         <li class="nav-item" role="presentation">
             <a class="nav-link nav-tab-link {% if tab == 'pedidos' %}active{% endif %}" href="?tab=pedidos" role="tab">
@@ -329,6 +343,20 @@
         {% if tab == 'servicos' %}
         <div class="tab-pane fade show active" id="servicos" role="tabpanel">
             {% include "partials/ServicePanel.html" %}
+        </div>
+        {% endif %}
+
+        {# ── Aba de Orçamentos ── #}
+        {% if tab == 'orcamentos' %}
+        <div class="tab-pane fade show active" id="orcamentos" role="tabpanel">
+            {% include "partials/OrcamentoPanel.html" %}
+        </div>
+        {% endif %}
+
+        {# ── Aba de Ordens de Serviço ── #}
+        {% if tab == 'ordens_servico' %}
+        <div class="tab-pane fade show active" id="ordens_servico" role="tabpanel">
+            {% include "partials/OSPanel.html" %}
         </div>
         {% endif %}
 
