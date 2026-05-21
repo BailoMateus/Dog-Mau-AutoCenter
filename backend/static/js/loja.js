@@ -136,4 +136,36 @@
     }
   });
 
+  // Delete Pedido via AJAX
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.btn-delete-pedido');
+    if (!btn) return;
+    
+    const id = btn.dataset.pedId;
+    if (confirm(`Tem certeza que deseja excluir o pedido #${id}?`)) {
+      btn.disabled = true;
+      try {
+        const response = await fetch(`/api/pedidos/${id}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+        if (response.ok) {
+          showToast(`Pedido #${id} excluído com sucesso.`, 'success');
+          // Remove o card da grid
+          const cardCol = btn.closest('.col');
+          if (cardCol) {
+            cardCol.remove();
+          }
+        } else {
+          const data = await response.json();
+          showToast(data.detail || 'Não foi possível excluir o pedido.', 'danger');
+          btn.disabled = false;
+        }
+      } catch (error) {
+        showToast('Erro de rede ao se comunicar com o servidor.', 'danger');
+        btn.disabled = false;
+      }
+    }
+  });
+
 })();

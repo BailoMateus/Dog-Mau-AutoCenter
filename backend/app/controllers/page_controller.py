@@ -203,11 +203,11 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
             produtos = produto_service.list_produtos()
             marcas = marca_service.list_marcas()
 
-        # Pedidos (Admin vê todos, cliente vê os seus)
-        if user.get("role") in ("admin", "mecanico"):
-            pedidos_db = pedido_service.list_pedidos_detalhados()
-        else:
+        # Pedidos (Apenas cliente vê os seus no painel)
+        if user.get("role") not in ("admin", "mecanico"):
             pedidos_db = pedido_service.get_pedidos_detalhados_by_usuario(int(user["user_id"]))
+        else:
+            pedidos_db = []
             
         pedidos = []
         for p in pedidos_db:

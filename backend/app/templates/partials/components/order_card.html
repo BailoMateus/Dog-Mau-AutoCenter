@@ -10,7 +10,7 @@
             <span class="pedido-data ms-2 text-muted small"><i class="bi bi-calendar3 me-1"></i>{{ ped.data_pedido }}</span>
         </div>
         {% if user and user.role in ['admin', 'mecanico'] %}
-        <button class="btn btn-sm btn-outline-danger border-0 p-1" onclick="openDeletePedidoModal(this)" data-ped-id="{{ ped.id_pedido }}" title="Excluir">
+        <button class="btn btn-sm btn-outline-danger border-0 p-1 btn-delete-pedido" data-ped-id="{{ ped.id_pedido }}" title="Excluir">
             <i class="bi bi-trash"></i>
         </button>
         {% endif %}
