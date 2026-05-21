@@ -23,7 +23,7 @@
         <li class="nav-item">
           <a href="/painel" class="nav-link px-3 fs-5 {% if page == 'painel' %}active{% endif %}">
             <i class="bi bi-grid-fill me-1"></i>
-            {% if user.role == 'admin' %}Painel de Gestão{% elif user.role == 'mecanico' %}Painel Operacional{% else %}Minha Área{% endif %}
+            {% if user.role == 'admin' %}Gestao{% elif user.role == 'mecanico' %}Oficina{% else %}Minha Área{% endif %}
           </a>
         </li>
         {% endif %}
