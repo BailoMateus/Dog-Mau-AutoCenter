@@ -254,15 +254,31 @@
             }
         }
 
-        // Se currentMode for create, nós precisamos da URL correta.
-        // O backend precisa ter a rota de criação e update.
-        // As rotas deveriam ser algo como /api/veiculos.
         let url = '/api/veiculos';
         let method = 'POST';
 
-        if (veiculoMode === 'edit') {
-            url = `/api/veiculos/${id}`;
+        if (veiculoMode === 'create') {
+            method = 'POST';
+            if (userRole === 'admin' || userRole === 'mecanico') {
+                const userId = payload.id_usuario;
+                if (!userId) {
+                    errBox.textContent = 'ID do Cliente é obrigatório.';
+                    errBox.classList.remove('d-none');
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = 'Salvar';
+                    return;
+                }
+                url = `/api/veiculos/user/${userId}`;
+            } else {
+                url = '/api/me/veiculos';
+            }
+        } else {
             method = 'PATCH';
+            if (userRole === 'admin' || userRole === 'mecanico') {
+                url = `/api/veiculos/${id}`;
+            } else {
+                url = `/api/me/veiculos/${id}`;
+            }
         }
 
         try {
@@ -302,7 +318,8 @@
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Excluindo...';
 
         try {
-            const response = await fetch(`/api/veiculos/${id}`, {
+            const url = (userRole === 'admin' || userRole === 'mecanico') ? `/api/veiculos/${id}` : `/api/me/veiculos/${id}`;
+            const response = await fetch(url, {
                 method: 'DELETE',
                 credentials: 'include'
             });

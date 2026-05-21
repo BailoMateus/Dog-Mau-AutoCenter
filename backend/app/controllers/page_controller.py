@@ -289,7 +289,7 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
                 "JOIN veiculo v ON o.id_veiculo = v.id_veiculo "
                 "JOIN modelo m ON v.id_modelo = m.id_modelo "
                 "JOIN usuario u ON o.id_usuario = u.id_usuario "
-                "LEFT JOIN usuario mec ON os.id_mecanico_responsavel = mec.id_usuario "
+                "LEFT JOIN usuario mec ON os.id_usuario = mec.id_usuario "
                 "WHERE os.deleted_at IS NULL ORDER BY os.created_at DESC", fetch="all"
             )
             mecanicos = execute_query("SELECT id_usuario, nome FROM usuario WHERE role = 'mecanico' AND deleted_at IS NULL", fetch="all")
@@ -301,7 +301,7 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
                 "JOIN veiculo v ON o.id_veiculo = v.id_veiculo "
                 "JOIN modelo m ON v.id_modelo = m.id_modelo "
                 "JOIN usuario u ON o.id_usuario = u.id_usuario "
-                "WHERE os.deleted_at IS NULL AND os.id_mecanico_responsavel = %s ORDER BY os.created_at DESC", 
+                "WHERE os.deleted_at IS NULL AND os.id_usuario = %s ORDER BY os.created_at DESC", 
                 (int(user["user_id"]),), fetch="all"
             )
         else: # Cliente

@@ -17,11 +17,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/me", tags=["Minha Conta"])
 
 
-@router.get("/profile", response_model=UserPublic)
-
 def get_my_user(current: dict):
     return user_service.get_user_or_404(int(current["user_id"]))
 
+@router.get("/profile", response_model=UserPublic)
 def get_my_profile(
     current=Depends(get_current_user),
 ):
@@ -127,6 +126,17 @@ def update_my_veiculo(
     """Usuário atualiza um veículo dele"""
     logger.info("PATCH /me/veiculos/%s user_id=%s", veiculo_id, current["user_id"])
     return veiculo_service.update_veiculo_by_user(int(current["user_id"]), veiculo_id, data)
+
+
+@router.delete("/veiculos/{veiculo_id}", response_model=VeiculoPublic)
+def delete_my_veiculo(
+    veiculo_id: Annotated[int, Path(ge=1)],
+    current=Depends(get_current_user),
+):
+    """Usuário deleta um veículo dele"""
+    logger.info("DELETE /me/veiculos/%s user_id=%s", veiculo_id, current["user_id"])
+    veiculo_service.get_veiculo_by_user_or_404(int(current["user_id"]), veiculo_id)
+    return veiculo_service.delete_veiculo(veiculo_id)
 
 
 @router.post("/password-change")
