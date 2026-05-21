@@ -74,6 +74,34 @@ def create_pedido(data: PedidoCreate):
             detail="Erro ao criar pedido"
         )
 
+def create_pedido_for_user(user_id: int, data: PedidoCreate):
+    """Cria um novo pedido para um usuário autenticado.
+    
+    O user_id é extraído do token JWT autenticado.
+    Isso impede que clientes criem pedidos em nome de outros usuários.
+    """
+    # Validações
+    validate_pedido_data(
+        usuario_id=user_id,
+        valor_total=float(data.valor_total)
+    )
+    
+    # Cria entidade Pedido com user_id do usuário autenticado
+    pedido = Pedido(
+        id_usuario=user_id,
+        valor_total=float(data.valor_total),
+        status=data.status or "processando"
+    )
+    
+    try:
+        return repo.create_pedido(pedido)
+    except psycopg2.IntegrityError:
+        logger.error("create_pedido_for_user erro de integridade user_id=%s", user_id)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro ao criar pedido"
+        )
+
 def update_pedido(pedido_id: int, data: PedidoUpdate):
     """Atualiza um pedido com validações."""
     pedido = get_pedido_or_404(pedido_id)
