@@ -2,18 +2,22 @@
  * profile-edit.js
  * 
  * Gerencia a edição do perfil do usuário com confirmação via modal
- * para cada campo alterado.
+ * para cada campo alterado, e também o upload de foto de perfil.
  */
 
 let originalData = {};
 let confirmationModal = null;
 let currentFieldChanges = {};
+let currentUserData = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     const profileForm = document.getElementById('profileForm');
     const saveBtn = document.getElementById('saveBtn');
 
     if (!profileForm) return;
+
+    // Carrega dados do usuário primeiro
+    loadUserProfile();
 
     // Armazena valores originais
     originalData = {
@@ -27,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Cria modal de confirmação
     createConfirmationModal();
 
-    // Listener para o botão de salvar
+    // Listener para o botão de salvar perfil
     if (saveBtn) {
         saveBtn.addEventListener('click', function(e) {
             e.preventDefault();
@@ -47,7 +51,129 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('data_nascimento').value = originalData.data_nascimento;
         });
     }
+
+    // Configurar upload de foto de perfil
+    setupProfilePhotoUpload();
 });
+
+/**
+ * Carrega dados do perfil do usuário
+ */
+async function loadUserProfile() {
+    try {
+        const response = await fetch('/api/me/profile', {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            console.error('Erro ao carregar perfil');
+            return;
+        }
+
+        currentUserData = await response.json();
+        
+        // Preenche os campos
+        document.getElementById('nome').value = currentUserData.nome || '';
+        document.getElementById('email').value = currentUserData.email || '';
+        document.getElementById('telefone').value = currentUserData.telefone || '';
+        document.getElementById('cpf_cnpj').value = currentUserData.cpf_cnpj || '';
+        document.getElementById('data_nascimento').value = currentUserData.data_nascimento || '';
+
+        // Carrega foto de perfil se existir
+        if (currentUserData.foto_perfil) {
+            const fotoPreview = document.getElementById('fotoPreview');
+            if (fotoPreview) {
+                fotoPreview.src = currentUserData.foto_perfil;
+            }
+        }
+
+        // Mostra o formulário
+        document.getElementById('profileForm').style.display = 'block';
+        document.getElementById('perfilLoader').style.display = 'none';
+
+    } catch (error) {
+        console.error('Erro ao carregar perfil:', error);
+        showAlert('danger', 'Erro ao carregar dados do perfil');
+    }
+}
+
+/**
+ * Configura o upload de foto de perfil
+ */
+function setupProfilePhotoUpload() {
+    const fotoPerfil = document.getElementById('fotoPerfil');
+    const uploadFotoBtn = document.getElementById('uploadFotoBtn');
+    const fotoPreview = document.getElementById('fotoPreview');
+
+    if (!fotoPerfil || !uploadFotoBtn) return;
+
+    // Listener para seleção de arquivo
+    fotoPerfil.addEventListener('change', async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            // Valida o arquivo
+            UploadManager.validarImagem(file, {
+                maxSize: 2 * 1024 * 1024, // 2MB
+                types: ['image/jpeg', 'image/jpg', 'image/png']
+            });
+
+            // Gera preview
+            const preview = await UploadManager.gerarPreview(file);
+            fotoPreview.src = preview;
+
+            // Mostra botão de upload
+            uploadFotoBtn.style.display = 'inline-block';
+
+        } catch (error) {
+            console.error('Erro ao processar imagem:', error);
+            showAlert('danger', 'Erro: ' + error.message);
+            fotoPerfil.value = ''; // Limpa o input
+        }
+    });
+
+    // Listener para botão de upload
+    uploadFotoBtn.addEventListener('click', async function(e) {
+        e.preventDefault();
+        const file = fotoPerfil.files[0];
+
+        if (!file) {
+            showAlert('danger', 'Selecione uma imagem primeiro');
+            return;
+        }
+
+        try {
+            // Desabilita o botão durante o upload
+            uploadFotoBtn.disabled = true;
+            uploadFotoBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Enviando...';
+
+            // Faz o upload
+            const response = await UploadManager.uploadFotoPerfil(file);
+
+            // Atualiza a foto de perfil com a resposta
+            if (response.foto_perfil) {
+                fotoPreview.src = response.foto_perfil;
+                currentUserData.foto_perfil = response.foto_perfil;
+            }
+
+            // Limpa o input e oculta o botão
+            fotoPerfil.value = '';
+            uploadFotoBtn.style.display = 'none';
+            uploadFotoBtn.disabled = false;
+            uploadFotoBtn.innerHTML = '<i class="bi bi-cloud-upload me-1"></i>Enviar Foto';
+
+            showAlert('success', 'Foto de perfil atualizada com sucesso!');
+
+        } catch (error) {
+            console.error('Erro ao fazer upload de foto:', error);
+            showAlert('danger', 'Erro ao enviar foto: ' + error.message);
+            uploadFotoBtn.disabled = false;
+            uploadFotoBtn.innerHTML = '<i class="bi bi-cloud-upload me-1"></i>Enviar Foto';
+        }
+    });
+}
 
 /**
  * Cria o modal de confirmação
@@ -271,3 +397,5 @@ function showAlert(type, message) {
 window.handleSaveProfile = handleSaveProfile;
 window.confirmFieldChange = confirmFieldChange;
 window.submitProfileChanges = submitProfileChanges;
+window.loadUserProfile = loadUserProfile;
+window.setupProfilePhotoUpload = setupProfilePhotoUpload;

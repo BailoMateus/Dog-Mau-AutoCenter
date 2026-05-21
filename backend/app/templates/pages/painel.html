@@ -139,6 +139,35 @@
 
                     <form id="profileForm" style="display: none;">
                         <div class="row text-white">
+                            <!-- Foto de Perfil -->
+                            <div class="col-md-6 mb-4">
+                                <label class="text-muted small d-block mb-2">Foto de Perfil</label>
+                                <div class="text-center mb-3">
+                                    <img id="fotoPreview" 
+                                         src="/static/assets/avatar-placeholder.png" 
+                                         alt="Foto de Perfil" 
+                                         class="rounded-circle"
+                                         style="width: 150px; height: 150px; object-fit: cover; border: 2px solid #555;">
+                                </div>
+                                <input type="file" 
+                                       id="fotoPerfil" 
+                                       class="form-control form-control-sm bg-dark border-secondary text-white"
+                                       accept="image/jpeg,image/jpg,image/png">
+                                <small class="text-muted d-block mt-1">JPG ou PNG (máx. 2 MB)</small>
+                                <button type="button" 
+                                        id="uploadFotoBtn" 
+                                        class="btn btn-sm btn-warning mt-2"
+                                        style="display: none;">
+                                    <i class="bi bi-cloud-upload me-1"></i>Enviar Foto
+                                </button>
+                                <div id="fotoUploadStatus" style="display: none; margin-top: 0.5rem;">
+                                    <small id="fotoUploadMessage" class="d-block"></small>
+                                </div>
+                            </div>
+
+                            <!-- Espaço vazio para balanceamento do layout -->
+                            <div class="col-md-6 mb-4"></div>
+
                             <!-- Nome -->
                             <div class="col-md-6 mb-3">
                                 <label for="nome" class="text-muted small d-block">Nome</label>
