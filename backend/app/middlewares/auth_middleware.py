@@ -22,24 +22,49 @@ def _decode_token(token: str) -> dict:
     return {"user_id": user_id, "role": role}
 
 
-def get_current_user(request: Request, token: str = Depends(oauth2_scheme)):
+def _extract_token_from_request(request: Request) -> str:
+    """
+    Extrai o token JWT do request.
+    Tenta em ordem de prioridade:
+    1. Cookie '__session' (HttpOnly, preferencial para browser/fetch com credentials)
+    2. Cookie 'access_token' (compatibilidade)
+    3. Header Authorization: Bearer <token> (para clientes API/Swagger)
+    """
+    # 1. Tenta cookie __session (HttpOnly)
+    token = request.cookies.get("__session")
+    if token:
+        logger.debug("Token lido do cookie __session")
+        return token
+    
+    # 2. Fallback: cookie access_token
+    token = request.cookies.get("access_token")
+    if token:
+        logger.debug("Token lido do cookie access_token")
+        return token
+    
+    # 3. Fallback: Header Authorization
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        token = auth_header[7:]
+        logger.debug("Token lido do header Authorization")
+        return token
+    
+    return None
+
+
+def get_current_user(request: Request):
     """
     Extrai o usuário autenticado do token JWT.
     
     Estratégia de leitura do token (em ordem de prioridade):
-    1. Header Authorization: Bearer <token>  (para clientes API / Swagger)
-    2. Cookie 'access_token'                  (para navegação SSR / browser)
+    1. Cookie '__session' (HttpOnly - preferencial para fetch com credentials)
+    2. Cookie 'access_token' (compatibilidade)
+    3. Header Authorization: Bearer <token> (para clientes API / Swagger)
     
     Se nenhum token for encontrado ou se for inválido, levanta 401.
     """
-    # 1. Tentar header Authorization (já parseado pelo OAuth2PasswordBearer)
-    if not token:
-        # 2. Fallback: ler do cookie
-        token = request.cookies.get("__session") or request.cookies.get("access_token")
-
-    # Compatibilidade: remove prefixo 'Bearer ' se presente (cookies antigos)
-    if token and token.startswith("Bearer "):
-        token = token[7:]
+    token = _extract_token_from_request(request)
+    
     if not token:
         logger.warning("Acesso negado: sem token (header ou cookie)")
         raise HTTPException(
