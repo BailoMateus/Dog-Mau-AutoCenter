@@ -146,6 +146,54 @@ def update_user(
             detail="E-mail já cadastrado",
         )
 
+
+def change_user_password(user_id: int, data: PasswordChangeRequest, *, actor: dict):
+    """Altera senha do usuário após verificação de senha atual."""
+    user = get_user_or_404(user_id)
+    
+    # Verificar se é o próprio usuário ou admin
+    assert_can_update(actor, user_id)
+    
+    # Importar função de hash
+    from app.core.security import verify_password, hash_password
+    
+    # 1. Validar senha atual
+    if not verify_password(data.old_password, user.senha_hash):
+        logger.warning("change_password senha incorreta user_id=%s", user_id)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Senha atual incorreta"
+        )
+    
+    # 2. Verificar se nova senha é diferente da antiga
+    if data.old_password == data.new_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Nova senha deve ser diferente da atual"
+        )
+    
+    # 3. Validar que novas senhas coincidem
+    if data.new_password != data.confirm_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Novas senhas não coincidem"
+        )
+    
+    # 4. Atualizar senha
+    user.senha_hash = hash_password(data.new_password.strip())
+    
+    try:
+        updated = repo.update_user(user)
+        logger.info("change_password sucesso user_id=%s", user_id)
+        return updated
+    except Exception as e:
+        logger.error("change_password erro user_id=%s: %s", user_id, e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro ao alterar senha"
+        )
+    
+
 def delete_user(user_id: int, *, actor: dict):
     user = get_user_or_404(user_id)
     assert_can_modify(actor, user_id, admin_only=True)

@@ -211,6 +211,73 @@
                                 <small class="text-muted d-block mt-1">Clique em Salvar para confirmar alterações</small>
                             </div>
 
+                            <!-- Seção de Alterar Senha -->
+                            <div class="card border-0 shadow rounded mt-4" style="background-color: #111;">
+                            <div class="card-body p-4">
+                                <h4 class="fw-bold text-white mb-4">
+                                <i class="bi bi-key me-2"></i>Alterar Senha
+                                </h4>
+
+                                <form id="passwordChangeForm">
+                                <div class="row text-white">
+                                    <!-- Senha Atual -->
+                                    <div class="col-md-4 mb-3">
+                                    <label for="senhaAtual" class="text-muted small d-block">Senha Atual</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="password" 
+                                            id="senhaAtual" 
+                                            class="form-control bg-dark border-secondary text-white"
+                                            placeholder="Digite sua senha atual">
+                                        <button class="btn btn-outline-secondary toggle-password" 
+                                                type="button" 
+                                                data-target="senhaAtual">
+                                        <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                    </div>
+
+                                    <!-- Nova Senha -->
+                                    <div class="col-md-4 mb-3">
+                                    <label for="novaSenha" class="text-muted small d-block">Nova Senha</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="password" 
+                                            id="novaSenha" 
+                                            class="form-control bg-dark border-secondary text-white"
+                                            placeholder="Digite a nova senha">
+                                        <button class="btn btn-outline-secondary toggle-password" 
+                                                type="button" 
+                                                data-target="novaSenha">
+                                        <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                    </div>
+
+                                    <!-- Confirmar Nova Senha -->
+                                    <div class="col-md-4 mb-3">
+                                    <label for="confirmarSenha" class="text-muted small d-block">Confirmar Senha</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="password" 
+                                            id="confirmarSenha" 
+                                            class="form-control bg-dark border-secondary text-white"
+                                            placeholder="Confirme a nova senha">
+                                        <button class="btn btn-outline-secondary toggle-password" 
+                                                type="button" 
+                                                data-target="confirmarSenha">
+                                        <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                    </div>
+                                </div>
+
+                                <hr class="border-secondary my-4">
+
+                                <button type="button" class="btn btn-warning" id="changePasswordBtn">
+                                    <i class="bi bi-shield-lock me-1"></i>Alterar Senha
+                                </button>
+                                </form>
+                            </div>
+                            </div>
+
                             <!-- Cargo (somente leitura) -->
                             <div class="col-md-6 mb-3">
                                 <label class="text-muted small d-block">Cargo</label>
