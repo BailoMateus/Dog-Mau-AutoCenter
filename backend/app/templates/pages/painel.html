@@ -182,18 +182,26 @@
                                 <small class="text-muted d-block mt-1">Clique em Salvar para confirmar alterações</small>
                             </div>
 
-                            <!-- Telefone -->
+                            <!-- Telefone com máscara -->
                             <div class="col-md-6 mb-3">
-                                <label for="telefone" class="text-muted small d-block">Telefone</label>
-                                <input type="tel" id="telefone" class="form-control form-control-sm bg-dark border-secondary text-white" placeholder="(11) 99999-9999">
-                                <small class="text-muted d-block mt-1">Clique em Salvar para confirmar alterações</small>
+                            <label for="telefone" class="text-muted small d-block">Telefone</label>
+                            <input type="tel" 
+                                    id="telefone" 
+                                    class="form-control form-control-sm bg-dark border-secondary text-white"
+                                    data-mask="phone"
+                                    placeholder="(11) 98765-4321">
                             </div>
 
-                            <!-- CPF/CNPJ -->
+                            <!-- CPF/CNPJ com máscara -->
                             <div class="col-md-6 mb-3">
-                                <label for="cpf_cnpj" class="text-muted small d-block">CPF/CNPJ</label>
-                                <input type="text" id="cpf_cnpj" class="form-control form-control-sm bg-dark border-secondary text-white" placeholder="000.000.000-00">
-                                <small class="text-muted d-block mt-1">Clique em Salvar para confirmar alterações</small>
+                            <label for="cpf_cnpj" class="text-muted small d-block">CPF/CNPJ</label>
+                            <input type="text" 
+                                    id="cpf_cnpj" 
+                                    class="form-control form-control-sm bg-dark border-secondary text-white"
+                                    data-mask="cpf_cnpj"
+                                    placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                                    disabled>
+                            <small class="text-muted d-block mt-1">Não pode ser alterado</small>
                             </div>
 
                             <!-- Data de Nascimento -->
