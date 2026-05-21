@@ -70,27 +70,36 @@
       return;
     }
 
+    // Extrair dados do produto a partir do card HTML
+    const card = btn.closest('.loja-card');
     const produtoId = parseInt(btn.dataset.produtoId, 10);
     const preco = parseFloat(btn.dataset.preco) || 0;
-    const userId = parseInt(btn.dataset.userId, 10);
+    const nome = card ? (card.dataset.nome || 'Produto') : 'Produto';
+    const imgEl = card ? card.querySelector('.loja-card-img-wrap img') : null;
+    const imagem = imgEl ? imgEl.src : null;
 
-    btn.disabled = true;
-    const originalHtml = btn.innerHTML;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processando...';
+    // Verificar se o carrinho está disponível
+    if (!window.cart) {
+      showToast('Sistema de carrinho não carregado. Recarregue a página.', 'danger');
+      return;
+    }
 
-    try {
-      if (typeof criarPedido !== 'function' || typeof adicionarProdutoAoPedido !== 'function') {
-        throw new Error('Módulo de compra não carregado.');
-      }
+    // Adicionar ao carrinho local
+    window.cart.addProduct({
+      id_produto: produtoId,
+      nome: nome,
+      preco: preco,
+      imagem_produto: imagem
+    });
 
-      const pedido = await criarPedido(userId, preco);
-      await adicionarProdutoAoPedido(pedido.id_pedido, produtoId, 1);
-      showToast('Produto adicionado ao pedido! Acesse Minha Área para acompanhar.', 'success');
-    } catch (err) {
-      showToast(err.message || 'Não foi possível concluir a compra.', 'danger');
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = originalHtml;
+    // Abrir a barra lateral do carrinho automaticamente
+    const dropdown = document.getElementById('cart-dropdown');
+    const overlay = document.getElementById('cart-overlay');
+    if (dropdown && !dropdown.classList.contains('active')) {
+      dropdown.classList.add('active');
+    }
+    if (overlay && !overlay.classList.contains('active')) {
+      overlay.classList.add('active');
     }
   });
 

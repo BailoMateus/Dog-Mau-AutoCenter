@@ -177,6 +177,30 @@ def logout(request: Request):
     response.delete_cookie("access_token") # Por segurança, limpa o antigo também
     return response
 
+@router.get("/checkout", include_in_schema=False)
+def checkout_page(request: Request, user=Depends(get_page_user)):
+    """Página de checkout — requer autenticação (cliente)."""
+    if not user:
+        return RedirectResponse(url="/login?next=/checkout", status_code=302)
+
+    # Busca email e telefone para preenchimento automático do formulário
+    user_extra = execute_query(
+        "SELECT email, telefone FROM usuario WHERE id_usuario = %s AND deleted_at IS NULL",
+        (int(user["user_id"]),),
+        fetch="one",
+    )
+    user_email = user_extra["email"] if user_extra else ""
+    user_phone = user_extra.get("telefone", "") if user_extra else ""
+
+    return templates.TemplateResponse("pages/checkout.html", {
+        "request": request,
+        "user": user,
+        "user_email": user_email,
+        "user_phone": user_phone or "",
+        "page": "checkout",
+    })
+
+
 @router.get("/painel", include_in_schema=False)
 def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
     """Painel unificado — requer autenticação.
