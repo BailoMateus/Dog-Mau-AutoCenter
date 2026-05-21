@@ -114,7 +114,7 @@ class CheckoutManager {
     this.showLoading(true);
 
     try {
-      // 1. Cria pedido (autenticação via cookie)
+      // 1. Cria pedido
       const pedidoData = {
         valor_total: this.cart.getTotal()
       };
@@ -122,7 +122,7 @@ class CheckoutManager {
       const pedidoResponse = await fetch('/api/pedidos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        credentials: 'include',  // Envia cookies HttpOnly (autenticação)
         body: JSON.stringify(pedidoData)
       });
 
@@ -138,12 +138,12 @@ class CheckoutManager {
         throw new Error('ID do pedido não retornado');
       }
 
-      // 3. Adiciona itens ao pedido
+      // 2. Adiciona itens ao pedido
       for (const item of this.cart.cart) {
         const itemResponse = await fetch(`/api/pedidos/${pedidoId}/itens`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
+          credentials: 'include',  // Envia cookies HttpOnly (autenticação)
           body: JSON.stringify({
             id_produto: item.id_produto,
             quantidade: item.quantidade
