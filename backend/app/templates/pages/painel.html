@@ -192,16 +192,18 @@
                                     placeholder="(11) 98765-4321">
                             </div>
 
-                            <!-- CPF/CNPJ com máscara -->
+                            <!-- CPF/CNPJ - DESABILITADO -->
                             <div class="col-md-6 mb-3">
                             <label for="cpf_cnpj" class="text-muted small d-block">CPF/CNPJ</label>
                             <input type="text" 
                                     id="cpf_cnpj" 
                                     class="form-control form-control-sm bg-dark border-secondary text-white"
                                     data-mask="cpf_cnpj"
-                                    placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                                    placeholder="000.000.000-00"
                                     disabled>
-                            <small class="text-muted d-block mt-1">Não pode ser alterado</small>
+                            <small class="text-muted d-block mt-1">
+                                <i class="bi bi-lock-fill me-1"></i>Não pode ser alterado após cadastro
+                            </small>
                             </div>
 
                             <!-- Data de Nascimento -->

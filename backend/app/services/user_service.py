@@ -1,5 +1,6 @@
 import logging
 
+from backend.app.schemas.password_schema import PasswordChangeRequest
 from fastapi import HTTPException, status, UploadFile
 import psycopg2
 
@@ -109,6 +110,7 @@ def update_user(
     assert_can_modify(actor, user_id, admin_only=False)
 
     is_admin = actor["role"] == ADMIN
+    
     if data.nome is not None:
         user.nome = data.nome
     if data.email is not None:
@@ -117,10 +119,24 @@ def update_user(
         user.senha_hash = hash_password(data.password.strip())
     if data.telefone is not None:
         user.telefone = data.telefone
+    
+    # ⚠️ NOVO: Proteger CPF/CNPJ após criação
     if data.cpf_cnpj is not None:
+        if user.cpf_cnpj is not None and user.cpf_cnpj != data.cpf_cnpj:
+            logger.warning(
+                "tentativa de alterar cpf_cnpj protegido user_id=%s actor=%s",
+                user_id,
+                actor.get("user_id")
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="CPF/CNPJ não pode ser alterado após o cadastro"
+            )
         user.cpf_cnpj = data.cpf_cnpj
+    
     if data.data_nascimento is not None:
         user.data_nascimento = data.data_nascimento
+    
     if data.ativo is not None and is_admin:
         user.ativo = data.ativo
     elif data.ativo is not None and not is_admin:
@@ -129,6 +145,7 @@ def update_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Somente administrador pode alterar o campo ativo",
         )
+    
     if data.role is not None:
         if not is_admin:
             raise HTTPException(

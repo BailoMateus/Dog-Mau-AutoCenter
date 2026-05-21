@@ -220,5 +220,71 @@ class UINotification {
   }
 }
 
+/**
+ * Modal de confirmação para exclusão
+ * @param {string} entityName - Nome da entidade (ex: "usuário", "agendamento")
+ * @param {Object} entity - Dados da entidade para exibição
+ * @param {Function} onConfirm - Callback quando confirmar
+ */
+UINotification.confirmDelete = async function(entityName, entity, onConfirm) {
+  const message = `
+    <p class="mb-3">Tem certeza que deseja excluir este <strong>${entityName}</strong>?</p>
+    <div class="alert alert-light text-dark" style="background-color: #222; border-color: #555;">
+      <small><strong>ID:</strong> ${entity.id}</small><br>
+      <small><strong>Nome/Info:</strong> ${this._escapeHtml(entity.name || entity.nome || entity.titulo || '-')}</small>
+    </div>
+    <p class="text-warning small mb-0">
+      <i class="bi bi-exclamation-triangle-fill me-1"></i>
+      Esta ação não pode ser desfeita.
+    </p>
+  `;
+
+  return new Promise((resolve) => {
+    const modal = document.createElement('div');
+    modal.className = 'modal fade';
+    modal.setAttribute('tabindex', '-1');
+
+    modal.innerHTML = `
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background-color: #1a1a1a; border-color: #d32f2f;">
+          <div class="modal-header" style="border-color: #d32f2f;">
+            <h5 class="modal-title text-danger">
+              <i class="bi bi-trash-fill me-2"></i>Confirmar Exclusão
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body text-white">
+            ${message}
+          </div>
+          <div class="modal-footer" style="border-color: #555;">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              <i class="bi bi-x-circle me-1"></i>Cancelar
+            </button>
+            <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+              <i class="bi bi-trash me-1"></i>Excluir Permanentemente
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    const bsModal = new bootstrap.Modal(modal);
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+      resolve(true);
+      bsModal.hide();
+      if (onConfirm) await onConfirm();
+    });
+
+    modal.addEventListener('hidden.bs.modal', () => {
+      resolve(false);
+      modal.remove();
+    });
+
+    bsModal.show();
+  });
+};
+
 // Exportar globalmente
 window.UINotification = UINotification;
