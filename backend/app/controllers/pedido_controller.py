@@ -31,6 +31,8 @@ def list_pedidos():
 def create_pedido(data: PedidoCreate, user=Depends(get_current_user)):
     """Cria um novo pedido. Requer autenticação."""
     logger.info("POST /pedidos usuario=%s valor=%s", user["user_id"], data.valor_total)
+    if data.id_usuario is None:
+        data.id_usuario = int(user["user_id"])
     pedido = pedido_service.create_pedido(data)
     return PedidoPublic(
         id_pedido=pedido.id_pedido,

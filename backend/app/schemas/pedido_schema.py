@@ -4,7 +4,7 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, Field
 
 class PedidoCreate(BaseModel):
-    id_usuario: int = Field(..., gt=0)
+    id_usuario: int | None = Field(None, gt=0)
     valor_total: Decimal = Field(..., ge=0)
     status: str = Field("processando", max_length=30)
 
