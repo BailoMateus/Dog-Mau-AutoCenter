@@ -66,13 +66,13 @@ def add_servico_to_os(os_id: int, data: OsServicoCreate):
         logger.info("serviço adicionado à OS os=%s servico=%s quantidade=%s", 
                    os_id, data.id_servico, data.quantidade)
         
-        # Retorna item com informações do serviço e subtotal
-        item_com_info = os_servico_repo.get_os_servico(os_id, data.id_servico)
-        servico_preco = os_servico_repo.get_servico_preco(data.id_servico)
-        item_com_info.servico_preco = servico_preco
-        item_com_info.subtotal = servico_preco * item_com_info.quantidade
-        
-        return item_com_info
+        item_response = os_servico_repo.get_servico_by_os(os_id, data.id_servico)
+        if not item_response:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Erro ao recuperar serviço da OS"
+            )
+        return item_response
         
     except psycopg2.IntegrityError:
         logger.error("add_servico_to_os erro de integridade")
@@ -97,17 +97,18 @@ def update_quantidade_servico(os_id: int, servico_id: int, data: OsServicoUpdate
     
     try:
         # Atualiza quantidade
-        item_atualizado = os_servico_repo.update_quantidade_servico(os_id, servico_id, data.quantidade)
+        os_servico_repo.update_quantidade_servico(os_id, servico_id, data.quantidade)
         
         logger.info("quantidade atualizada os=%s servico=%s nova_quantidade=%s", 
                    os_id, servico_id, data.quantidade)
         
-        # Retorna item com informações do serviço e subtotal
-        servico_preco = os_servico_repo.get_servico_preco(servico_id)
-        item_atualizado.servico_preco = servico_preco
-        item_atualizado.subtotal = servico_preco * item_atualizado.quantidade
-        
-        return item_atualizado
+        item_response = os_servico_repo.get_servico_by_os(os_id, servico_id)
+        if not item_response:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Erro ao recuperar serviço da OS"
+            )
+        return item_response
         
     except psycopg2.IntegrityError:
         logger.error("update_quantidade_servico erro de integridade")
@@ -159,17 +160,11 @@ def get_servico_by_os(os_id: int, servico_id: int):
     # Validações (quantidade=1 só para verificação de existência)
     validate_os_servico_data(os_id, servico_id, 1)
     
-    item = os_servico_repo.get_os_servico(os_id, servico_id)
-    if not item:
+    item_response = os_servico_repo.get_servico_by_os(os_id, servico_id)
+    if not item_response:
         logger.warning("serviço não encontrado na OS os=%s servico=%s", os_id, servico_id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Serviço não encontrado na ordem de serviço"
         )
-    
-    # Adiciona informações do serviço e subtotal
-    servico_preco = os_servico_repo.get_servico_preco(servico_id)
-    item.servico_preco = servico_preco
-    item.subtotal = servico_preco * item.quantidade
-    
-    return item
+    return item_response

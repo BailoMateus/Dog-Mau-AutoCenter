@@ -11,7 +11,7 @@ def get_user_by_email(email: str):
     """Busca usuário por email."""
     query = """
     SELECT id_usuario, nome, email, senha_hash, role, ativo, telefone, cpf_cnpj, 
-           data_nascimento, created_at, updated_at, deleted_at
+           data_nascimento, foto_perfil, created_at, updated_at, deleted_at
     FROM usuario 
     WHERE email = %s AND deleted_at IS NULL
     """
@@ -24,7 +24,7 @@ def get_user_by_id(user_id: int):
     """Busca usuário por ID."""
     query = """
     SELECT id_usuario, nome, email, senha_hash, role, ativo, telefone, cpf_cnpj, 
-           data_nascimento, created_at, updated_at, deleted_at
+           data_nascimento, foto_perfil, created_at, updated_at, deleted_at
     FROM usuario 
     WHERE id_usuario = %s AND deleted_at IS NULL
     """
@@ -53,7 +53,7 @@ def get_all_users():
     """Lista todos os usuários."""
     query = """
     SELECT id_usuario, nome, email, senha_hash, role, ativo, telefone, cpf_cnpj, 
-           data_nascimento, created_at, updated_at, deleted_at
+           data_nascimento, foto_perfil, created_at, updated_at, deleted_at
     FROM usuario 
     WHERE deleted_at IS NULL
     ORDER BY created_at DESC
@@ -68,12 +68,12 @@ def update_user(user: User):
     query = """
     UPDATE usuario 
     SET nome = %s, email = %s, role = %s, ativo = %s, telefone = %s, 
-        cpf_cnpj = %s, data_nascimento = %s, senha_hash = %s, updated_at = CURRENT_TIMESTAMP
+        cpf_cnpj = %s, data_nascimento = %s, senha_hash = %s, foto_perfil = %s, updated_at = CURRENT_TIMESTAMP
     WHERE id_usuario = %s AND deleted_at IS NULL
     """
     params = (
         user.nome, user.email, user.role, user.ativo, user.telefone,
-        user.cpf_cnpj, user.data_nascimento, user.senha_hash, user.id_usuario
+        user.cpf_cnpj, user.data_nascimento, user.senha_hash, user.foto_perfil, user.id_usuario
     )
     execute_command(query, params)
     logger.info("usuário atualizado id=%s", user.id_usuario)
@@ -97,7 +97,7 @@ def get_user_by_role(role: str):
     """Busca usuário por role."""
     query = """
     SELECT id_usuario, nome, email, senha_hash, role, ativo, telefone, cpf_cnpj, 
-           data_nascimento, created_at, updated_at, deleted_at
+           data_nascimento, foto_perfil, created_at, updated_at, deleted_at
     FROM usuario 
     WHERE role = %s AND deleted_at IS NULL
     LIMIT 1
@@ -111,7 +111,7 @@ def get_users_by_role(role: str):
     """Lista usuários por role."""
     query = """
     SELECT id_usuario, nome, email, senha_hash, role, ativo, telefone, cpf_cnpj, 
-           data_nascimento, created_at, updated_at, deleted_at
+           data_nascimento, foto_perfil, created_at, updated_at, deleted_at
     FROM usuario 
     WHERE role = %s AND deleted_at IS NULL
     ORDER BY created_at DESC
@@ -143,3 +143,14 @@ def update_user_photo(user_id: int, photo_path: str):
     params = (photo_path, user_id)
     execute_command(query, params)
     logger.info("Foto de perfil atualizada para o usuário id=%s", user_id)
+
+def update_user_password(user_id: int, hashed_password: str):
+    """Atualiza a senha do usuário."""
+    query = """
+    UPDATE usuario
+    SET senha_hash = %s, updated_at = CURRENT_TIMESTAMP
+    WHERE id_usuario = %s AND deleted_at IS NULL
+    """
+    params = (hashed_password, user_id)
+    execute_command(query, params)
+    logger.info("Senha atualizada para o usuário id=%s", user_id)

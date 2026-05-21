@@ -1,0 +1,52 @@
+<article class="loja-card"
+         data-loja-card
+         data-nome="{{ p_nome }}"
+         data-desc="{{ p_desc }}">
+  <div class="loja-card-img-wrap">
+    <img src="{{ p_img }}" alt="{{ p_nome }}" loading="lazy">
+    {% if is_demo %}
+      {% if p_estoque <= 5 %}
+      <span class="loja-card-badge baixo">Estoque baixo</span>
+      {% else %}
+      <span class="loja-card-badge demo">Demonstração</span>
+      {% endif %}
+    {% else %}
+      {% if p_estoque <= 0 %}
+      <span class="loja-card-badge esgotado">Esgotado</span>
+      {% elif p_estoque <= 5 %}
+      <span class="loja-card-badge baixo">Estoque baixo</span>
+      {% else %}
+      <span class="loja-card-badge disponivel">Disponível</span>
+      {% endif %}
+    {% endif %}
+  </div>
+  <div class="loja-card-body">
+    <h3 class="loja-card-title">{{ p_nome }}</h3>
+    <p class="loja-card-desc">{{ p_desc or 'Produto original Dog-Mau Auto Center.' }}</p>
+    <p class="loja-card-price">
+      R$ {{ "%.2f"|format(p_preco | float) }}
+      <small> / un.</small>
+    </p>
+    
+    {% if showcase_mode %}
+      <a href="/loja" class="btn btn-loja-comprar text-decoration-none text-center d-inline-block">
+        <i class="bi bi-cart me-2"></i>Veja Mais Produtos
+      </a>
+    {% else %}
+      <button type="button"
+              class="btn btn-loja-comprar"
+              data-demo="{{ 'true' if is_demo else 'false' }}"
+              {% if not is_demo %}
+              data-logged-in="{{ 'true' if user else 'false' }}"
+              data-produto-id="{{ p_id }}"
+              data-preco="{{ p_preco }}"
+              data-estoque="{{ p_estoque }}"
+              {% if user %}data-user-id="{{ user.user_id }}"{% endif %}
+              {% endif %}
+              {% if not is_demo and p_estoque <= 0 %}disabled{% endif %}>
+        <i class="bi bi-bag-plus me-2"></i>
+        {% if not is_demo and p_estoque <= 0 %}Indisponível{% else %}Comprar{% endif %}
+      </button>
+    {% endif %}
+  </div>
+</article>

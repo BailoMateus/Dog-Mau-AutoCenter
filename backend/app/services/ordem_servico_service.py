@@ -15,15 +15,15 @@ def list_ordens_servico():
     """Lista todas as ordens de serviço."""
     return os_repo.get_all_ordens_servico()
 
-def get_ordem_servico_or_404(ordem_servico_id: int) -> OrdemServico:
+def get_ordem_servico_or_404(id_os: int) -> OrdemServico:
     """Busca ordem de serviço por ID ou retorna 404."""
-    ordem_servico = os_repo.get_ordem_servico_by_id(ordem_servico_id)
+    ordem_servico = os_repo.get_ordem_servico_by_id(id_os)
     if not ordem_servico:
-        logger.info("ordem de serviço não encontrada id=%s", ordem_servico_id)
+        logger.info("ordem de serviço não encontrada id=%s", id_os)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ordem de serviço não encontrada")
     return ordem_servico
 
-def validate_ordem_servico_data(id_veiculo: int = None, id_mecanico: int = None, descricao_problema: str = None):
+def validate_ordem_servico_data(id_veiculo: int = None, id_usuario: int = None, descricao_problema: str = None):
     """Valida dados da ordem de serviço."""
     # Validação de veículo existente
     if id_veiculo and not os_repo.check_veiculo_exists(id_veiculo):
@@ -34,8 +34,8 @@ def validate_ordem_servico_data(id_veiculo: int = None, id_mecanico: int = None,
         )
     
     # Validação de mecânico existente
-    if id_mecanico and not os_repo.check_mecanico_exists(id_mecanico):
-        logger.warning("mecânico não encontrado mecanico_id=%s", id_mecanico)
+    if id_usuario and not os_repo.check_cliente_exists(id_usuario):
+        logger.warning("mecânico não encontrado mecanico_id=%s", id_usuario)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Mecânico não encontrado"
@@ -54,14 +54,14 @@ def create_ordem_servico(data: OrdemServicoCreate):
     # Validações
     validate_ordem_servico_data(
         id_veiculo=data.id_veiculo,
-        id_mecanico=data.id_mecanico,
+        id_usuario=data.id_usuario,
         descricao_problema=data.descricao_problema
     )
     
     # Cria entidade OrdemServico
     ordem_servico = OrdemServico(
         id_veiculo=data.id_veiculo,
-        id_mecanico=data.id_mecanico,
+        id_usuario=data.id_usuario,
         descricao_problema=data.descricao_problema,
         status="aberta",
         data_abertura=datetime.now(timezone.utc)
@@ -76,37 +76,74 @@ def create_ordem_servico(data: OrdemServicoCreate):
             detail="Erro ao criar ordem de serviço"
         )
 
-def update_ordem_servico(ordem_servico_id: int, data: OrdemServicoUpdate):
+def atribuir_mecanico(id_os: int, id_usuario: int):
+    """Atribui mecânico à ordem de serviço."""
+    
+    # Verifica se OS existe
+    ordem_servico = get_ordem_servico_or_404(id_os)
+    
+    # Verifica se usuário mecânico existe
+    if not os_repo.check_usuario_exists(id_usuario):
+        logger.warning(
+            "mecânico não encontrado mecanico_id=%s",
+            id_usuario
+        )
+        
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Mecânico não encontrado"
+        )
+    
+    # Atribui mecânico
+    updated = os_repo.atribuir_mecanico_os(
+        id_os=id_os,
+        id_usuario=id_usuario
+    )
+    
+    if not updated:
+        logger.error(
+            "erro ao atribuir mecânico os=%s",
+            id_os
+        )
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro ao atribuir mecânico"
+        )
+    
+    return OrdemServico(**updated)
+
+def update_ordem_servico(id_os: int, data: OrdemServicoUpdate):
     """Atualiza uma ordem de serviço com validações."""
-    ordem_servico = get_ordem_servico_or_404(ordem_servico_id)
+    ordem_servico = get_ordem_servico_or_404(id_os)
     
     # Validações
     validate_ordem_servico_data(
         id_veiculo=data.id_veiculo,
-        id_mecanico=data.id_mecanico,
+        id_usuario=data.id_usuario,
         descricao_problema=data.descricao_problema
     )
     
     # Atualiza campos
     if data.id_veiculo is not None:
         ordem_servico.id_veiculo = data.id_veiculo
-    if data.id_mecanico is not None:
-        ordem_servico.id_mecanico = data.id_mecanico
+    if data.id_usuario is not None:
+        ordem_servico.id_usuario = data.id_usuario
     if data.descricao_problema is not None:
         ordem_servico.descricao_problema = data.descricao_problema
     
     try:
         return os_repo.update_ordem_servico(ordem_servico)
     except psycopg2.IntegrityError:
-        logger.error("update_ordem_servico erro de integridade id=%s", ordem_servico_id)
+        logger.error("update_ordem_servico erro de integridade id=%s", id_os)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erro ao atualizar ordem de serviço"
         )
 
-def update_status_ordem_servico(ordem_servico_id: int, data: OrdemServicoStatusUpdate):
+def update_status_ordem_servico(id_os: int, data: OrdemServicoStatusUpdate):
     """Atualiza apenas o status da ordem de serviço."""
-    ordem_servico = get_ordem_servico_or_404(ordem_servico_id)
+    ordem_servico = get_ordem_servico_or_404(id_os)
     
     # Validação de status
     status_validos = ["aberta", "em_andamento", "concluida", "cancelada"]
@@ -119,56 +156,94 @@ def update_status_ordem_servico(ordem_servico_id: int, data: OrdemServicoStatusU
     
     # Validação de fluxo de status
     if ordem_servico.status == "concluida":
-        logger.warning("tentativa de alterar status de OS concluída id=%s", ordem_servico_id)
+        logger.warning("tentativa de alterar status de OS concluída id=%s", id_os)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Ordem de serviço já está concluída"
         )
     
     if ordem_servico.status == "cancelada" and data.status not in ["aberta"]:
-        logger.warning("tentativa de alterar status de OS cancelada id=%s", ordem_servico_id)
+        logger.warning("tentativa de alterar status de OS cancelada id=%s", id_os)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Ordem de serviço cancelada só pode ser reaberta"
         )
     
     try:
-        os_repo.update_status_ordem_servico(ordem_servico_id, data.status)
+        os_repo.update_status_ordem_servico(id_os, data.status)
         # Retorna ordem de serviço atualizada
-        return get_ordem_servico_or_404(ordem_servico_id)
+        return get_ordem_servico_or_404(id_os)
     except psycopg2.IntegrityError:
-        logger.error("update_status_ordem_servico erro de integridade id=%s", ordem_servico_id)
+        logger.error("update_status_ordem_servico erro de integridade id=%s", id_os)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erro ao atualizar status da ordem de serviço"
         )
 
-def concluir_ordem_servico(ordem_servico_id: int):
+def concluir_ordem_servico(id_os: int):
     """Conclui uma ordem de serviço (preenche data_conclusao)."""
-    ordem_servico = get_ordem_servico_or_404(ordem_servico_id)
+    ordem_servico = get_ordem_servico_or_404(id_os)
     
     # Validação de status
     if ordem_servico.status == "concluida":
-        logger.warning("ordem de serviço já está concluída id=%s", ordem_servico_id)
+        logger.warning("ordem de serviço já está concluída id=%s", id_os)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Ordem de serviço já está concluída"
         )
     
     if ordem_servico.status == "cancelada":
-        logger.warning("tentativa de concluir OS cancelada id=%s", ordem_servico_id)
+        logger.warning("tentativa de concluir OS cancelada id=%s", id_os)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Ordem de serviço cancelada não pode ser concluída"
         )
     
     try:
-        os_repo.concluir_ordem_servico(ordem_servico_id)
-        logger.info("ordem de serviço concluída id=%s", ordem_servico_id)
+        os_repo.concluir_ordem_servico(id_os)
+        logger.info("ordem de serviço concluída id=%s", id_os)
+        
+        # --- Lógica de Automação de Estoque e Financeiro ---
+        from app.repositories import os_peca_repository
+        from app.repositories import movimentacao_estoque_repository
+        from app.repositories import movimentacao_financeira_repository
+        
+        # 1. Movimentação de estoque e custo das peças
+        pecas_da_os = os_peca_repository.get_pecas_by_os(id_os)
+        custo_total_pecas = 0.0
+        
+        for p in pecas_da_os:
+            try:
+                movimentacao_estoque_repository.registrar_saida_estoque(
+                    peca_id=p.id_peca,
+                    quantidade=p.quantidade,
+                    motivo=f"Peça utilizada na OS #{id_os}"
+                )
+                custo_total_pecas += float(p.peca_preco) * p.quantidade
+            except Exception as e:
+                logger.error("Erro ao dar baixa no estoque da peca=%s: %s", p.id_peca, e)
+        
+        # 2. Movimentação Financeira
+        ordem_servico_atualizada = get_ordem_servico_or_404(id_os)
+        valor_total = float(ordem_servico_atualizada.valor_total) if ordem_servico_atualizada.valor_total else 0.0
+        
+        if valor_total > 0:
+            movimentacao_financeira_repository.registrar_entrada_financeira(
+                valor=valor_total,
+                descricao=f"Faturamento da OS #{id_os}"
+            )
+            
+        if custo_total_pecas > 0:
+            movimentacao_financeira_repository.registrar_saida_financeira(
+                valor=custo_total_pecas,
+                descricao=f"Custo de peças consumidas na OS #{id_os}"
+            )
+        # ----------------------------------------------------
+        
         # Retorna ordem de serviço atualizada
-        return get_ordem_servico_or_404(ordem_servico_id)
+        return ordem_servico_atualizada
     except psycopg2.IntegrityError:
-        logger.error("concluir_ordem_servico erro de integridade id=%s", ordem_servico_id)
+        logger.error("concluir_ordem_servico erro de integridade id=%s", id_os)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erro ao concluir ordem de serviço"
@@ -198,26 +273,26 @@ def get_ordens_by_veiculo(veiculo_id: int):
     
     return os_repo.get_ordens_by_veiculo(veiculo_id)
 
-def iniciar_ordem_servico(ordem_servico_id: int):
+def iniciar_ordem_servico(id_os: int):
     """Inicia uma ordem de serviço."""
-    ordem_servico = get_ordem_servico_or_404(ordem_servico_id)
+    ordem_servico = get_ordem_servico_or_404(id_os)
     
     # Validação de status
     if ordem_servico.status != "aberta":
         logger.warning("ordem de serviço não pode ser iniciada status=%s id=%s", 
-                     ordem_servico.status, ordem_servico_id)
+                     ordem_servico.status, id_os)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Apenas ordens de serviço 'abertas' podem ser iniciadas"
         )
     
     try:
-        os_repo.iniciar_ordem_servico(ordem_servico_id)
-        logger.info("ordem de serviço iniciada id=%s", ordem_servico_id)
+        os_repo.iniciar_ordem_servico(id_os)
+        logger.info("ordem de serviço iniciada id=%s", id_os)
         # Retorna ordem de serviço atualizada
-        return get_ordem_servico_or_404(ordem_servico_id)
+        return get_ordem_servico_or_404(id_os)
     except psycopg2.IntegrityError:
-        logger.error("iniciar_ordem_servico erro de integridade id=%s", ordem_servico_id)
+        logger.error("iniciar_ordem_servico erro de integridade id=%s", id_os)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erro ao iniciar ordem de serviço"

@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Verifica se o Firebase Auth está carregado
             if (typeof firebase === "undefined" || !firebase.auth) {
-                alert("Serviço Google indisponível. Tente novamente mais tarde.");
+                UINotification.toast("Serviço Google indisponível. Tente novamente mais tarde", "error");
                 console.error("Firebase Auth SDK não carregado");
                 return;
             }
@@ -47,7 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     window.location.href = "/";
                 } else {
                     const errorData = await response.json().catch(() => ({}));
-                    alert("Falha no login Google: " + (errorData.detail || "Erro desconhecido"));
+                    UINotification.toast("Falha no login Google.", "error");
                 }
             } catch (error) {
                 // Usuário cancelou o popup ou erro de rede
@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
                 console.error("Erro no login Google:", error);
-                alert("Erro no login com Google: " + error.message);
+                UINotification.toast("Erro no login com Google.", "error");
             }
         });
     }

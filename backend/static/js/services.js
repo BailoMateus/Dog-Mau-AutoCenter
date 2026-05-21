@@ -1,27 +1,20 @@
-// services.js — Lógica do wizard de serviços (extraído do inline de services.html)
+// services.js — Lógica do wizard de serviços
 
 let selectedService = "";
 let selectedPrice = "";
 
-const modelsByBrand = {
-    'Ford': ['Mustang', 'Ranger', 'EcoSport', 'Ka', 'Fiesta'],
-    'Toyota': ['Corolla', 'Hilux', 'Yaris', 'RAV4'],
-    'Honda': ['Civic', 'HR-V', 'City', 'Fit'],
-    'Volkswagen': ['Polo', 'Golf', 'Nivus', 'T-Cross', 'Gol'],
-    'Chevrolet': ['Onix', 'Tracker', 'S10', 'Cruze']
-};
-
 function updateModels() {
-    const brand = document.getElementById('brandSelect').value;
+    const brandId = document.getElementById('brandSelect').value;
     const modelSelect = document.getElementById('modelSelect');
     
-    modelSelect.innerHTML = '';
+    modelSelect.innerHTML = '<option value="" disabled selected>Selecione um modelo...</option>';
     
-    if(modelsByBrand[brand]) {
-        modelsByBrand[brand].forEach(model => {
+    // modelosPorMarca is defined globally in services.html
+    if(typeof modelosPorMarca !== 'undefined' && modelosPorMarca[brandId]) {
+        modelosPorMarca[brandId].forEach(model => {
             const option = document.createElement('option');
-            option.value = model;
-            option.textContent = model;
+            option.value = model.id;
+            option.textContent = model.nome;
             modelSelect.appendChild(option);
         });
     }
@@ -29,7 +22,7 @@ function updateModels() {
 
 function nextStep(step) {
     if (step === 3 && !selectedService) {
-        alert("Por favor, selecione um serviço na lista antes de continuar.");
+        UINotification.toast("Por favor, selecione um item da lista antes de continuar.", "error");
         return;
     }
 
@@ -43,9 +36,12 @@ function nextStep(step) {
     }
 
     if(step === 3){
-        let brand = document.getElementById('brandSelect').value;
-        let model = document.getElementById('modelSelect').value;
-        document.getElementById('vehicle').innerText = `${brand} ${model}`;
+        const brandSelect = document.getElementById('brandSelect');
+        const modelSelect = document.getElementById('modelSelect');
+        const brandName = brandSelect.options[brandSelect.selectedIndex].text;
+        const modelName = modelSelect.options[modelSelect.selectedIndex].text;
+
+        document.getElementById('vehicle').innerText = `${brandName} ${modelName}`;
         document.getElementById('serviceName').innerText = selectedService;
         document.getElementById('price').innerText = selectedPrice;
     }

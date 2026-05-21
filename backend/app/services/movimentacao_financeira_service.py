@@ -32,15 +32,15 @@ def list_movimentacoes_by_tipo(tipo: str, limit: int = 50):
 def list_movimentacoes_by_periodo(data: MovimentacaoFinanceiraPeriodo):
     """Lista movimentações por período."""
     # Validação de datas
-    if data.data_inicio >= data.data_fim:
-        logger.warning("período inválido inicio=%s fim=%s", data.data_inicio, data.data_fim)
+    if data.data_abertura >= data.data_fim:
+        logger.warning("período inválido inicio=%s fim=%s", data.data_abertura, data.data_fim)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Data de início deve ser anterior à data de fim"
         )
     
     # Validação de período máximo (1 ano)
-    diferenca = data.data_fim - data.data_inicio
+    diferenca = data.data_fim - data.data_abertura
     if diferenca.days > 365:
         logger.warning("período muito longo dias=%s", diferenca.days)
         raise HTTPException(
@@ -49,7 +49,7 @@ def list_movimentacoes_by_periodo(data: MovimentacaoFinanceiraPeriodo):
         )
     
     return movimentacao_repo.get_movimentacoes_by_periodo(
-        data.data_inicio, data.data_fim, data.limit
+        data.data_abertura, data.data_fim, data.limit
     )
 
 def get_movimentacao_financeira_by_id(movimentacao_id: int):
@@ -162,15 +162,15 @@ def registrar_saida_financeira(data: MovimentacaoFinanceiraCreate):
 def calcular_saldo_periodo(data: MovimentacaoFinanceiraPeriodo):
     """Calcula saldo de entradas e saídas em um período."""
     # Validação de datas
-    if data.data_inicio >= data.data_fim:
-        logger.warning("período inválido inicio=%s fim=%s", data.data_inicio, data.data_fim)
+    if data.data_abertura >= data.data_fim:
+        logger.warning("período inválido inicio=%s fim=%s", data.data_abertura, data.data_fim)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Data de início deve ser anterior à data de fim"
         )
     
     # Validação de período máximo (1 ano)
-    diferenca = data.data_fim - data.data_inicio
+    diferenca = data.data_fim - data.data_abertura
     if diferenca.days > 365:
         logger.warning("período muito longo dias=%s", diferenca.days)
         raise HTTPException(
@@ -178,20 +178,20 @@ def calcular_saldo_periodo(data: MovimentacaoFinanceiraPeriodo):
             detail="Período não pode ser superior a 365 dias"
         )
     
-    return movimentacao_repo.calcular_saldo_periodo(data.data_inicio, data.data_fim)
+    return movimentacao_repo.calcular_saldo_periodo(data.data_abertura, data.data_fim)
 
-def get_resumo_financeiro(data_inicio: datetime = None, data_fim: datetime = None):
+def get_resumo_financeiro(data_abertura: datetime = None, data_fim: datetime = None):
     """Gera resumo financeiro geral ou por período."""
     # Se não fornecido, usa mês atual
-    if not data_inicio:
+    if not data_abertura:
         agora = datetime.now(timezone.utc)
-        data_inicio = agora.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        data_abertura = agora.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     if not data_fim:
         data_fim = datetime.now(timezone.utc)
     
     # Validação de período máximo (1 ano)
-    if data_inicio and data_fim:
-        diferenca = data_fim - data_inicio
+    if data_abertura and data_fim:
+        diferenca = data_fim - data_abertura
         if diferenca.days > 365:
             logger.warning("período muito longo dias=%s", diferenca.days)
             raise HTTPException(
@@ -199,7 +199,7 @@ def get_resumo_financeiro(data_inicio: datetime = None, data_fim: datetime = Non
                 detail="Período não pode ser superior a 365 dias"
             )
     
-    return movimentacao_repo.get_resumo_financeiro(data_inicio, data_fim)
+    return movimentacao_repo.get_resumo_financeiro(data_abertura, data_fim)
 
 def get_movimentacoes_by_pagamento(pagamento_id: int):
     """Lista movimentações de um pagamento."""

@@ -2,8 +2,14 @@
 
 {% block title %}DogMau Auto Center{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="/static/css/loja.css">
+{% endblock %}
+
 {% block content %}
     {% include "partials/carrossel.html" %}
     {% include "partials/features.html" %}
+    {% include "partials/services-cards.html" %}
+    {% include "partials/products-cards.html" %}
     {% include "partials/contact.html" %}
 {% endblock %}

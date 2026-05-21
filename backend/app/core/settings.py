@@ -47,9 +47,15 @@ class Settings(BaseSettings):
     debug_log: bool = False
 
     algorithm: str = "HS256"
-    access_token_expire_minutes: int = 1
+    access_token_expire_minutes: int = 60
 
     firebase_web_api_key: str = ""
+
+    resend_api_key: str = ""
+    frontend_url: str = ""
+
+    # Diretório de uploads (opcional). Útil em Docker/Cloud Run com volume montado!!
+    uploads_dir: Optional[str] = Field(default=None)
 
     @field_validator("debug_log", mode="before")
     @classmethod

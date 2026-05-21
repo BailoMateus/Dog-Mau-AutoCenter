@@ -3,7 +3,9 @@ Entidades de dados simples (sem ORM).
 Substitui os models SQLAlchemy por classes básicas e dicionários.
 """
 from dataclasses import dataclass
+from typing import Optional
 from datetime import datetime
+from decimal import Decimal
 from typing import Optional
 
 @dataclass
@@ -17,6 +19,7 @@ class User:
     telefone: str = ""
     cpf_cnpj: str = ""
     data_nascimento: Optional[datetime] = None
+    foto_perfil: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
@@ -74,7 +77,9 @@ class Veiculo:
 @dataclass
 class Servico:
     id_servico: Optional[int] = None
+    nome_servico: str = ""
     descricao: str = ""
+    tempo_estimado: Optional[str] = None
     preco: float = 0.0
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
@@ -87,6 +92,7 @@ class Produto:
     descricao: str = ""
     preco: float = 0.0
     quantidade_estoque: int = 0
+    imagem_produto: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
@@ -106,6 +112,8 @@ class PedidoProduto:
     id_pedido: int = 0
     id_produto: int = 0
     quantidade: int = 1
+    produto_nome: Optional[str] = None
+    produto_preco: Optional[Decimal] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
@@ -116,6 +124,7 @@ class Peca:
     nome: str = ""
     preco_unitario: float = 0.0
     quantidade_estoque: int = 0
+    imagem_peca: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
@@ -158,9 +167,11 @@ class OrcamentoServico:
 @dataclass
 class OrdemServico:
     id_os: Optional[int] = None
+    id_orcamento: Optional[int] = None
     id_veiculo: int = 0
-    id_mecanico: int = 0
+    id_usuario: Optional[int] = None
     descricao_problema: str = ""
+    valor_total: float = 0.0
     status: str = "aberta"
     data_abertura: Optional[datetime] = None
     data_conclusao: Optional[datetime] = None
@@ -182,7 +193,7 @@ class OrdemServicoServico:
 
 @dataclass
 class Mecanico:
-    id_mecanico: Optional[int] = None
+    id_usuario: Optional[int] = None
     nome: str = ""
     especialidade: str = ""
     telefone: str = ""
@@ -195,7 +206,8 @@ class Mecanico:
 @dataclass
 class MovimentacaoEstoque:
     id_movimentacao: Optional[int] = None
-    id_peca: int = 0
+    id_peca: Optional[int] = None
+    id_produto: Optional[int] = None
     tipo_movimentacao: str = ""  # 'saida' ou 'entrada'
     quantidade: int = 0
     motivo: str = ""
@@ -221,6 +233,64 @@ class MovimentacaoFinanceira:
     descricao: str = ""
     id_pagamento: Optional[int] = None
     created_at: Optional[datetime] = None
+
+# Response DTOs com dados enriquecidos de JOINs
+@dataclass
+class OrcamentoPecaResponse:
+    """DTO Response para peça do orçamento - contém dados enriquecidos."""
+    id_orcamento: int
+    id_peca: int
+    quantidade: int
+    peca_nome: str
+    peca_preco: Decimal
+    subtotal: Decimal = 0.0
+
+    def __post_init__(self):
+        if self.subtotal == 0.0:
+            self.subtotal = Decimal(self.peca_preco) * Decimal(self.quantidade)
+
+@dataclass
+class OrcamentoServicoResponse:
+    """DTO Response para serviço do orçamento - contém dados enriquecidos."""
+    id_orcamento: int
+    id_servico: int
+    quantidade: int
+    servico_descricao: str
+    servico_preco: Decimal
+    subtotal: Decimal = 0.0
+
+    def __post_init__(self):
+        if self.subtotal == 0.0:
+            self.subtotal = Decimal(self.servico_preco) * Decimal(self.quantidade)
+
+@dataclass
+class OrdemServicoPecaResponse:
+    """DTO Response para peça da OS - contém dados enriquecidos."""
+    id_os: int
+    id_peca: int
+    quantidade: int
+    peca_nome: str
+    peca_preco: Decimal
+    peca_estoque: int
+    subtotal: Decimal = 0.0
+
+    def __post_init__(self):
+        if self.subtotal == 0.0:
+            self.subtotal = Decimal(self.peca_preco) * Decimal(self.quantidade)
+
+@dataclass
+class OrdemServicoServicoResponse:
+    """DTO Response para serviço da OS - contém dados enriquecidos."""
+    id_os: int
+    id_servico: int
+    quantidade: int
+    servico_descricao: str
+    servico_preco: Decimal
+    subtotal: Decimal = 0.0
+
+    def __post_init__(self):
+        if self.subtotal == 0.0:
+            self.subtotal = Decimal(self.servico_preco) * Decimal(self.quantidade)
 
 # Funções auxiliares para converter dicionários do banco para entidades
 def dict_to_user(data: dict) -> User:
@@ -296,16 +366,30 @@ def dict_to_orcamento(data: dict) -> Orcamento:
     return Orcamento(**data)
 
 def dict_to_orcamento_peca(data: dict) -> OrcamentoPeca:
-    """Converte dicionário do banco para entidade OrcamentoPeca."""
+    """Converte dicionário do banco para entidade OrcamentoPeca.
+
+    Ignora colunas extras (ex: peca_nome, peca_preco) retornadas por JOINs.
+    """
     if not data:
         return None
-    return OrcamentoPeca(**data)
+    return OrcamentoPeca(
+        id_orcamento=data.get('id_orcamento'),
+        id_peca=data.get('id_peca'),
+        quantidade=data.get('quantidade')
+    )
 
 def dict_to_orcamento_servico(data: dict) -> OrcamentoServico:
-    """Converte dicionário do banco para entidade OrcamentoServico."""
+    """Converte dicionário do banco para entidade OrcamentoServico.
+
+    Ignora colunas extras (ex: servico_descricao, servico_preco) retornadas por JOINs.
+    """
     if not data:
         return None
-    return OrcamentoServico(**data)
+    return OrcamentoServico(
+        id_orcamento=data.get('id_orcamento'),
+        id_servico=data.get('id_servico'),
+        quantidade=data.get('quantidade')
+    )
 
 def dict_to_ordem_servico(data: dict) -> OrdemServico:
     """Converte dicionário do banco para entidade OrdemServico."""
@@ -364,6 +448,7 @@ def user_to_dict(user: User) -> dict:
         'telefone': user.telefone,
         'cpf_cnpj': user.cpf_cnpj,
         'data_nascimento': user.data_nascimento,
+        'foto_perfil': user.foto_perfil,
         'created_at': user.created_at,
         'updated_at': user.updated_at,
         'deleted_at': user.deleted_at
@@ -441,7 +526,9 @@ def servico_to_dict(servico: Servico) -> dict:
         return None
     return {
         'id_servico': servico.id_servico,
+        'nome_servico': servico.nome_servico,
         'descricao': servico.descricao,
+        'tempo_estimado': servico.tempo_estimado,
         'preco': servico.preco,
         'created_at': servico.created_at,
         'updated_at': servico.updated_at,
@@ -458,6 +545,7 @@ def produto_to_dict(produto: Produto) -> dict:
         'descricao': produto.descricao,
         'preco': produto.preco,
         'quantidade_estoque': produto.quantidade_estoque,
+        'imagem_produto': produto.imagem_produto,
         'created_at': produto.created_at,
         'updated_at': produto.updated_at,
         'deleted_at': produto.deleted_at
@@ -500,6 +588,7 @@ def peca_to_dict(peca: Peca) -> dict:
         'nome': peca.nome,
         'preco_unitario': peca.preco_unitario,
         'quantidade_estoque': peca.quantidade_estoque,
+        'imagem_peca': peca.imagem_peca,
         'created_at': peca.created_at,
         'updated_at': peca.updated_at,
         'deleted_at': peca.deleted_at
@@ -562,9 +651,11 @@ def ordem_servico_to_dict(ordem_servico: OrdemServico) -> dict:
         return None
     return {
         'id_os': ordem_servico.id_os,
+        'id_orcamento': ordem_servico.id_orcamento,
         'id_veiculo': ordem_servico.id_veiculo,
-        'id_mecanico': ordem_servico.id_mecanico,
+        'id_usuario': ordem_servico.id_usuario,
         'descricao_problema': ordem_servico.descricao_problema,
+        'valor_total': ordem_servico.valor_total,
         'status': ordem_servico.status,
         'data_abertura': ordem_servico.data_abertura,
         'data_conclusao': ordem_servico.data_conclusao,
@@ -598,7 +689,7 @@ def mecanico_to_dict(mecanico: Mecanico) -> dict:
     if not mecanico:
         return None
     return {
-        'id_mecanico': mecanico.id_mecanico,
+        'id_usuario': mecanico.id_usuario,
         'nome': mecanico.nome,
         'especialidade': mecanico.especialidade,
         'telefone': mecanico.telefone,
@@ -616,6 +707,7 @@ def movimentacao_estoque_to_dict(movimentacao: MovimentacaoEstoque) -> dict:
     return {
         'id_movimentacao': movimentacao.id_movimentacao,
         'id_peca': movimentacao.id_peca,
+        'id_produto': getattr(movimentacao, 'id_produto', None),
         'tipo_movimentacao': movimentacao.tipo_movimentacao,
         'quantidade': movimentacao.quantidade,
         'motivo': movimentacao.motivo,
@@ -650,3 +742,53 @@ def movimentacao_financeira_to_dict(movimentacao: MovimentacaoFinanceira) -> dic
         'id_pagamento': movimentacao.id_pagamento,
         'created_at': movimentacao.created_at
     }
+
+# Funções para criar Response DTOs a partir de dicionários com dados enriquecidos
+def dict_to_orcamento_peca_response(data: dict) -> OrcamentoPecaResponse:
+    """Converte dicionário do banco (com JOIN) para OrcamentoPecaResponse."""
+    if not data:
+        return None
+    return OrcamentoPecaResponse(
+        id_orcamento=data.get('id_orcamento'),
+        id_peca=data.get('id_peca'),
+        quantidade=data.get('quantidade'),
+        peca_nome=data.get('peca_nome'),
+        peca_preco=Decimal(str(data.get('peca_preco', 0)))
+    )
+
+def dict_to_orcamento_servico_response(data: dict) -> OrcamentoServicoResponse:
+    """Converte dicionário do banco (com JOIN) para OrcamentoServicoResponse."""
+    if not data:
+        return None
+    return OrcamentoServicoResponse(
+        id_orcamento=data.get('id_orcamento'),
+        id_servico=data.get('id_servico'),
+        quantidade=data.get('quantidade'),
+        servico_descricao=data.get('servico_descricao'),
+        servico_preco=Decimal(str(data.get('servico_preco', 0)))
+    )
+
+def dict_to_ordem_servico_peca_response(data: dict) -> OrdemServicoPecaResponse:
+    """Converte dicionário do banco (com JOIN) para OrdemServicoPecaResponse."""
+    if not data:
+        return None
+    return OrdemServicoPecaResponse(
+        id_os=data.get('id_os'),
+        id_peca=data.get('id_peca'),
+        quantidade=data.get('quantidade'),
+        peca_nome=data.get('peca_nome'),
+        peca_preco=Decimal(str(data.get('peca_preco', 0))),
+        peca_estoque=data.get('peca_estoque', 0)
+    )
+
+def dict_to_ordem_servico_servico_response(data: dict) -> OrdemServicoServicoResponse:
+    """Converte dicionário do banco (com JOIN) para OrdemServicoServicoResponse."""
+    if not data:
+        return None
+    return OrdemServicoServicoResponse(
+        id_os=data.get('id_os'),
+        id_servico=data.get('id_servico'),
+        quantidade=data.get('quantidade'),
+        servico_descricao=data.get('servico_descricao'),
+        servico_preco=Decimal(str(data.get('servico_preco', 0)))
+    )

@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 
+from app.core.file_storage import ensure_upload_subdirs, get_uploads_root
 from app.core.settings import get_settings
 
 _settings = get_settings()
@@ -18,7 +19,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-from app.controllers.auth_controller import router as auth_router
+from app.controllers.auth_controller import router as auth_router, api_router as auth_api_router
 from app.controllers.me_controller import router as me_router
 from app.controllers.user_controller import router as users_router
 from app.controllers.endereco_controller import router as enderecos_router
@@ -54,6 +55,10 @@ _STATIC_DIR = _BACKEND_DIR / "static"
 if _STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
 
+_UPLOADS_DIR = ensure_upload_subdirs()
+app.mount("/uploads", StaticFiles(directory=str(_UPLOADS_DIR)), name="uploads")
+logger.info("StaticFiles /uploads -> %s", get_uploads_root())
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -63,6 +68,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(auth_api_router)
 app.include_router(users_router)
 app.include_router(me_router)
 app.include_router(enderecos_router)
@@ -110,6 +116,7 @@ async def log_requests(request: Request, call_next):
 
 @app.on_event("startup")
 async def on_startup():
+    ensure_upload_subdirs()
     from app.core.firebase import init_firebase
     try:
         init_firebase()

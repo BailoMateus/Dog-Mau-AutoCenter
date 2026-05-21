@@ -2,6 +2,7 @@ import logging
 
 from app.database.db import execute_query, execute_command, execute_insert
 from app.models.entities import OrdemServicoPeca, dict_to_ordem_servico_peca, ordem_servico_peca_to_dict
+from app.models.entities import dict_to_ordem_servico_peca_response
 
 logger = logging.getLogger(__name__)
 
@@ -17,27 +18,31 @@ def get_os_peca(os_id: int, peca_id: int):
     logger.debug("get_os_peca os=%s peca=%s found=%s", os_id, peca_id, item is not None)
     return item
 
-def get_pecas_by_os(os_id: int):
-    """Lista todas as peças de uma OS."""
+def get_peca_by_os(os_id: int, peca_id: int):
+    """Busca peça da OS com dados enriquecidos."""
     query = """
     SELECT op.id_os, op.id_peca, op.quantidade,
-           p.nome as peca_nome, p.preco_unitario as peca_preco, p.estoque_atual as peca_estoque
+           p.nome as peca_nome, p.preco_unitario as peca_preco, p.quantidade_estoque as peca_estoque
+    FROM os_peca op
+    INNER JOIN peca p ON op.id_peca = p.id_peca
+    WHERE op.id_os = %s AND op.id_peca = %s
+    """
+    result = execute_query(query, (os_id, peca_id), fetch="one")
+    return dict_to_ordem_servico_peca_response(result)
+
+
+def get_pecas_by_os(os_id: int):
+    """Lista todas as peças de uma OS com dados enriquecidos."""
+    query = """
+    SELECT op.id_os, op.id_peca, op.quantidade,
+           p.nome as peca_nome, p.preco_unitario as peca_preco, p.quantidade_estoque as peca_estoque
     FROM os_peca op
     INNER JOIN peca p ON op.id_peca = p.id_peca
     WHERE op.id_os = %s
     ORDER BY p.nome ASC
     """
     results = execute_query(query, (os_id,))
-    itens = []
-    for row in results:
-        item = dict_to_ordem_servico_peca(row)
-        # Adiciona informações da peça
-        item.peca_nome = row['peca_nome']
-        item.peca_preco = row['peca_preco']
-        item.peca_estoque = row['peca_estoque']
-        # Calcula subtotal
-        item.subtotal = item.peca_preco * item.quantidade
-        itens.append(item)
+    itens = [dict_to_ordem_servico_peca_response(row) for row in results]
     logger.debug("get_pecas_by_os os_id=%s count=%s", os_id, len(itens))
     return itens
 
@@ -125,18 +130,18 @@ def get_peca_preco(peca_id: int):
 def get_peca_estoque(peca_id: int):
     """Busca estoque atual de uma peça."""
     query = """
-    SELECT estoque_atual
+    SELECT quantidade_estoque
     FROM peca 
     WHERE id_peca = %s AND deleted_at IS NULL
     """
     result = execute_query(query, (peca_id,), fetch="one")
-    return result['estoque_atual'] if result else 0
+    return result['quantidade_estoque'] if result else 0
 
 def update_peca_estoque(peca_id: int, nova_quantidade: int):
     """Atualiza estoque de uma peça."""
     query = """
     UPDATE peca 
-    SET estoque_atual = %s, updated_at = CURRENT_TIMESTAMP
+    SET quantidade_estoque = %s, updated_at = CURRENT_TIMESTAMP
     WHERE id_peca = %s AND deleted_at IS NULL
     """
     params = (nova_quantidade, peca_id)

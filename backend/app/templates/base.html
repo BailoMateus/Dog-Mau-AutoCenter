@@ -6,17 +6,17 @@
     <title>{% block title %}DogMau Auto Center{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css?v=1.2">
     {% block extra_head %}{% endblock %}
 </head>
-<body {% block body_attrs %}{% endblock %}>
+<body class="d-flex flex-column" {% block body_attrs %}{% endblock %}>
 
     {% block header %}
     {% include "partials/header.html" %}
     {% endblock %}
 
     {% block main %}
-    <main>
+    <main class="flex-grow-1">
         {% block content %}{% endblock %}
     </main>
     {% endblock %}
@@ -26,6 +26,12 @@
     {% endblock %}
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    <script src="/static/js/auth-interceptor.js"></script>
+    <script src="/static/js/compra.js"></script>
+    <script src="/static/js/cart.js"></script>
+    <script src="/static/js/profile-edit.js"></script>
+    <script src="/static/js/ui-components.js"></script>
+    <script src="/static/js/password-change.js"></script>
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>

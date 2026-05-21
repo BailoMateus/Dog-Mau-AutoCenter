@@ -1,10 +1,10 @@
 import logging
 
+from app.schemas.password_schema import PasswordChangeRequest
 from fastapi import HTTPException, status, UploadFile
 import psycopg2
-import os
-from uuid import uuid4
 
+from app.core.file_storage import save_image_upload
 from app.core.roles import ADMIN, CLIENTE, MECANICO
 from app.core.security import hash_password
 from app.models.entities import User
@@ -29,6 +29,7 @@ def create_user(data: UserCreate):
         telefone=data.telefone,
         cpf_cnpj=data.cpf_cnpj,
         data_nascimento=data.data_nascimento,
+        foto_perfil=data.foto_perfil
     )
     try:
         return repo.create_user(user)
@@ -109,6 +110,7 @@ def update_user(
     assert_can_modify(actor, user_id, admin_only=False)
 
     is_admin = actor["role"] == ADMIN
+    
     if data.nome is not None:
         user.nome = data.nome
     if data.email is not None:
@@ -117,10 +119,24 @@ def update_user(
         user.senha_hash = hash_password(data.password.strip())
     if data.telefone is not None:
         user.telefone = data.telefone
+    
+    # ⚠️ NOVO: Proteger CPF/CNPJ após criação
     if data.cpf_cnpj is not None:
+        if user.cpf_cnpj is not None and user.cpf_cnpj != data.cpf_cnpj:
+            logger.warning(
+                "tentativa de alterar cpf_cnpj protegido user_id=%s actor=%s",
+                user_id,
+                actor.get("user_id")
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="CPF/CNPJ não pode ser alterado após o cadastro"
+            )
         user.cpf_cnpj = data.cpf_cnpj
+    
     if data.data_nascimento is not None:
         user.data_nascimento = data.data_nascimento
+    
     if data.ativo is not None and is_admin:
         user.ativo = data.ativo
     elif data.ativo is not None and not is_admin:
@@ -129,6 +145,7 @@ def update_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Somente administrador pode alterar o campo ativo",
         )
+    
     if data.role is not None:
         if not is_admin:
             raise HTTPException(
@@ -146,12 +163,60 @@ def update_user(
             detail="E-mail já cadastrado",
         )
 
+
+def change_user_password(user_id: int, data: PasswordChangeRequest, *, actor: dict):
+    """Altera senha do usuário após verificação de senha atual."""
+    user = get_user_or_404(user_id)
+    
+    # Verificar se é o próprio usuário ou admin
+    assert_can_update(actor, user_id)
+    
+    # Importar função de hash
+    from app.core.security import verify_password, hash_password
+    
+    # 1. Validar senha atual
+    if not verify_password(data.old_password, user.senha_hash):
+        logger.warning("change_password senha incorreta user_id=%s", user_id)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Senha atual incorreta"
+        )
+    
+    # 2. Verificar se nova senha é diferente da antiga
+    if data.old_password == data.new_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Nova senha deve ser diferente da atual"
+        )
+    
+    # 3. Validar que novas senhas coincidem
+    if data.new_password != data.confirm_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Novas senhas não coincidem"
+        )
+    
+    # 4. Atualizar senha
+    user.senha_hash = hash_password(data.new_password.strip())
+    
+    try:
+        updated = repo.update_user(user)
+        logger.info("change_password sucesso user_id=%s", user_id)
+        return updated
+    except Exception as e:
+        logger.error("change_password erro user_id=%s: %s", user_id, e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro ao alterar senha"
+        )
+    
+
 def delete_user(user_id: int, *, actor: dict):
     user = get_user_or_404(user_id)
     assert_can_modify(actor, user_id, admin_only=True)
 
     try:
-        return repo.delete_user(user)
+        return repo.soft_delete_user(user)
     except psycopg2.IntegrityError:
         logger.error("delete_user erro de integridade user_id=%s", user_id)
         raise HTTPException(
@@ -159,16 +224,12 @@ def delete_user(user_id: int, *, actor: dict):
             detail="Erro ao excluir usuário",
         )
 
-def save_user_photo(user_id: int, file: UploadFile) -> str:
-    """Salva a foto do usuário no sistema de arquivos."""
-    upload_dir = os.path.join("uploads", "users")
-    os.makedirs(upload_dir, exist_ok=True)
+def assert_can_update(actor: dict, target_id: int):
+    assert_can_modify(actor, target_id, admin_only=False)
 
-    file_extension = file.filename.split(".")[-1]
-    file_name = f"{user_id}_{uuid4().hex}.{file_extension}"
-    file_path = os.path.join(upload_dir, file_name)
-
-    with open(file_path, "wb") as f:
-        f.write(file.file.read())
-
-    return file_path
+def upload_user_photo(user_id: int, file: UploadFile, *, actor: dict):
+    get_user_or_404(user_id)
+    assert_can_update(actor, user_id)
+    photo_url = save_image_upload("perfil", user_id, file)
+    repo.update_user_photo(user_id, photo_url)
+    return get_user_or_404(user_id)

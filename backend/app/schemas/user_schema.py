@@ -2,6 +2,7 @@ from datetime import datetime, date
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
+from app.core.file_storage import normalize_stored_image_url
 from app.core.roles import ALL_ROLES, CLIENTE
 
 class UserCreate(BaseModel):
@@ -71,3 +72,8 @@ class UserPublic(BaseModel):
     foto_perfil: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
+
+    @field_validator("foto_perfil", mode="before")
+    @classmethod
+    def normalize_foto_perfil(cls, v: str | None) -> str | None:
+        return normalize_stored_image_url(v)

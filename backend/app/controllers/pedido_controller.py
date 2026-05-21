@@ -1,13 +1,14 @@
 import logging
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.services import pedido_service
 from app.schemas.pedido_schema import PedidoCreate, PedidoUpdate, PedidoPublic
+from app.middlewares.auth_middleware import get_current_user
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/pedidos", tags=["Pedidos"])
+router = APIRouter(prefix="/api/pedidos", tags=["Pedidos"])
 
 @router.get("", response_model=list[PedidoPublic])
 def list_pedidos():
@@ -27,10 +28,16 @@ def list_pedidos():
     ]
 
 @router.post("", response_model=PedidoPublic, status_code=status.HTTP_201_CREATED)
-def create_pedido(data: PedidoCreate):
-    """Cria um novo pedido."""
-    logger.info("POST /pedidos usuario=%s valor=%s", data.id_usuario, data.valor_total)
-    pedido = pedido_service.create_pedido(data)
+def create_pedido(data: PedidoCreate, user=Depends(get_current_user)):
+    """Cria um novo pedido. Requer autenticação.
+    
+    O id_usuario é extraído do usuário autenticado (via JWT no cookie).
+    """
+    user_id = int(user["user_id"])
+    logger.info("POST /pedidos usuario=%s valor=%s", user_id, data.valor_total)
+    
+    # Cria pedido com id_usuario do usuário autenticado
+    pedido = pedido_service.create_pedido_for_user(user_id, data)
     return PedidoPublic(
         id_pedido=pedido.id_pedido,
         id_usuario=pedido.id_usuario,

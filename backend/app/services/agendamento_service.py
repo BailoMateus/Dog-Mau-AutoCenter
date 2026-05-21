@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
 import psycopg2
@@ -48,7 +49,7 @@ def validate_agendamento_data(usuario_id: int = None, veiculo_id: int = None, da
         )
     
     # Validação de data no futuro
-    if data_agendamento and data_agendamento <= datetime.now():
+    if data_agendamento and data_agendamento <= datetime.now(timezone.utc):
         logger.warning("data de agendamento no passado data=%s", data_agendamento)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -56,23 +57,26 @@ def validate_agendamento_data(usuario_id: int = None, veiculo_id: int = None, da
         )
 
 def create_agendamento(data: AgendamentoCreate):
-    """Cria um novo agendamento com validações."""
-    # Validações
     validate_agendamento_data(
         usuario_id=data.id_usuario,
         veiculo_id=data.id_veiculo,
         data_agendamento=data.data_agendamento
     )
-    
-    # Cria entidade Agendamento
+
+    data_agendamento = data.data_agendamento
+
+    # garante consistência (opcional mas MUITO seguro)
+    if data_agendamento and data_agendamento.tzinfo is None:
+        data_agendamento = data_agendamento.replace(tzinfo=timezone.utc)
+
     agendamento = Agendamento(
         id_usuario=data.id_usuario,
         id_veiculo=data.id_veiculo,
-        data_agendamento=data.data_agendamento,
+        data_agendamento=data_agendamento,
         descricao=data.descricao or "",
         status=data.status or "agendado"
     )
-    
+
     try:
         return repo.create_agendamento(agendamento)
     except psycopg2.IntegrityError:

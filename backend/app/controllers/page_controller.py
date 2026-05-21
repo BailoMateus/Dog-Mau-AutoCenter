@@ -23,6 +23,11 @@ from app.core.settings import get_settings
 from app.database.db import execute_query
 from app.services.user_service import list_users
 from app.services import servico_service
+from app.services import produto_service
+from app.services import pedido_service
+from app.services import veiculo_service
+from app.services import modelo_service
+from app.services import marca_service
 
 logger = logging.getLogger(__name__)
 
@@ -72,11 +77,20 @@ def get_page_user(request: Request):
 
 @router.get("/", include_in_schema=False)
 def home_page(request: Request, user=Depends(get_page_user)):
-    """Página inicial — pública, mostra header logado/deslogado."""
+    """Página inicial — pública, mostra header logado/deslogado e destaques."""
+    todos_servicos = servico_service.list_servicos()
+    todos_produtos = produto_service.list_produtos()
+    
+    # Pegar apenas os 3 primeiros para destaque na Home
+    servicos_destaque = todos_servicos[:3]
+    produtos_destaque = todos_produtos[:3]
+
     return templates.TemplateResponse("pages/index.html", {
         "request": request,
         "user": user,
         "page": "home",
+        "servicos_destaque": servicos_destaque,
+        "produtos_destaque": produtos_destaque,
     })
 
 
@@ -110,10 +124,47 @@ def cadastro_page(request: Request, user=Depends(get_page_user)):
 @router.get("/servicos", include_in_schema=False)
 def services_page(request: Request, user=Depends(get_page_user)):
     """Página de serviços — pública."""
+    servicos = servico_service.list_servicos()
+    marcas = marca_service.list_marcas()
+    modelos = modelo_service.list_modelos()
+    
+    # We map modelos by marca to easily build the frontend select
+    modelos_por_marca = {}
+    for mod in modelos:
+        if mod.id_marca not in modelos_por_marca:
+            modelos_por_marca[mod.id_marca] = []
+        modelos_por_marca[mod.id_marca].append({
+            "id": mod.id_modelo,
+            "nome": mod.nome_modelo
+        })
+    
     return templates.TemplateResponse("pages/services.html", {
         "request": request,
         "user": user,
         "page": "servicos",
+        "servicos": servicos,
+        "marcas": marcas,
+        "modelos_por_marca": modelos_por_marca,
+    })
+
+
+@router.get("/produtos", include_in_schema=False)
+@router.get("/loja", include_in_schema=False)
+def loja_page(request: Request, user=Depends(get_page_user)):
+    """Página pública de e-commerce (Loja de Produtos)."""
+    if user and user.get("role") in ("admin", "mecanico"):
+        pedidos = pedido_service.list_pedidos_detalhados()
+        produtos = []
+    else:
+        produtos = produto_service.list_produtos()
+        pedidos = []
+
+    return templates.TemplateResponse("pages/loja.html", {
+        "request": request,
+        "user": user,
+        "produtos": produtos,
+        "pedidos": pedidos,
+        "page": "produtos",
     })
 
 
@@ -126,6 +177,30 @@ def logout(request: Request):
     response.delete_cookie("access_token") # Por segurança, limpa o antigo também
     return response
 
+@router.get("/checkout", include_in_schema=False)
+def checkout_page(request: Request, user=Depends(get_page_user)):
+    """Página de checkout — requer autenticação (cliente)."""
+    if not user:
+        return RedirectResponse(url="/login?next=/checkout", status_code=302)
+
+    # Busca email e telefone para preenchimento automático do formulário
+    user_extra = execute_query(
+        "SELECT email, telefone FROM usuario WHERE id_usuario = %s AND deleted_at IS NULL",
+        (int(user["user_id"]),),
+        fetch="one",
+    )
+    user_email = user_extra["email"] if user_extra else ""
+    user_phone = user_extra.get("telefone", "") if user_extra else ""
+
+    return templates.TemplateResponse("pages/checkout.html", {
+        "request": request,
+        "user": user,
+        "user_email": user_email,
+        "user_phone": user_phone or "",
+        "page": "checkout",
+    })
+
+
 @router.get("/painel", include_in_schema=False)
 def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
     """Painel unificado — requer autenticação.
@@ -133,28 +208,90 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
     Admin/Mecânico veem abas de gestão (Usuários, Produtos, OS).
     Cliente vê sua própria área (Meus Pedidos, Minhas OS).
     """
-    if not user:
-        return RedirectResponse(url="/login", status_code=302)
+    try:
+        if not user:
+            return RedirectResponse(url="/login", status_code=302)
 
-    # Define a aba padrão conforme o role
-    if not tab:
-        tab = "usuarios" if user.get("role") in ("admin", "mecanico") else "meu_usuario"
+        # Define a aba padrão conforme o role
+        if not tab:
+            tab = "usuarios" if user.get("role") in ("admin", "mecanico") else "meu_usuario"
 
-    # Carrega dados apenas para roles que precisam
-    usuarios = []
-    servicos = []
-    if user.get("role") in ("admin", "mecanico"):
-        usuarios = list_users()
-        servicos = servico_service.list_servicos()
+        # Carrega dados apenas para roles que precisam
+        usuarios = []
+        servicos = []
+        produtos = []
+        marcas = []
+        if user.get("role") in ("admin", "mecanico"):
+            usuarios = list_users()
+            servicos = servico_service.list_servicos()
+            produtos = produto_service.list_produtos()
+            marcas = marca_service.list_marcas()
 
-    return templates.TemplateResponse("pages/painel.html", {
-        "request": request,
-        "user": user,
-        "usuarios": usuarios,
-        "servicos": servicos,
-        "tab": tab,
-        "page": "painel",
-    })
+        # Pedidos (Apenas cliente vê os seus no painel)
+        if user.get("role") not in ("admin", "mecanico"):
+            pedidos_db = pedido_service.get_pedidos_detalhados_by_usuario(int(user["user_id"]))
+        else:
+            pedidos_db = []
+            
+        pedidos = []
+        for p in pedidos_db:
+            if isinstance(p, dict):
+                id_pedido = p.get('id_pedido')
+                created_at = p.get('created_at')
+                valor_total = p.get('valor_total')
+                status = p.get('status')
+                itens = p.get('itens', [])
+                usuario_nome = p.get('usuario_nome')
+            else:
+                id_pedido = p.id_pedido
+                created_at = p.created_at
+                valor_total = p.valor_total
+                status = p.status
+                itens = getattr(p, 'itens', [])
+                usuario_nome = getattr(p, 'usuario_nome', None)
+                
+            qtd_itens = sum(i.quantidade for i in itens) if itens else 0
+            
+            pedidos.append({
+                "id_pedido": id_pedido,
+                "data_pedido": created_at.strftime('%Y-%m-%d') if created_at else "",
+                "valor_total": valor_total,
+                "status": status,
+                "qtd_itens": qtd_itens,
+                "itens": itens,
+                "usuario_nome": usuario_nome
+            })
+
+        # Veículos (Admin vê todos, cliente vê os seus)
+        if user.get("role") in ("admin", "mecanico"):
+            veiculos = veiculo_service.list_all_veiculos()
+        else:
+            veiculos = veiculo_service.list_veiculos_by_user(int(user["user_id"]))
+            
+        modelos = modelo_service.list_modelos()
+
+        return templates.TemplateResponse("pages/painel.html", {
+            "request": request,
+            "user": user,
+            "usuarios": usuarios,
+            "servicos": servicos,
+            "produtos": produtos,
+            "pedidos": pedidos,
+            "veiculos": veiculos,
+            "modelos": modelos,
+            "marcas": marcas,
+            "tab": tab,
+            "page": "painel",
+        })
+    except Exception as e:
+        import traceback
+        logger.error("Error in painel_page: %s", traceback.format_exc())
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            status_code=500,
+            content={"error": str(e), "traceback": traceback.format_exc()}
+        )
+
 
 
 @router.get("/admin/usuarios", include_in_schema=False)
@@ -169,4 +306,57 @@ def admin_usuarios_page(request: Request, user=Depends(get_page_user)):
         "user": user,
         "usuarios": usuarios,
         "page": "admin",
+    })
+
+
+@router.get("/relatorios", include_in_schema=False)
+def relatorios_page(request: Request, user=Depends(get_page_user)):
+    """Página de relatórios executivos — apenas para ADMIN."""
+    if not user or user.get("role") != "admin":
+        return RedirectResponse(url="/", status_code=302)
+    
+    return templates.TemplateResponse("pages/relatorios.html", {
+        "request": request,
+        "user": user,
+        "page": "relatorios",
+    })
+
+
+@router.get("/movimentacoes-estoque", include_in_schema=False)
+def movimentacoes_estoque_page(request: Request, user=Depends(get_page_user)):
+    """Página de movimentações de estoque — Admin/Mecânico."""
+    if not user or user.get("role") not in ("admin", "mecanico"):
+        return RedirectResponse(url="/", status_code=302)
+    
+    return templates.TemplateResponse("pages/movimentacoes_estoque.html", {
+        "request": request,
+        "user": user,
+        "page": "movimentacoes_estoque",
+    })
+
+
+@router.get("/movimentacoes-financeiras", include_in_schema=False)
+def movimentacoes_financeiras_page(request: Request, user=Depends(get_page_user)):
+    """Página de movimentações financeiras — apenas para ADMIN."""
+    if not user or user.get("role") != "admin":
+        return RedirectResponse(url="/", status_code=302)
+    
+    return templates.TemplateResponse("pages/movimentacoes_financeiras.html", {
+        "request": request,
+        "user": user,
+        "page": "movimentacoes_financeiras",
+    })
+
+
+@router.get("/ordem-servico/{os_id}", include_in_schema=False)
+def ordem_servico_detail_page(request: Request, os_id: int, user=Depends(get_page_user)):
+    """Página de detalhes de uma ordem de serviço."""
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
+    
+    return templates.TemplateResponse("pages/ordem_servico_detail.html", {
+        "request": request,
+        "user": user,
+        "os_id": os_id,
+        "page": "ordem_servico",
     })
