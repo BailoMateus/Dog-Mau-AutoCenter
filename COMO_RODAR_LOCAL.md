@@ -94,11 +94,17 @@ A palavra-chave eh **`healthy`**. Se aparecer `starting`, espere mais alguns seg
 
 ### O que aconteceu por baixo
 
-No primeiro boot, o Docker executou automaticamente 4 scripts SQL (na ordem):
+No primeiro boot, o Docker executou automaticamente 5 scripts SQL (na ordem):
 1. `tables.sql` — cria todas as tabelas
-2. `migration_add_user_fields.sql` — adiciona campos extras
-3. `migration_unified_users.sql` — unifica `cliente` + `mecanico` em `usuario`
-4. `seed_admin.sql` — cria o usuario admin (`admin@dogmau.com` / `Senha123`)
+2. `migration_add_user_fields.sql` — adiciona campos extras no `usuario` (telefone, cpf_cnpj, endereco, etc)
+3. `migration_add_image_fields.sql` — adiciona campos de imagem (`foto_perfil`, `imagem_produto`, `imagem_peca`)
+4. `migration_add_servico_fields.sql` — adiciona campos no catalogo de servicos (`nome_servico`, `tempo_estimado`)
+5. `seed_admin.sql` — cria o usuario admin (`admin@dogmau.com` / `Senha123`)
+
+> A migration `migration_unified_users.sql` existe no repo mas NAO eh montada de proposito.
+> Ela eh uma migracao one-time de dados (clientes/mecanicos legados → tabela `usuario` unificada)
+> ja aplicada em producao e contem referencias a colunas que nao existem em banco novo. Em
+> ambiente local ela eh inutil e quebraria o init. Veja `IMPLEMENTACAO_LOCAL.md`.
 
 ---
 
