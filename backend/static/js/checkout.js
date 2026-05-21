@@ -114,23 +114,15 @@ class CheckoutManager {
     this.showLoading(true);
 
     try {
-      // 1. Verifica autenticação
-      const token = this.getAuthToken();
-      if (!token) {
-        throw new Error('Usuário não autenticado');
-      }
-
-      // 2. Cria pedido
+      // 1. Cria pedido (autenticação via cookie)
       const pedidoData = {
         valor_total: this.cart.getTotal()
       };
 
       const pedidoResponse = await fetch('/api/pedidos', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(pedidoData)
       });
 
@@ -150,10 +142,8 @@ class CheckoutManager {
       for (const item of this.cart.cart) {
         const itemResponse = await fetch(`/api/pedidos/${pedidoId}/itens`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({
             id_produto: item.id_produto,
             quantidade: item.quantidade
