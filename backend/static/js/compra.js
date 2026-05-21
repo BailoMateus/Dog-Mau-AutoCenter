@@ -7,11 +7,10 @@
 
 /**
  * Cria um novo pedido
- * @param {number} id_usuario - ID do usuário (cliente)
  * @param {number} valor_total - Valor total do pedido
  * @returns {Promise<Object>} - Dados do pedido criado ou erro
  */
-async function criarPedido(id_usuario, valor_total) {
+async function criarPedido(valor_total) {
     try {
         const response = await fetch('/api/pedidos', {
             method: 'POST',
@@ -20,7 +19,6 @@ async function criarPedido(id_usuario, valor_total) {
             },
             credentials: 'include', // Envia cookies (token)
             body: JSON.stringify({
-                id_usuario,
                 valor_total,
                 status: 'pendente'
             })
