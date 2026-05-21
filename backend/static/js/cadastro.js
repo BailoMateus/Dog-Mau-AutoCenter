@@ -205,7 +205,7 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log("Botão Google clicado (cadastro)");
 
             if (typeof firebase === "undefined" || !firebase.auth) {
-                alert("Serviço Google indisponível. Tente novamente mais tarde.");
+                UINotification.toast("Serviço Google indisponível. Tente novamente mais tarde", "error");
                 console.error("Firebase Auth SDK não carregado");
                 return;
             }
@@ -230,7 +230,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     window.location.href = "/";
                 } else {
                     const errorData = await response.json().catch(() => ({}));
-                    alert("Falha no login Google: " + (errorData.detail || "Erro desconhecido"));
+                    UINotification.toast("Falha no login Google", "error");
                 }
             } catch (error) {
                 if (error.code === "auth/popup-closed-by-user") {
@@ -238,7 +238,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
                 console.error("Erro no login Google:", error);
-                alert("Erro no login com Google: " + error.message);
+                UINotification.toast("Erro no login Google", "error");
             }
         });
     }
