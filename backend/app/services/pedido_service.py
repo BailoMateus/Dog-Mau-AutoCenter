@@ -14,6 +14,16 @@ def list_pedidos():
     """Lista todos os pedidos."""
     return repo.get_all_pedidos()
 
+def list_pedidos_detalhados():
+    """Lista todos os pedidos com detalhes de cliente e itens."""
+    pedidos_raw = repo.get_all_pedidos_detalhado()
+    
+    # Agregar itens do pedido_produto_repository
+    for p in pedidos_raw:
+        p['itens'] = pedido_produto_repo.get_itens_by_pedido(p['id_pedido'])
+        
+    return pedidos_raw
+
 def get_pedido_or_404(pedido_id: int) -> Pedido:
     """Busca pedido por ID ou retorna 404."""
     pedido = repo.get_pedido_by_id(pedido_id)
@@ -136,3 +146,22 @@ def get_pedidos_by_usuario(usuario_id: int):
         )
     
     return repo.get_pedidos_by_usuario(usuario_id)
+
+def get_pedidos_detalhados_by_usuario(usuario_id: int):
+    """Lista pedidos de um usuario específico com seus itens."""
+    if not repo.check_usuario_exists(usuario_id):
+        logger.warning("usuario não encontrado usuario_id=%s", usuario_id)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuario não encontrado"
+        )
+    
+    from app.models.entities import pedido_to_dict
+    pedidos = repo.get_pedidos_by_usuario(usuario_id)
+    pedidos_detalhados = []
+    for p in pedidos:
+        p_dict = pedido_to_dict(p)
+        p_dict['itens'] = pedido_produto_repo.get_itens_by_pedido(p.id_pedido)
+        pedidos_detalhados.append(p_dict)
+    
+    return pedidos_detalhados

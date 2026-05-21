@@ -93,4 +93,47 @@
       btn.innerHTML = originalHtml;
     }
   });
+
+  // Change Status in Pedido Card
+  document.addEventListener('change', async (e) => {
+    if (e.target.classList.contains('pedido-status-select')) {
+      const select = e.target;
+      const pedidoId = select.dataset.pedId;
+      const newStatus = select.value;
+      const originalValue = select.dataset.originalValue || select.value;
+      
+      select.disabled = true;
+      try {
+        const res = await fetch(`/api/pedidos/${pedidoId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus }),
+          credentials: 'include'
+        });
+        if (res.ok) {
+          showToast(`Status do pedido #${pedidoId} atualizado para ${newStatus}.`, 'success');
+          select.dataset.originalValue = newStatus;
+        } else {
+          const data = await res.json();
+          showToast(data.detail || 'Erro ao atualizar status.', 'danger');
+          select.value = originalValue;
+        }
+      } catch (err) {
+        showToast('Erro de rede ao atualizar status.', 'danger');
+        select.value = originalValue;
+      } finally {
+        select.disabled = false;
+      }
+    }
+  });
+
+  // Track original value on focus to allow revert
+  document.addEventListener('focusin', (e) => {
+    if (e.target.classList.contains('pedido-status-select')) {
+        if (!e.target.dataset.originalValue) {
+            e.target.dataset.originalValue = e.target.value;
+        }
+    }
+  });
+
 })();

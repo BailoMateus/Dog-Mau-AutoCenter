@@ -152,11 +152,18 @@ def services_page(request: Request, user=Depends(get_page_user)):
 @router.get("/loja", include_in_schema=False)
 def loja_page(request: Request, user=Depends(get_page_user)):
     """Página pública de e-commerce (Loja de Produtos)."""
-    produtos = produto_service.list_produtos()
+    if user and user.get("role") in ("admin", "mecanico"):
+        pedidos = pedido_service.list_pedidos_detalhados()
+        produtos = []
+    else:
+        produtos = produto_service.list_produtos()
+        pedidos = []
+
     return templates.TemplateResponse("pages/loja.html", {
         "request": request,
         "user": user,
         "produtos": produtos,
+        "pedidos": pedidos,
         "page": "produtos",
     })
 
@@ -197,20 +204,38 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
             marcas = marca_service.list_marcas()
 
         # Pedidos (Admin vê todos, cliente vê os seus)
-        pedidos_db = []
         if user.get("role") in ("admin", "mecanico"):
-            pedidos_db = pedido_service.list_pedidos()
+            pedidos_db = pedido_service.list_pedidos_detalhados()
         else:
-            pedidos_db = pedido_service.get_pedidos_by_usuario(int(user["user_id"]))
+            pedidos_db = pedido_service.get_pedidos_detalhados_by_usuario(int(user["user_id"]))
             
         pedidos = []
         for p in pedidos_db:
+            if isinstance(p, dict):
+                id_pedido = p.get('id_pedido')
+                created_at = p.get('created_at')
+                valor_total = p.get('valor_total')
+                status = p.get('status')
+                itens = p.get('itens', [])
+                usuario_nome = p.get('usuario_nome')
+            else:
+                id_pedido = p.id_pedido
+                created_at = p.created_at
+                valor_total = p.valor_total
+                status = p.status
+                itens = getattr(p, 'itens', [])
+                usuario_nome = getattr(p, 'usuario_nome', None)
+                
+            qtd_itens = sum(i.quantidade for i in itens) if itens else 0
+            
             pedidos.append({
-                "id_pedido": p.id_pedido,
-                "data_pedido": p.created_at.strftime('%Y-%m-%d') if p.created_at else "",
-                "valor_total": p.valor_total,
-                "status": p.status,
-                "qtd_itens": "—"  # Para calcularmos os itens, precisaria consultar pedido_produto
+                "id_pedido": id_pedido,
+                "data_pedido": created_at.strftime('%Y-%m-%d') if created_at else "",
+                "valor_total": valor_total,
+                "status": status,
+                "qtd_itens": qtd_itens,
+                "itens": itens,
+                "usuario_nome": usuario_nome
             })
 
         # Veículos (Admin vê todos, cliente vê os seus)

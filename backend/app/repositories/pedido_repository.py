@@ -33,6 +33,21 @@ def get_all_pedidos():
     logger.debug("get_all_pedidos count=%s", len(pedidos))
     return pedidos
 
+def get_all_pedidos_detalhado():
+    """Lista todos os pedidos com os dados do cliente."""
+    query = """
+    SELECT p.id_pedido, p.id_usuario, p.valor_total, p.status, 
+           p.created_at, p.updated_at, p.deleted_at,
+           u.nome as usuario_nome, u.email as usuario_email
+    FROM pedido p
+    LEFT JOIN usuario u ON p.id_usuario = u.id_usuario
+    WHERE p.deleted_at IS NULL
+    ORDER BY p.created_at DESC
+    """
+    results = execute_query(query)
+    logger.debug("get_all_pedidos_detalhado count=%s", len(results))
+    return results
+
 def get_pedidos_by_usuario(usuario_id: int):
     """Lista pedidos de um usuario."""
     query = """
