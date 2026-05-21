@@ -5,6 +5,7 @@
 {% endblock %}
 
 {% block extra_scripts %}
+<link rel="stylesheet" href="/static/css/loja.css">
 <style>
     .painel-nav-tabs { border-bottom-color: #333 !important; }
     .nav-tab-item { transition: all 0.2s ease; }
@@ -101,6 +102,20 @@
             <a class="nav-link nav-tab-link {% if tab == 'servicos' %}active{% endif %}" href="?tab=servicos" role="tab">
                 <i class="bi bi-tools me-1"></i>
                 {% if user.role in ['admin', 'mecanico'] %}Serviços{% else %}Meus Serviços{% endif %}
+            </a>
+        </li>
+
+        <li class="nav-item" role="presentation">
+            <a class="nav-link nav-tab-link {% if tab == 'orcamentos' %}active{% endif %}" href="?tab=orcamentos" role="tab">
+                <i class="bi bi-file-earmark-text me-1"></i>
+                {% if user.role == 'admin' %}Orçamentos Pendentes{% else %}Meus Orçamentos{% endif %}
+            </a>
+        </li>
+
+        <li class="nav-item" role="presentation">
+            <a class="nav-link nav-tab-link {% if tab == 'ordens_servico' %}active{% endif %}" href="?tab=ordens_servico" role="tab">
+                <i class="bi bi-wrench-adjustable me-1"></i>
+                {% if user.role == 'admin' %}Gestão de OS{% elif user.role == 'mecanico' %}Minhas OS{% else %}Minhas OS{% endif %}
             </a>
         </li>
 
@@ -329,6 +344,20 @@
         {% if tab == 'servicos' %}
         <div class="tab-pane fade show active" id="servicos" role="tabpanel">
             {% include "partials/ServicePanel.html" %}
+        </div>
+        {% endif %}
+
+        {# ── Aba de Orçamentos ── #}
+        {% if tab == 'orcamentos' %}
+        <div class="tab-pane fade show active" id="orcamentos" role="tabpanel">
+            {% include "partials/OrcamentoPanel.html" %}
+        </div>
+        {% endif %}
+
+        {# ── Aba de Ordens de Serviço ── #}
+        {% if tab == 'ordens_servico' %}
+        <div class="tab-pane fade show active" id="ordens_servico" role="tabpanel">
+            {% include "partials/OSPanel.html" %}
         </div>
         {% endif %}
 

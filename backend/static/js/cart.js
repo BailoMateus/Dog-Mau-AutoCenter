@@ -6,8 +6,27 @@
 class ShoppingCart {
   constructor() {
     this.cartKey = 'dogmau_cart';
+    this.ownerKey = 'dogmau_cart_owner';
+    this.checkCartOwner();
     this.cart = this.loadCart();
     this.init();
+  }
+
+  checkCartOwner() {
+    const metaTag = document.querySelector('meta[name="current-user-id"]');
+    const currentUserId = metaTag ? metaTag.content : '';
+    const savedOwner = localStorage.getItem(this.ownerKey);
+
+    // Se mudamos de um usuário logado para OUTRO usuário logado, limpa.
+    // Se o usuário apenas deslogou (currentUserId == ''), NÃO limpa o carrinho.
+    if (savedOwner && currentUserId && savedOwner !== currentUserId) {
+        localStorage.removeItem(this.cartKey);
+    }
+    
+    // Atualiza quem é o dono atual do carrinho na sessão local, apenas se estiver logado
+    if (currentUserId) {
+        localStorage.setItem(this.ownerKey, currentUserId);
+    }
   }
 
   // === GERENCIAMENTO LOCAL (LocalStorage) ===
@@ -301,22 +320,12 @@ class ShoppingCart {
   // === CHECKOUT ===
 
   async proceedToCheckout() {
-    // Verifica se usuário está autenticado
-    const token = this.getAuthToken();
-    if (!token) {
-      this.showAlert('Você precisa estar logado para fazer uma compra. Redirecionando...', 'warning');
-      setTimeout(() => {
-        window.location.href = '/cadastro';
-      }, 1500);
-      return;
-    }
-
     if (this.isEmpty()) {
       this.showAlert('Carrinho vazio!', 'warning');
       return;
     }
 
-    // Redireciona para checkout
+    // Redireciona para checkout (o backend fará o redirecionamento de login se necessário)
     window.location.href = '/checkout';
   }
 
