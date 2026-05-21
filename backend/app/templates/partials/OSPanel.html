@@ -1,0 +1,154 @@
+<div class="card border-0 shadow rounded" style="background-color: #111;">
+    <div class="card-body p-4">
+        <h4 class="fw-bold text-white mb-4">
+            <i class="bi bi-wrench-adjustable me-2"></i>
+            {% if user.role == 'admin' %}Gestão de Ordens de Serviço
+            {% elif user.role == 'mecanico' %}Minhas Ordens de Serviço
+            {% else %}Ordens de Serviço do Veículo
+            {% endif %}
+        </h4>
+
+        <div class="table-responsive">
+            <table class="table table-dark table-hover text-white align-middle">
+                <thead>
+                    <tr style="border-bottom: 2px solid rgba(192, 37, 43, 0.5);">
+                        <th>ID OS</th>
+                        {% if user.role in ['admin', 'mecanico'] %}<th>Cliente</th>{% endif %}
+                        <th>Veículo</th>
+                        <th>Status</th>
+                        {% if user.role == 'admin' %}<th>Mecânico</th>{% endif %}
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for os in ordens_servico %}
+                    <tr>
+                        <td>#{{ os.id_os }}</td>
+                        {% if user.role in ['admin', 'mecanico'] %}<td>{{ os.cliente_nome }}</td>{% endif %}
+                        <td>{{ os.placa }} ({{ os.nome_modelo }})</td>
+                        <td>
+                            {% if os.status == 'aberta' %}
+                                <span class="badge bg-warning text-dark"><i class="bi bi-envelope-open me-1"></i> Aberta</span>
+                            {% elif os.status == 'em_andamento' %}
+                                <span class="badge bg-primary"><i class="bi bi-gear-wide-connected me-1"></i> Em Andamento</span>
+                            {% elif os.status == 'concluida' or os.status == 'finalizada' %}
+                                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> Concluída</span>
+                            {% elif os.status == 'cancelada' %}
+                                <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i> Cancelada</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ os.status }}</span>
+                            {% endif %}
+                        </td>
+                        
+                        {% if user.role == 'admin' %}
+                        <td>
+                            {% if os.status == 'aberta' and not os.id_mecanico_responsavel %}
+                            <div class="d-flex gap-2">
+                                <select class="form-select form-select-sm bg-dark text-white border-secondary" id="mecanicoSelect_{{ os.id_os }}">
+                                    <option value="" disabled selected>Selecione</option>
+                                    {% for m in mecanicos %}
+                                    <option value="{{ m.id_usuario }}">{{ m.nome }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button class="btn btn-sm btn-outline-danger" onclick="atribuirMecanico({{ os.id_os }})">Atribuir</button>
+                            </div>
+                            {% else %}
+                            {{ os.mecanico_nome or 'Não atribuído' }}
+                            {% endif %}
+                        </td>
+                        {% endif %}
+
+                        <td>
+                            {% if user.role == 'mecanico' %}
+                                {% if os.status == 'aberta' %}
+                                <button class="btn btn-sm btn-primary fw-bold" onclick="iniciarOS({{ os.id_os }})">
+                                    <i class="bi bi-play-fill me-1"></i> Iniciar Execução
+                                </button>
+                                {% elif os.status == 'em_andamento' %}
+                                <button class="btn btn-sm btn-success fw-bold" onclick="concluirOS({{ os.id_os }})">
+                                    <i class="bi bi-check-all me-1"></i> Concluir Execução
+                                </button>
+                                {% else %}
+                                -
+                                {% endif %}
+                            {% else %}
+                                <a href="/ordem-servico/{{ os.id_os }}" class="btn btn-sm btn-secondary"><i class="bi bi-eye me-1"></i> Detalhes</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="{% if user.role == 'admin' %}6{% elif user.role == 'mecanico' %}5{% else %}4{% endif %}" class="text-center text-muted py-4">Nenhuma ordem de serviço encontrada.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+{% if user.role == 'admin' %}
+async function atribuirMecanico(id_os) {
+    const select = document.getElementById(`mecanicoSelect_${id_os}`);
+    if(!select || !select.value) {
+        alert("Selecione um mecânico.");
+        return;
+    }
+    const id_mecanico = select.value;
+    
+    try {
+        const response = await fetch(`/ordens-servico/${id_os}/atribuir-mecanico`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id_usuario: parseInt(id_mecanico) })
+        });
+        if(!response.ok) {
+            const data = await response.json();
+            throw new Error(data.detail || 'Falha ao atribuir mecânico.');
+        }
+        alert("Mecânico atribuído com sucesso!");
+        window.location.reload();
+    } catch (error) {
+        console.error(error);
+        alert(error.message);
+    }
+}
+{% endif %}
+
+{% if user.role == 'mecanico' %}
+async function iniciarOS(id_os) {
+    if(!confirm("Deseja iniciar a execução desta Ordem de Serviço?")) return;
+    try {
+        const response = await fetch(`/ordens-servico/${id_os}/iniciar`, {
+            method: 'POST'
+        });
+        if(!response.ok) {
+            const data = await response.json();
+            throw new Error(data.detail || 'Falha ao iniciar OS.');
+        }
+        alert("OS Iniciada!");
+        window.location.reload();
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+async function concluirOS(id_os) {
+    if(!confirm("Deseja concluir esta Ordem de Serviço? Isso irá gerar a movimentação de estoque e financeira automaticamente.")) return;
+    try {
+        const response = await fetch(`/ordens-servico/${id_os}/concluir`, {
+            method: 'POST'
+        });
+        if(!response.ok) {
+            const data = await response.json();
+            throw new Error(data.detail || 'Falha ao concluir OS.');
+        }
+        alert("OS Concluída com sucesso!");
+        window.location.reload();
+    } catch (error) {
+        alert(error.message);
+    }
+}
+{% endif %}
+</script>
