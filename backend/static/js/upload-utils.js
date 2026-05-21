@@ -77,11 +77,11 @@ class UploadManager {
      */
     static async uploadFotoPerfil(file) {
         const formData = new FormData();
-        formData.append('foto_perfil', file);
+        formData.append('file', file);
 
         try {
-            const response = await fetch('/api/me', {
-                method: 'PUT',
+            const response = await fetch('/api/me/foto-perfil', {
+                method: 'POST',
                 credentials: 'include',
                 body: formData
             });
