@@ -17,16 +17,16 @@ class ShoppingCart {
     const currentUserId = metaTag ? metaTag.content : '';
     const savedOwner = localStorage.getItem(this.ownerKey);
 
-    // Se o carrinho pertencia a uma conta (savedOwner não é vazio/null)
-    // E essa conta é diferente da atual (ex: deslogou ou trocou de usuário)
-    // Limpamos o carrinho para não misturar os dados.
-    // (Se for visitante logando, savedOwner é vazio e o carrinho é mantido e transferido).
-    if (savedOwner && savedOwner !== currentUserId) {
+    // Se mudamos de um usuário logado para OUTRO usuário logado, limpa.
+    // Se o usuário apenas deslogou (currentUserId == ''), NÃO limpa o carrinho.
+    if (savedOwner && currentUserId && savedOwner !== currentUserId) {
         localStorage.removeItem(this.cartKey);
     }
     
-    // Atualiza quem é o dono atual do carrinho na sessão local
-    localStorage.setItem(this.ownerKey, currentUserId);
+    // Atualiza quem é o dono atual do carrinho na sessão local, apenas se estiver logado
+    if (currentUserId) {
+        localStorage.setItem(this.ownerKey, currentUserId);
+    }
   }
 
   // === GERENCIAMENTO LOCAL (LocalStorage) ===
