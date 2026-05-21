@@ -1,7 +1,7 @@
 import logging
 from typing import Annotated
 
-from backend.app.schemas.password_schema import PasswordChangeRequest
+from app.schemas.password_schema import PasswordChangeRequest
 from fastapi import APIRouter, Depends, File, Path, UploadFile
 
 from app.core.roles import CLIENTE
