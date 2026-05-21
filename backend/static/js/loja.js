@@ -70,27 +70,111 @@
       return;
     }
 
+    // Extrair dados do produto a partir do card HTML
+    const card = btn.closest('.loja-card');
     const produtoId = parseInt(btn.dataset.produtoId, 10);
     const preco = parseFloat(btn.dataset.preco) || 0;
-    const userId = parseInt(btn.dataset.userId, 10);
+    const nome = card ? (card.dataset.nome || 'Produto') : 'Produto';
+    const imgEl = card ? card.querySelector('.loja-card-img-wrap img') : null;
+    const imagem = imgEl ? imgEl.src : null;
 
-    btn.disabled = true;
-    const originalHtml = btn.innerHTML;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processando...';
+    // Verificar se o carrinho está disponível
+    if (!window.cart) {
+      showToast('Sistema de carrinho não carregado. Recarregue a página.', 'danger');
+      return;
+    }
 
-    try {
-      if (typeof criarPedido !== 'function' || typeof adicionarProdutoAoPedido !== 'function') {
-        throw new Error('Módulo de compra não carregado.');
-      }
+    // Adicionar ao carrinho local
+    window.cart.addProduct({
+      id_produto: produtoId,
+      nome: nome,
+      preco: preco,
+      imagem_produto: imagem
+    });
 
-      const pedido = await criarPedido(userId, preco);
-      await adicionarProdutoAoPedido(pedido.id_pedido, produtoId, 1);
-      showToast('Produto adicionado ao pedido! Acesse Minha Área para acompanhar.', 'success');
-    } catch (err) {
-      showToast(err.message || 'Não foi possível concluir a compra.', 'danger');
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = originalHtml;
+    // Abrir a barra lateral do carrinho automaticamente
+    const dropdown = document.getElementById('cart-dropdown');
+    const overlay = document.getElementById('cart-overlay');
+    if (dropdown && !dropdown.classList.contains('active')) {
+      dropdown.classList.add('active');
+    }
+    if (overlay && !overlay.classList.contains('active')) {
+      overlay.classList.add('active');
     }
   });
+
+  // Change Status in Pedido Card
+  document.addEventListener('change', async (e) => {
+    if (e.target.classList.contains('pedido-status-select')) {
+      const select = e.target;
+      const pedidoId = select.dataset.pedId;
+      const newStatus = select.value;
+      const originalValue = select.dataset.originalValue || select.value;
+      
+      select.disabled = true;
+      try {
+        const res = await fetch(`/api/pedidos/${pedidoId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus }),
+          credentials: 'include'
+        });
+        if (res.ok) {
+          showToast(`Status do pedido #${pedidoId} atualizado para ${newStatus}.`, 'success');
+          select.dataset.originalValue = newStatus;
+        } else {
+          const data = await res.json();
+          showToast(data.detail || 'Erro ao atualizar status.', 'danger');
+          select.value = originalValue;
+        }
+      } catch (err) {
+        showToast('Erro de rede ao atualizar status.', 'danger');
+        select.value = originalValue;
+      } finally {
+        select.disabled = false;
+      }
+    }
+  });
+
+  // Track original value on focus to allow revert
+  document.addEventListener('focusin', (e) => {
+    if (e.target.classList.contains('pedido-status-select')) {
+        if (!e.target.dataset.originalValue) {
+            e.target.dataset.originalValue = e.target.value;
+        }
+    }
+  });
+
+  // Delete Pedido via AJAX
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.btn-delete-pedido');
+    if (!btn) return;
+    
+    const id = btn.dataset.pedId;
+    if (confirm(`Tem certeza que deseja excluir o pedido #${id}?`)) {
+      btn.disabled = true;
+      try {
+        const response = await fetch(`/api/pedidos/${id}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+        if (response.ok) {
+          showToast(`Pedido #${id} excluído com sucesso.`, 'success');
+          // Remove o card da grid
+          const cardCol = btn.closest('.col');
+          if (cardCol) {
+            cardCol.remove();
+          }
+        } else {
+          const data = await response.json();
+          showToast(data.detail || 'Não foi possível excluir o pedido.', 'danger');
+          btn.disabled = false;
+        }
+      } catch (error) {
+        showToast('Erro de rede ao se comunicar com o servidor.', 'danger');
+        btn.disabled = false;
+      }
+    }
+  });
+
 })();

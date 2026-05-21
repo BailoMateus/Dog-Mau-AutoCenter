@@ -1,5 +1,6 @@
 import logging
 
+from app.schemas.password_schema import PasswordChangeRequest
 from fastapi import HTTPException, status, UploadFile
 import psycopg2
 
@@ -109,6 +110,7 @@ def update_user(
     assert_can_modify(actor, user_id, admin_only=False)
 
     is_admin = actor["role"] == ADMIN
+    
     if data.nome is not None:
         user.nome = data.nome
     if data.email is not None:
@@ -117,10 +119,24 @@ def update_user(
         user.senha_hash = hash_password(data.password.strip())
     if data.telefone is not None:
         user.telefone = data.telefone
+    
+    # ⚠️ NOVO: Proteger CPF/CNPJ após criação
     if data.cpf_cnpj is not None:
+        if user.cpf_cnpj is not None and user.cpf_cnpj != data.cpf_cnpj:
+            logger.warning(
+                "tentativa de alterar cpf_cnpj protegido user_id=%s actor=%s",
+                user_id,
+                actor.get("user_id")
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="CPF/CNPJ não pode ser alterado após o cadastro"
+            )
         user.cpf_cnpj = data.cpf_cnpj
+    
     if data.data_nascimento is not None:
         user.data_nascimento = data.data_nascimento
+    
     if data.ativo is not None and is_admin:
         user.ativo = data.ativo
     elif data.ativo is not None and not is_admin:
@@ -129,6 +145,7 @@ def update_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Somente administrador pode alterar o campo ativo",
         )
+    
     if data.role is not None:
         if not is_admin:
             raise HTTPException(
@@ -145,6 +162,54 @@ def update_user(
             status_code=status.HTTP_409_CONFLICT,
             detail="E-mail já cadastrado",
         )
+
+
+def change_user_password(user_id: int, data: PasswordChangeRequest, *, actor: dict):
+    """Altera senha do usuário após verificação de senha atual."""
+    user = get_user_or_404(user_id)
+    
+    # Verificar se é o próprio usuário ou admin
+    assert_can_update(actor, user_id)
+    
+    # Importar função de hash
+    from app.core.security import verify_password, hash_password
+    
+    # 1. Validar senha atual
+    if not verify_password(data.old_password, user.senha_hash):
+        logger.warning("change_password senha incorreta user_id=%s", user_id)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Senha atual incorreta"
+        )
+    
+    # 2. Verificar se nova senha é diferente da antiga
+    if data.old_password == data.new_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Nova senha deve ser diferente da atual"
+        )
+    
+    # 3. Validar que novas senhas coincidem
+    if data.new_password != data.confirm_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Novas senhas não coincidem"
+        )
+    
+    # 4. Atualizar senha
+    user.senha_hash = hash_password(data.new_password.strip())
+    
+    try:
+        updated = repo.update_user(user)
+        logger.info("change_password sucesso user_id=%s", user_id)
+        return updated
+    except Exception as e:
+        logger.error("change_password erro user_id=%s: %s", user_id, e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro ao alterar senha"
+        )
+    
 
 def delete_user(user_id: int, *, actor: dict):
     user = get_user_or_404(user_id)

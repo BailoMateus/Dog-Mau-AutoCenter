@@ -22,7 +22,7 @@ function updateModels() {
 
 function nextStep(step) {
     if (step === 3 && !selectedService) {
-        alert("Por favor, selecione um serviço na lista antes de continuar.");
+        UINotification.toast("Por favor, selecione um item da lista antes de continuar.", "error");
         return;
     }
 

@@ -1,6 +1,7 @@
 import logging
 from typing import Annotated
 
+from app.schemas.password_schema import PasswordChangeRequest
 from fastapi import APIRouter, Depends, File, Path, UploadFile
 
 from app.core.roles import CLIENTE
@@ -126,3 +127,17 @@ def update_my_veiculo(
     """Usuário atualiza um veículo dele"""
     logger.info("PATCH /me/veiculos/%s user_id=%s", veiculo_id, current["user_id"])
     return veiculo_service.update_veiculo_by_user(int(current["user_id"]), veiculo_id, data)
+
+
+@router.post("/password-change")
+def change_my_password(
+    data: PasswordChangeRequest,
+    current=Depends(get_current_user),
+):
+    """Usuário logado altera sua própria senha após verificar senha atual."""
+    logger.info("POST /me/password-change user_id=%s", current["user_id"])
+    return user_service.change_user_password(
+        int(current["user_id"]), 
+        data, 
+        actor=current
+    )
