@@ -128,6 +128,17 @@ def update_my_veiculo(
     return veiculo_service.update_veiculo_by_user(int(current["user_id"]), veiculo_id, data)
 
 
+@router.delete("/veiculos/{veiculo_id}", response_model=VeiculoPublic)
+def delete_my_veiculo(
+    veiculo_id: Annotated[int, Path(ge=1)],
+    current=Depends(get_current_user),
+):
+    """Usuário deleta um veículo dele"""
+    logger.info("DELETE /me/veiculos/%s user_id=%s", veiculo_id, current["user_id"])
+    veiculo_service.get_veiculo_by_user_or_404(int(current["user_id"]), veiculo_id)
+    return veiculo_service.delete_veiculo(veiculo_id)
+
+
 @router.post("/password-change")
 def change_my_password(
     data: PasswordChangeRequest,
