@@ -17,11 +17,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/me", tags=["Minha Conta"])
 
 
-@router.get("/profile", response_model=UserPublic)
-
 def get_my_user(current: dict):
     return user_service.get_user_or_404(int(current["user_id"]))
 
+@router.get("/profile", response_model=UserPublic)
 def get_my_profile(
     current=Depends(get_current_user),
 ):
