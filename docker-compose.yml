@@ -30,7 +30,9 @@ services:
       # (quando o volume dogmau_pgdata esta vazio). Para reexecutar: docker compose down -v.
       - ./infra/database/tables.sql:/docker-entrypoint-initdb.d/01_tables.sql:ro
       - ./infra/database/migration_add_user_fields.sql:/docker-entrypoint-initdb.d/02_add_user_fields.sql:ro
-      - ./infra/database/seed_admin.sql:/docker-entrypoint-initdb.d/03_seed_admin.sql:ro
+      - ./infra/database/migration_add_image_fields.sql:/docker-entrypoint-initdb.d/03_add_image_fields.sql:ro
+      - ./infra/database/migration_add_servico_fields.sql:/docker-entrypoint-initdb.d/04_add_servico_fields.sql:ro
+      - ./infra/database/seed_admin.sql:/docker-entrypoint-initdb.d/99_seed_admin.sql:ro
       # NOTA: migration_unified_users.sql NAO eh montada de proposito.
       # Ela eh uma migracao one-time de DADOS (move clientes/mecanicos antigos
       # para usuario unificada) que ja foi aplicada em producao e contem um bug
