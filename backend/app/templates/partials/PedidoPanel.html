@@ -20,63 +20,16 @@
     {% endif %}
 </div>
 
-<div class="table-responsive rounded shadow card p-0 border-0" style="background-color: #111;">
-    <table class="table table-dark table-hover align-middle mb-0" style="background-color: transparent;">
-        <thead class="table-dark text-uppercase small" style="border-bottom: 2px solid #222;">
-            <tr>
-                <th class="py-3">ID Pedido</th>
-                <th class="py-3">Data</th>
-                <th class="py-3 d-none d-md-table-cell">Itens</th>
-                <th class="py-3">Valor Total</th>
-                <th class="py-3">Status</th>
-                {% if user.role in ['admin', 'mecanico'] %}
-                <th class="text-center py-3">Ações</th>
-                {% endif %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for ped in pedidos %}
-            <tr>
-                <td>{{ ped.id_pedido }}</td>
-                <td>{{ ped.data_pedido }}</td>
-                <td class="d-none d-md-table-cell">{{ ped.qtd_itens if ped.qtd_itens is defined else '—' }}</td>
-                <td>R$ {{ "%.2f" | format(ped.valor_total | float) }}</td>
-                <td>
-                    {% if ped.status == 'concluido' %}
-                    <span class="badge bg-success">Concluído</span>
-                    {% elif ped.status == 'em_andamento' %}
-                    <span class="badge bg-warning text-dark">Em Andamento</span>
-                    {% elif ped.status == 'cancelado' %}
-                    <span class="badge bg-danger">Cancelado</span>
-                    {% else %}
-                    <span class="badge bg-info text-dark">{{ ped.status | default('Pendente') | capitalize }}</span>
-                    {% endif %}
-                </td>
-                {% if user.role in ['admin', 'mecanico'] %}
-                <td class="text-center">
-                    <button class="btn btn-sm btn-outline-primary me-2"
-                            onclick="openPedidoModal('edit', this)"
-                            data-ped-id="{{ ped.id_pedido }}"
-                            data-ped-data="{{ ped.data_pedido }}"
-                            data-ped-valor="{{ ped.valor_total }}"
-                            data-ped-status="{{ ped.status }}">
-                        <i class="bi bi-pencil"></i> Editar
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger"
-                            onclick="openDeletePedidoModal(this)"
-                            data-ped-id="{{ ped.id_pedido }}">
-                        <i class="bi bi-trash"></i> Excluir
-                    </button>
-                </td>
-                {% endif %}
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="{% if user.role in ['admin', 'mecanico'] %}6{% else %}5{% endif %}" class="text-center py-4 text-muted">Nenhum pedido encontrado.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4">
+    {% for ped in pedidos %}
+    <div class="col">
+        {% include "partials/components/order_card.html" %}
+    </div>
+    {% else %}
+    <div class="col-12 text-center py-5">
+        <p class="text-muted mb-0">Nenhum pedido encontrado.</p>
+    </div>
+    {% endfor %}
 </div>
 
 {% if user.role in ['admin', 'mecanico'] %}

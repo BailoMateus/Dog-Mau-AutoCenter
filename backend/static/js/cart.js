@@ -36,7 +36,7 @@ class ShoppingCart {
   addProduct(produto) {
     // Verifica se já existe no carrinho
     const existing = this.cart.find(item => item.id_produto === produto.id_produto);
-    
+
     if (existing) {
       existing.quantidade++;
     } else {
@@ -48,7 +48,7 @@ class ShoppingCart {
         imagem_produto: produto.imagem_produto || null
       });
     }
-    
+
     this.saveCart();
     this.showNotification(`${produto.nome} adicionado ao carrinho!`);
   }
@@ -128,7 +128,7 @@ class ShoppingCart {
         <!-- Overlay para fechar o carrinho -->
         <div id="cart-overlay" class="cart-overlay"></div>
       `;
-      
+
       document.body.insertAdjacentHTML('beforeend', cartHTML);
     }
   }
