@@ -1,12 +1,12 @@
 {# ──────────────────────────────────────────────────────────────────
-   Partial: ProdutoPanel.html
-   Conteúdo reutilizável de gerenciamento de produtos.
-   Segue o padrão do ServicePanel.html.
+    Partial: ProdutoPanel.html
+    Conteúdo reutilizável de gerenciamento de produtos.
+    Segue o padrão do ServicePanel.html.
 
-   Requer no contexto:
-     - user      (dict com .role)
-     - produtos  (lista de dicts de produtos)
-   ────────────────────────────────────────────────────────────────── #}
+    Requer no contexto:
+      - user      (dict com .role)
+      - produtos  (lista de dicts de produtos)
+    ────────────────────────────────────────────────────────────────── #}
 
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
     <h2 class="fw-bold m-0" style="color: rgba(192, 37, 43); font-family: 'Orbitron', sans-serif;">
@@ -27,7 +27,7 @@
                 <th class="py-3 text-center">Imagem</th>
                 <th class="py-3">Nome</th>
                 <th class="py-3 d-none d-md-table-cell">Descrição</th>
-                <th class="py-3">Preço</th>
+                <th class="py-3">Lote</th> <th class="py-3">Preço</th>
                 <th class="py-3">Estoque</th>
                 {% if user.role in ['admin', 'mecanico'] %}
                 <th class="text-center py-3">Ações</th>
@@ -43,7 +43,7 @@
                 </td>
                 <td>{{ p.nome }}</td>
                 <td class="d-none d-md-table-cell">{{ p.descricao }}</td>
-                <td>R$ {{ "%.2f" | format(p.preco | float) }}</td>
+                <td>{{ p.lote if p.lote is not none else '—' }}</td> <td>R$ {{ "%.2f" | format(p.preco | float) }}</td>
                 <td>
                     {% if p.quantidade_estoque is defined and p.quantidade_estoque <= 5 %}
                     <span class="badge bg-danger">{{ p.quantidade_estoque }}</span>
@@ -61,7 +61,7 @@
                             data-prod-imagem-produto="{{ p.imagem_produto or '' }}"
                             data-prod-nome="{{ p.nome }}"
                             data-prod-descricao="{{ p.descricao }}"
-                            data-prod-preco="{{ p.preco }}"
+                            data-prod-lote="{{ p.lote or '' }}" data-prod-preco="{{ p.preco }}"
                             data-prod-estoque="{{ p.quantidade_estoque }}">
                         <i class="bi bi-pencil"></i> Editar
                     </button>
@@ -76,7 +76,7 @@
             </tr>
             {% else %}
             <tr>
-                <td colspan="{% if user.role in ['admin', 'mecanico'] %}7{% else %}6{% endif %}" class="text-center py-4 text-muted">Nenhum produto cadastrado.</td>
+                <td colspan="{% if user.role in ['admin', 'mecanico'] %}8{% else %}7{% endif %}" class="text-center py-4 text-muted">Nenhum produto cadastrado.</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -84,7 +84,6 @@
 </div>
 
 {% if user.role in ['admin', 'mecanico'] %}
-<!-- Modal Formulário (Criar/Editar Produto) -->
 <div id="produtoFormModal" class="custom-modal d-none">
     <div class="custom-modal-content rounded shadow card p-0" style="background-color: #111; border: 1px solid #222; max-width: 500px;">
         <div class="custom-modal-header border-bottom border-secondary p-3 d-flex justify-content-between align-items-center">
@@ -114,6 +113,11 @@
                     <label for="produtoDescricao" class="text-white-50">Descrição</label>
                 </div>
 
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="produtoLote" name="lote" placeholder="Lote do Produto" maxlength="100">
+                    <label for="produtoLote" class="text-white-50">Lote</label>
+                </div>
+
                 <div class="row g-3 mb-3">
                     <div class="col-6">
                         <div class="form-floating">
@@ -140,7 +144,6 @@
     </div>
 </div>
 
-<!-- Modal Confirmação de Exclusão de Produto -->
 <div id="deleteProdutoModal" class="custom-modal d-none">
     <div class="custom-modal-content rounded shadow card p-0" style="max-width: 400px; background-color: #111; border: 1px solid #222;">
         <div class="custom-modal-header border-bottom border-secondary p-3 text-center position-relative">
@@ -161,7 +164,7 @@
 </div>
 {% endif %}
 
-{# ── Estilos do Modal (reutiliza se já existir do ServicePanel) ── #}
+{# ── Estilos do Modal ── #}
 <style>
 .custom-modal {
     position: fixed;
@@ -204,6 +207,7 @@
         if (mode === 'create') {
             title.textContent = 'Novo Produto';
             document.getElementById('produtoId').value = '';
+            document.getElementById('produtoLote').value = ''; // <<< LIMPA O LOTE
             document.getElementById('produtoImagemProduto').value = '';
             document.getElementById('produtoImagemPreview').src = 'https://via.placeholder.com/150x150?text=Sem+Imagem';
         } else if (mode === 'edit' && btnElement) {
@@ -214,6 +218,7 @@
             document.getElementById('produtoImagemPreview').src = imgUrl || 'https://via.placeholder.com/150x150?text=Sem+Imagem';
             document.getElementById('produtoNome').value = btnElement.getAttribute('data-prod-nome');
             document.getElementById('produtoDescricao').value = btnElement.getAttribute('data-prod-descricao');
+            document.getElementById('produtoLote').value = btnElement.getAttribute('data-prod-lote') || ''; // <<< POPULA O LOTE
             document.getElementById('produtoPreco').value = btnElement.getAttribute('data-prod-preco');
             document.getElementById('produtoEstoque').value = btnElement.getAttribute('data-prod-estoque');
         }
@@ -264,6 +269,7 @@
         const id = document.getElementById('produtoId').value;
         const nome = document.getElementById('produtoNome').value;
         const descricao = document.getElementById('produtoDescricao').value;
+        const lote = document.getElementById('produtoLote').value; // <<< ADICIONADO CAPTURA
         const preco = parseFloat(document.getElementById('produtoPreco').value);
         const estoque = parseInt(document.getElementById('produtoEstoque').value, 10);
         const imagemInput = document.getElementById('produtoImagemProduto');
@@ -271,6 +277,7 @@
         const formData = new FormData();
         formData.append('nome', nome);
         formData.append('descricao', descricao);
+        formData.append('lote', lote); // <<< ENVIANDO O LOTE NA REQUISIÇÃO
         formData.append('preco', String(preco));
         formData.append('quantidade_estoque', String(estoque));
         if (imagemInput.files && imagemInput.files[0]) {

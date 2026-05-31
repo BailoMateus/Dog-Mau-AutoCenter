@@ -19,6 +19,7 @@ def _to_public(produto):
         preco=produto.preco,
         quantidade_estoque=produto.quantidade_estoque,
         imagem_produto=produto.imagem_produto,
+        lote=produto.lote, 
         created_at=produto.created_at,
         updated_at=produto.updated_at,
     )
@@ -35,6 +36,7 @@ async def _parse_create_request(request: Request) -> tuple[ProdutoCreate, Upload
             descricao=form.get("descricao"),
             preco=form.get("preco"),
             quantidade_estoque=form.get("quantidade_estoque"),
+            lote=form.get("lote"),  
             is_create=True,
         )
         return data, upload
@@ -53,6 +55,7 @@ async def _parse_update_request(request: Request) -> tuple[ProdutoUpdate, Upload
             descricao=form.get("descricao"),
             preco=form.get("preco"),
             quantidade_estoque=form.get("quantidade_estoque"),
+            lote=form.get("lote"), 
             is_create=False,
         )
         return data, upload
@@ -77,6 +80,7 @@ def create_produto_form(
     preco: Decimal = Form(...),
     descricao: str | None = Form(None),
     quantidade_estoque: int = Form(0),
+    lote: str | None = Form(None), 
     imagem_produto: UploadFile | None = File(None),
 ):
     data = ProdutoCreate(
@@ -84,6 +88,7 @@ def create_produto_form(
         descricao=descricao,
         preco=preco,
         quantidade_estoque=quantidade_estoque,
+        lote=lote.strip() if lote else None,  
     )
     produto = produto_service.create_produto_with_image(data, imagem_produto)
     return _to_public(produto)

@@ -96,6 +96,7 @@ class Produto:
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
+    lote: Optional[str] = None
 
 @dataclass
 class Pedido:
@@ -208,7 +209,7 @@ class MovimentacaoEstoque:
     id_movimentacao: Optional[int] = None
     id_peca: Optional[int] = None
     id_produto: Optional[int] = None
-    tipo_movimentacao: str = ""  # 'saida' ou 'entrada'
+    tipo_movimentacao: str = "" 
     quantidade: int = 0
     motivo: str = ""
     created_at: Optional[datetime] = None
@@ -228,13 +229,13 @@ class Pagamento:
 @dataclass
 class MovimentacaoFinanceira:
     id_movimentacao_financeira: Optional[int] = None
-    tipo_movimentacao: str = ""  # 'entrada' ou 'saida'
+    tipo_movimentacao: str = ""
     valor: float = 0.0
     descricao: str = ""
     id_pagamento: Optional[int] = None
     created_at: Optional[datetime] = None
 
-# Response DTOs com dados enriquecidos de JOINs
+
 @dataclass
 class OrcamentoPecaResponse:
     """DTO Response para peça do orçamento - contém dados enriquecidos."""
@@ -548,7 +549,8 @@ def produto_to_dict(produto: Produto) -> dict:
         'imagem_produto': produto.imagem_produto,
         'created_at': produto.created_at,
         'updated_at': produto.updated_at,
-        'deleted_at': produto.deleted_at
+        'deleted_at': produto.deleted_at,
+        'lote': produto.lote,
     }
 
 def pedido_to_dict(pedido: Pedido) -> dict:
@@ -743,7 +745,7 @@ def movimentacao_financeira_to_dict(movimentacao: MovimentacaoFinanceira) -> dic
         'created_at': movimentacao.created_at
     }
 
-# Funções para criar Response DTOs a partir de dicionários com dados enriquecidos
+#
 def dict_to_orcamento_peca_response(data: dict) -> OrcamentoPecaResponse:
     """Converte dicionário do banco (com JOIN) para OrcamentoPecaResponse."""
     if not data:

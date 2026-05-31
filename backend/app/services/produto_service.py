@@ -65,7 +65,8 @@ def create_produto(data: ProdutoCreate):
         nome=data.nome,
         descricao=data.descricao or "",
         preco=float(data.preco),
-        quantidade_estoque=data.quantidade_estoque
+        quantidade_estoque=data.quantidade_estoque,
+        lote=data.lote  
     )
     
     try:
@@ -98,6 +99,8 @@ def update_produto(produto_id: int, data: ProdutoUpdate):
         produto.preco = float(data.preco)
     if data.quantidade_estoque is not None:
         produto.quantidade_estoque = data.quantidade_estoque
+    if data.lote is not None:
+        produto.lote = data.lote if data.lote else None
     
     try:
         return repo.update_produto(produto)
@@ -136,6 +139,7 @@ def parse_produto_form_fields(
     descricao: str | None,
     preco: str | None,
     quantidade_estoque: str | None,
+    lote: str | None = None, 
     *,
     is_create: bool,
 ) -> ProdutoCreate | ProdutoUpdate:
@@ -150,10 +154,12 @@ def parse_produto_form_fields(
             descricao=descricao,
             preco=Decimal(preco),
             quantidade_estoque=int(quantidade_estoque or 0),
+            lote=lote.strip() if lote else None, 
         )
     return ProdutoUpdate(
         nome=nome,
         descricao=descricao,
         preco=Decimal(preco) if preco is not None else None,
         quantidade_estoque=int(quantidade_estoque) if quantidade_estoque is not None else None,
+        lote=lote.strip() if lote and lote.strip() else "" if lote is not None else None,
     )

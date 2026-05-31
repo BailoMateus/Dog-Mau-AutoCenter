@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 def get_produto_by_id(produto_id: int):
     """Busca produto por ID."""
     query = """
-    SELECT id_produto, nome, descricao, preco, quantidade_estoque, imagem_produto, created_at, updated_at, deleted_at
+    SELECT id_produto, nome, descricao, preco, quantidade_estoque, imagem_produto, lote, created_at, updated_at, deleted_at
     FROM produto 
     WHERE id_produto = %s AND deleted_at IS NULL
     """
@@ -21,7 +21,7 @@ def get_produto_by_id(produto_id: int):
 def get_all_produtos():
     """Lista todos os produtos."""
     query = """
-    SELECT id_produto, nome, descricao, preco, quantidade_estoque, imagem_produto, created_at, updated_at, deleted_at
+    SELECT id_produto, nome, descricao, preco, quantidade_estoque, imagem_produto, lote, created_at, updated_at, deleted_at
     FROM produto 
     WHERE deleted_at IS NULL
     ORDER BY nome ASC
@@ -34,11 +34,18 @@ def get_all_produtos():
 def create_produto(produto: Produto):
     """Cria um novo produto."""
     query = """
-    INSERT INTO produto (nome, descricao, preco, quantidade_estoque, imagem_produto)
-    VALUES (%s, %s, %s, %s, %s)
+    INSERT INTO produto (nome, descricao, preco, quantidade_estoque, imagem_produto, lote)
+    VALUES (%s, %s, %s, %s, %s, %s)
     RETURNING id_produto
     """
-    params = (produto.nome, produto.descricao, produto.preco, produto.quantidade_estoque, produto.imagem_produto)
+    params = (
+        produto.nome, 
+        produto.descricao, 
+        produto.preco, 
+        produto.quantidade_estoque, 
+        produto.imagem_produto,
+        produto.lote 
+    )
     produto_id = execute_insert(query, params)
     produto.id_produto = produto_id
     logger.info("produto criado id=%s", produto.id_produto)
@@ -48,10 +55,18 @@ def update_produto(produto: Produto):
     """Atualiza um produto."""
     query = """
     UPDATE produto 
-    SET nome = %s, descricao = %s, preco = %s, quantidade_estoque = %s, imagem_produto = %s, updated_at = CURRENT_TIMESTAMP
+    SET nome = %s, descricao = %s, preco = %s, quantidade_estoque = %s, imagem_produto = %s, lote = %s, updated_at = CURRENT_TIMESTAMP
     WHERE id_produto = %s AND deleted_at IS NULL
     """
-    params = (produto.nome, produto.descricao, produto.preco, produto.quantidade_estoque, produto.imagem_produto, produto.id_produto)
+    params = (
+        produto.nome, 
+        produto.descricao, 
+        produto.preco, 
+        produto.quantidade_estoque, 
+        produto.imagem_produto, 
+        produto.lote, 
+        produto.id_produto
+    )
     execute_command(query, params)
     logger.info("produto atualizado id=%s", produto.id_produto)
     return produto
@@ -93,4 +108,4 @@ def update_produto_imagem_produto(produto_id: int, imagem_produto_url: str):
     WHERE id_produto = %s AND deleted_at IS NULL
     """
     execute_command(query, (imagem_produto_url, produto_id))
-    logger.info("imagem do produto atualizada id=%s", produto_id)
+    logger.info("imagem do produto updated id=%s", produto_id)
