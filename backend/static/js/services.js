@@ -88,14 +88,18 @@ function nextStep(step) {
     }
 }
 
-function toggleService(element, id, name, price) {
+function toggleService(element) {
     const checkbox = element.querySelector('.service-checkbox');
+    const id = checkbox.value;
+    const name = checkbox.getAttribute('data-name');
+    const price = parseFloat(checkbox.getAttribute('data-price'));
+    
     checkbox.checked = !checkbox.checked;
     
     if (checkbox.checked) {
         element.style.borderColor = 'rgba(192, 37, 43)';
         element.style.backgroundColor = 'rgba(192, 37, 43, 0.1)';
-        selectedServices.push({ id, name, price: parseFloat(price) });
+        selectedServices.push({ id, name, price });
     } else {
         element.style.borderColor = '#333';
         element.style.backgroundColor = 'transparent';

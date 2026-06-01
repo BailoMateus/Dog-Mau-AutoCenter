@@ -89,7 +89,7 @@
 
         <div class="services g-4" id="servicesList">
             {% for servico in servicos %}
-            <div class="service transition-hover position-relative p-3 mb-3 rounded-3 border" style="border-color: #333; cursor: pointer;" onclick="toggleService(this, '{{ servico.id_servico }}', '{{ servico.descricao }}', {{ servico.preco }})">
+            <div class="service transition-hover position-relative p-3 mb-3 rounded-3 border" style="border-color: #333; cursor: pointer;" onclick="toggleService(this)">
                 <div class="d-flex justify-content-between align-items-center w-100">
                     <strong class="fs-5">{{ servico.descricao }}</strong>
                     <span class="price fs-5 fw-bold text-danger">R$ {{ "%.2f"|format(servico.preco) }}</span>
