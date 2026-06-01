@@ -52,8 +52,8 @@ def list_ordens_servico():
 def get_ordem_servico(id_os: int):
     """Busca uma ordem de serviço por ID."""
     logger.info("GET /ordens-servico/%s", id_os)
-    ordem_servico = ordem_servico_service.get_ordem_servico_or_404(id_os)
-    return ordem_servico_service.build_ordem_servico_public(ordem_servico)
+    ordem_servico = ordem_servico_service.get_ordem_servico_detalhada_or_404(id_os)
+    return ordem_servico
 
 @router.put("/{id_os}", response_model=OrdemServicoPublic)
 def update_ordem_servico(id_os: int, data: OrdemServicoUpdate):

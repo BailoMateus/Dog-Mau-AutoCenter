@@ -32,12 +32,11 @@
                 {% else %}Minha Área
                 {% endif %}
             </h1>
-            <p class="text-muted mt-2 mb-0">Bem-vindo de volta, <strong>{{ user.nome.split(' ')[0] }}</strong>!</p>
         </div>
     </div>
 
     <!-- Navegação em Abas -->
-    <ul class="nav nav-tabs mb-4 painel-nav-tabs" id="painelTabs" role="tablist">
+    <ul class="nav nav-tabs mb-4 painel-nav-tabs flex-nowrap overflow-auto" id="painelTabs" role="tablist">
         {% if user.role in ['admin', 'mecanico'] %}
         <li class="nav-item" role="presentation">
             <a class="nav-link nav-tab-link {% if tab == 'usuarios' %}active{% endif %}" href="?tab=usuarios" role="tab">
@@ -63,15 +62,14 @@
         {% if user.role in ['admin', 'mecanico'] %}
         <li class="nav-item" role="presentation">
             <a class="nav-link nav-tab-link {% if tab == 'catalogo_veiculos' %}active{% endif %}" href="?tab=catalogo_veiculos" role="tab">
-                <i class="bi bi-tags-fill me-1"></i>Catálogo de Veículos
+                <i class="bi bi-tags-fill me-1"></i>Modelos
             </a>
         </li>
         {% endif %}
 
         <li class="nav-item" role="presentation">
             <a class="nav-link nav-tab-link {% if tab == 'veiculos' %}active{% endif %}" href="?tab=veiculos" role="tab">
-                <i class="bi bi-car-front-fill me-1"></i>
-                {% if user.role in ['admin', 'mecanico'] %}Todos os Veículos{% else %}Meus Veículos{% endif %}
+                <i class="bi bi-car-front-fill me-1"></i>Veículos
             </a>
         </li>
 
@@ -91,8 +89,7 @@
 
         <li class="nav-item" role="presentation">
             <a class="nav-link nav-tab-link {% if tab == 'ordens_servico' %}active{% endif %}" href="?tab=ordens_servico" role="tab">
-                <i class="bi bi-wrench-adjustable me-1"></i>
-                {% if user.role == 'admin' %}Gestão de OS{% elif user.role == 'mecanico' %}Minhas OS{% else %}Minhas OS{% endif %}
+                <i class="bi bi-wrench-adjustable me-1"></i>Ordens
             </a>
         </li>
 
@@ -104,14 +101,14 @@
         </li>
         <li class="nav-item" role="presentation">
             <a class="nav-link nav-tab-link" href="/movimentacoes-financeiras" role="tab">
-                <i class="bi bi-cash-coin me-1"></i>Movimentações Financeiras
+                <i class="bi bi-cash-coin me-1"></i>Financeiro
             </a>
         </li>
         {% endif %}
         {% if user.role in ['admin', 'mecanico'] %}
         <li class="nav-item" role="presentation">
             <a class="nav-link nav-tab-link" href="/movimentacoes-estoque" role="tab">
-                <i class="bi bi-arrow-left-right me-1"></i>Movimentações de Estoque
+                <i class="bi bi-arrow-left-right me-1"></i>Estoque
             </a>
         </li>
         {% endif %}

@@ -9,16 +9,20 @@ function showInlineMessage(el, message, type) {
     el.classList.remove('d-none');
 }
 
+function showStep1Error(message) {
+    showInlineMessage(document.getElementById('step1Error'), message, 'warning');
+}
+
 function hideInlineMessage(el) {
     if (el) el.classList.add('d-none');
 }
 
 function nextStep(step) {
     if (step === 2 && selectedServices.length === 0) {
-        const err = document.getElementById('submitError');
-        showInlineMessage(err, 'Selecione pelo menos um serviço para continuar.', 'warning');
+        showStep1Error('Selecione pelo menos um serviço para continuar.');
         return;
     }
+    hideInlineMessage(document.getElementById('step1Error'));
     hideInlineMessage(document.getElementById('submitError'));
 
     document.querySelectorAll('#screen1, #screen2, #screen3').forEach((c) => c.classList.add('hidden'));
@@ -44,7 +48,9 @@ function toggleService(element, id, name, price) {
     if (checkbox.checked) {
         element.style.borderColor = 'rgba(192, 37, 43)';
         element.style.backgroundColor = 'rgba(192, 37, 43, 0.1)';
-        selectedServices.push({ id: String(id), name, price: parseFloat(price) });
+        if (!selectedServices.find((s) => String(s.id) === String(id))) {
+            selectedServices.push({ id: String(id), name, price: parseFloat(price) });
+        }
     } else {
         element.style.borderColor = '#333';
         element.style.backgroundColor = 'transparent';
@@ -52,6 +58,7 @@ function toggleService(element, id, name, price) {
     }
 
     updateTotal();
+    hideInlineMessage(document.getElementById('step1Error'));
 }
 
 function updateTotal() {

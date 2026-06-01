@@ -6,6 +6,27 @@ from app.models.entities import OrdemServico, dict_to_ordem_servico, ordem_servi
 
 logger = logging.getLogger(__name__)
 
+def get_ordem_servico_detalhada(id_os: int):
+    """Busca ordem de serviço com dados enriquecidos."""
+    query = """
+    SELECT os.id_os, os.id_orcamento, os.id_veiculo, os.id_usuario, os.descricao_problema,
+           os.valor_total, os.status, os.data_abertura, os.data_conclusao,
+           os.created_at, os.updated_at, os.deleted_at,
+           v.placa, v.cor, v.ano_fabricacao, m.nome_modelo,
+           prop.nome AS proprietario_nome,
+           mec.nome AS mecanico_nome,
+           o.status AS orcamento_status
+    FROM ordem_servico os
+    JOIN veiculo v ON os.id_veiculo = v.id_veiculo
+    JOIN modelo m ON v.id_modelo = m.id_modelo
+    JOIN usuario prop ON v.id_usuario = prop.id_usuario
+    LEFT JOIN usuario mec ON os.id_usuario = mec.id_usuario
+    LEFT JOIN orcamento o ON os.id_orcamento = o.id_orcamento
+    WHERE os.id_os = %s AND os.deleted_at IS NULL
+    """
+    return execute_query(query, (id_os,), fetch="one")
+
+
 def get_ordem_servico_by_id(id_os: int):
     """Busca ordem de serviço por ID."""
     query = """

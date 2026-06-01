@@ -19,7 +19,7 @@
       {% set p_preco = produto.preco %}
       {% set p_estoque = produto.quantidade_estoque | default(0) %}
       {% set p_id = produto.id_produto %}
-      {% set p_img = 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=600&h=600&fit=crop' %}
+        {% set p_img = produto.imagem_produto if produto.imagem_produto else 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=600&h=600&fit=crop' %}
       {% set is_demo = false %}
       {% set showcase_mode = true %}
       <div class="col-md-4">

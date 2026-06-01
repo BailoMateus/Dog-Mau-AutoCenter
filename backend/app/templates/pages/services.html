@@ -42,8 +42,10 @@
             <span class="fs-4 fw-bold text-white" id="step1Total">R$ 0,00</span>
         </div>
 
+        <div id="step1Error" class="alert alert-warning d-none mt-3" role="alert"></div>
+
         <div class="text-end mt-4">
-            <button type="button" class="btn btn-danger px-4 py-2 rounded-3 fw-bold" onclick="nextStep(2)">
+            <button type="button" class="btn btn-danger px-4 py-2 rounded-3 fw-bold btn-dogmau" onclick="nextStep(2)">
                 Continuar <i class="bi bi-arrow-right ms-2"></i>
             </button>
         </div>
@@ -95,7 +97,7 @@
             </div>
             <div class="col-md-4">
                 <label class="form-label fw-bold">Placa</label>
-                <input type="text" id="veiculoPlaca" class="form-control bg-dark text-white border-secondary p-3 rounded-3 text-uppercase" placeholder="ABC1D23" maxlength="8">
+                <input type="text" id="veiculoPlaca" data-mask="plate" class="form-control bg-dark text-white border-secondary p-3 rounded-3 text-uppercase" placeholder="ABC-1234" maxlength="8">
             </div>
         </div>
 
@@ -143,6 +145,7 @@
 {% endblock %}
 
 {% block extra_scripts %}
+<script src="/static/js/input-masks.js"></script>
 <script>
     const userLoggedIn = {% if user %}true{% else %}false{% endif %};
     const userId = {% if user %}{{ user.user_id }}{% else %}null{% endif %};

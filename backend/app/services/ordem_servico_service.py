@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from fastapi import HTTPException, status
 import psycopg2
 
-from app.models.entities import OrdemServico
+from app.models.entities import OrdemServico, dict_to_ordem_servico
 from app.repositories import ordem_servico_repository as os_repo
 from app.repositories import mecanico_repository as mecanico_repo
 from app.repositories import orcamento_repository as orcamento_repo
@@ -22,7 +22,7 @@ def build_ordem_servico_public(ordem_servico: OrdemServico) -> OrdemServicoPubli
     if ordem_servico.id_orcamento:
         orc = orcamento_repo.get_orcamento_by_id(ordem_servico.id_orcamento)
         if orc:
-            orcamento_status = getattr(orc, "status", None) or (orc.get("status") if isinstance(orc, dict) else None)
+            orcamento_status = getattr(orc, "status", None)
     return OrdemServicoPublic(
         id_os=ordem_servico.id_os,
         id_orcamento=ordem_servico.id_orcamento,
@@ -30,12 +30,35 @@ def build_ordem_servico_public(ordem_servico: OrdemServico) -> OrdemServicoPubli
         id_usuario=ordem_servico.id_usuario,
         descricao_problema=ordem_servico.descricao_problema,
         status=ordem_servico.status,
+        valor_total=getattr(ordem_servico, "valor_total", None),
         orcamento_status=orcamento_status,
         data_abertura=ordem_servico.data_abertura,
         data_conclusao=ordem_servico.data_conclusao,
         created_at=ordem_servico.created_at,
         updated_at=ordem_servico.updated_at,
     )
+
+
+def build_ordem_servico_public_from_row(row: dict) -> OrdemServicoPublic:
+    os = dict_to_ordem_servico(row)
+    pub = build_ordem_servico_public(os)
+    return pub.model_copy(update={
+        "valor_total": float(row.get("valor_total") or 0),
+        "orcamento_status": row.get("orcamento_status"),
+        "placa": row.get("placa"),
+        "cor": row.get("cor"),
+        "ano_fabricacao": row.get("ano_fabricacao"),
+        "nome_modelo": row.get("nome_modelo"),
+        "proprietario_nome": row.get("proprietario_nome"),
+        "mecanico_nome": row.get("mecanico_nome"),
+    })
+
+
+def get_ordem_servico_detalhada_or_404(id_os: int) -> OrdemServicoPublic:
+    row = os_repo.get_ordem_servico_detalhada(id_os)
+    if not row:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ordem de serviço não encontrada")
+    return build_ordem_servico_public_from_row(row)
 
 
 def list_ordens_servico():

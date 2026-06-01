@@ -168,6 +168,41 @@ def loja_page(request: Request, user=Depends(get_page_user)):
     })
 
 
+@router.get("/api/busca", include_in_schema=False)
+def busca_global(q: str = ""):
+    """Busca pública de produtos e serviços para autocomplete."""
+    term = (q or "").strip().lower()
+    produtos = produto_service.list_produtos()
+    servicos = servico_service.list_servicos()
+
+    produtos_out = []
+    for p in produtos:
+        nome = getattr(p, "nome", "") or ""
+        desc = getattr(p, "descricao", "") or ""
+        if not term or term in nome.lower() or term in desc.lower():
+            produtos_out.append({
+                "id": getattr(p, "id_produto", None),
+                "nome": nome,
+                "descricao": desc,
+                "preco": float(getattr(p, "preco", 0) or 0),
+                "imagem": getattr(p, "imagem_produto", None),
+                "tipo": "produto",
+            })
+
+    servicos_out = []
+    for s in servicos:
+        desc = getattr(s, "descricao", "") or ""
+        if not term or term in desc.lower():
+            servicos_out.append({
+                "id": getattr(s, "id_servico", None),
+                "nome": desc,
+                "preco": float(getattr(s, "preco", 0) or 0),
+                "tipo": "servico",
+            })
+
+    return {"produtos": produtos_out[:8], "servicos": servicos_out[:8]}
+
+
 @router.get("/logout", include_in_schema=False)
 def logout(request: Request):
     """Limpa o cookie de autenticação e redireciona para a home."""

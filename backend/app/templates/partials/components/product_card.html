@@ -3,7 +3,7 @@
          data-nome="{{ p_nome }}"
          data-desc="{{ p_desc }}">
   <div class="loja-card-img-wrap">
-    <img src="{{ p_img }}" alt="{{ p_nome }}" loading="lazy">
+    <img src="{{ p_img }}" alt="{{ p_nome }}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=600&h=600&fit=crop'">
     {% if is_demo %}
       {% if p_estoque <= 5 %}
       <span class="loja-card-badge baixo">Estoque baixo</span>

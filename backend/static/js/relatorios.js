@@ -198,6 +198,7 @@
         } catch (error) {
             console.error('Erro ao carregar serviços:', error);
             mostrarAlerta('Erro ao carregar relatório: ' + error.message, 'danger');
+            document.getElementById('servicosLoader')?.classList.remove('active');
         }
     });
 
@@ -236,6 +237,7 @@
         } catch (error) {
             console.error('Erro ao carregar estoque:', error);
             mostrarAlerta('Erro ao carregar relatório: ' + error.message, 'danger');
+            document.getElementById('estoqueLoader')?.classList.remove('active');
         }
     });
 
@@ -293,6 +295,7 @@
         } catch (error) {
             console.error('Erro ao carregar financeiro:', error);
             mostrarAlerta('Erro ao carregar relatório: ' + error.message, 'danger');
+            document.getElementById('financeiroLoader')?.classList.remove('active');
         }
     });
 
@@ -348,6 +351,7 @@
         } catch (error) {
             console.error('Erro ao carregar ordens:', error);
             mostrarAlerta('Erro ao carregar relatório: ' + error.message, 'danger');
+            document.getElementById('ordensLoader')?.classList.remove('active');
         }
     });
 

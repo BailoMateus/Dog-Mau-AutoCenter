@@ -53,7 +53,23 @@
             
             const response = await fetch(url, { credentials: 'include' });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const movimentacoes = await response.json();
+            let movimentacoes = await response.json();
+
+            if (filtros.tipo) {
+                movimentacoes = movimentacoes.filter(m => m.tipo_movimentacao === filtros.tipo);
+            }
+            if (filtros.peca_id) {
+                movimentacoes = movimentacoes.filter(m => String(m.id_peca) === String(filtros.peca_id));
+            }
+            if (filtros.data_inicio && filtros.data_fim) {
+                const ini = new Date(filtros.data_inicio);
+                const fim = new Date(filtros.data_fim);
+                fim.setHours(23, 59, 59, 999);
+                movimentacoes = movimentacoes.filter(m => {
+                    const d = new Date(m.created_at);
+                    return d >= ini && d <= fim;
+                });
+            }
             
             if (!Array.isArray(movimentacoes) || movimentacoes.length === 0) {
                 loader.classList.remove('active');

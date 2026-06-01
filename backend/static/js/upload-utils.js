@@ -167,7 +167,7 @@ class UploadManager {
                 }
             } catch (error) {
                 console.error('Erro ao processar imagem:', error);
-                alert('Erro ao processar imagem: ' + error.message);
+                if (window.UINotification) UINotification.toast('Erro ao processar imagem: ' + error.message, 'error');
             }
         });
     }

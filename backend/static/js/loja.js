@@ -161,8 +161,12 @@
     if (!btn) return;
     
     const id = btn.dataset.pedId;
-    if (confirm(`Tem certeza que deseja excluir o pedido #${id}?`)) {
-      btn.disabled = true;
+    if (window.UINotification) {
+      const ok = await UINotification.confirm('Excluir pedido', `Tem certeza que deseja excluir o pedido #${id}?`, 'Excluir', 'danger');
+      if (!ok) return;
+    }
+    
+    btn.disabled = true;
       try {
         const response = await fetch(`/api/pedidos/${id}`, {
           method: 'DELETE',
@@ -184,7 +188,6 @@
         showToast('Erro de rede ao se comunicar com o servidor.', 'danger');
         btn.disabled = false;
       }
-    }
   });
 
 })();

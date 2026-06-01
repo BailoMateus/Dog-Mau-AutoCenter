@@ -93,7 +93,7 @@ class CheckoutManager {
 
     // Valida campos
     if (!this.form.checkValidity()) {
-      alert('Por favor, preencha todos os campos obrigatórios');
+      if (window.UINotification) UINotification.toast('Por favor, preencha todos os campos obrigatórios', 'warning');
       return;
     }
 
