@@ -2,7 +2,8 @@
  * loja.js — busca na vitrine e ação do botão Comprar
  */
 (function () {
-  const searchInput = document.getElementById('lojaSearchInput');
+  // Use the global search input from the header
+  const searchInput = document.querySelector('.search-input');
   const grid = document.getElementById('lojaProductGrid');
   const emptyMsg = document.getElementById('lojaEmptyMsg');
 
@@ -27,7 +28,28 @@
   }
 
   if (searchInput) {
+    // Override form submission if on the loja page, do instant filter instead
+    const searchForm = searchInput.closest('form');
+    if (searchForm) {
+      searchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        filterProducts();
+        // Update URL without reloading
+        const url = new URL(window.location);
+        url.searchParams.set('q', searchInput.value);
+        window.history.pushState({}, '', url);
+      });
+    }
+
     searchInput.addEventListener('input', filterProducts);
+    
+    // Check if there is a 'q' parameter in the URL from the global search bar
+    const urlParams = new URLSearchParams(window.location.search);
+    const q = urlParams.get('q');
+    if (q) {
+      searchInput.value = q;
+      filterProducts();
+    }
   }
 
   function showToast(message, type) {
