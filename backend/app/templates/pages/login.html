@@ -5,39 +5,9 @@
 {% block header %}{% endblock %}
 {% block footer %}{% endblock %}
 
-{% block body_attrs %}class="d-flex align-items-center py-4 bg-body-tertiary" id="login"{% endblock %}
+{% block body_attrs %}class="d-flex align-items-center py-4" id="login"{% endblock %}
 
 {% block main %}
-    <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 bd-mode-toggle">
-      <button
-        class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center"
-        id="bd-theme"
-        type="button"
-        aria-expanded="false"
-        data-bs-toggle="dropdown"
-        aria-label="Toggle theme (auto)"
-      >
-        <span class="visually-hidden" id="bd-theme-text">Toggle theme</span>
-      </button>
-      <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="bd-theme-text">
-        <li>
-          <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light" aria-pressed="false">
-            <i class="bi bi-sun-fill me-2"></i> Claro
-          </button>
-        </li>
-        <li>
-          <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark" aria-pressed="false">
-            <i class="bi bi-moon-stars-fill me-2"></i> Escuro
-          </button>
-        </li>
-        <li>
-          <button type="button" class="dropdown-item d-flex align-items-center active" data-bs-theme-value="auto" aria-pressed="true">
-            <i class="bi bi-circle-half me-2"></i> Auto
-          </button>
-        </li>
-      </ul>
-    </div>
-
     <main class="form-signin w-100 m-auto">
       <form id="loginForm" action="/auth/login" method="POST">
         <img class="mb-4 d-block mx-auto" src="/static/assets/nome.png" alt="DogMau Logo" height="72" />

@@ -11,6 +11,18 @@ body {
     min-height: 100vh;
 }
 
+html {
+    height: 100%;
+}
+
+body.d-flex.flex-column {
+    min-height: 100vh;
+}
+
+body.d-flex.flex-column > main.flex-grow-1 {
+    flex: 1 0 auto;
+}
+
 h1 {
   text-align: center;
   font-size: 40px;
@@ -166,18 +178,30 @@ header .nav-link.active {
 /* CSS do Carrossel */
 
 #myCarousel {
-  height: auto;
+  width: 100%;
+  max-height: 435px;
+  overflow: hidden;
+}
+
+#myCarousel .carousel-inner,
+#myCarousel .carousel-item {
+  height: 435px;
 }
 
 #myCarousel .carousel-item img {
   width: 100% !important;
-  height: auto !important;
+  height: 435px !important;
+  object-fit: cover !important;
+  display: block;
 }
 
-@media (min-width: 992px) {
+@media (max-width: 768px) {
+  #myCarousel .carousel-inner,
+  #myCarousel .carousel-item {
+    height: 220px;
+  }
   #myCarousel .carousel-item img {
-    width: 40% !important;
-    margin: 0 auto !important;
+    height: 220px !important;
   }
 }
 
@@ -187,6 +211,18 @@ header .nav-link.active {
 
 .footer {
   background-color: #111;
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.text-muted,
+.text-secondary,
+.text-body-secondary {
+  color: #c8c8c8 !important;
+}
+
+.subtitle {
+  color: #c8c8c8 !important;
 }
 .form-signin {
   max-width: 330px;
@@ -225,6 +261,7 @@ header .nav-link.active {
 
 .text-body-secondary {
   text-align: center;
+  color: #c8c8c8 !important;
 }
 
 
@@ -268,10 +305,13 @@ header .nav-link.active {
   box-shadow: 0 0 15px red;
 }
 #login {
-  background-image: radial-gradient(rgb(0, 0, 0), rgb(38, 0, 0));
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
+  background: #000 !important;
+  background-image: none !important;
+}
+
+body#login,
+body#login.bg-body-tertiary {
+  background-color: #000 !important;
 }
 
 label {
@@ -280,7 +320,7 @@ label {
 
 .subtitle {
     text-align: center;
-    color: #aaa;
+    color: #c8c8c8;
     margin-bottom: 40px;
 }
 
@@ -602,10 +642,29 @@ select, textarea {
 }
 
 .cart-header h5 {
-    color: white;
-    font-weight: bold;
+    color: rgba(192, 37, 43);
+    font-weight: 700;
     margin: 0;
-    font-size: 1.3em;
+    font-size: 1.25rem;
+    font-family: "Orbitron", sans-serif;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.painel-nav-tabs {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.btn-outline-primary {
+    color: rgba(192, 37, 43);
+    border-color: rgba(192, 37, 43);
+}
+
+.btn-outline-primary:hover {
+    background-color: rgba(192, 37, 43);
+    border-color: rgba(192, 37, 43);
+    color: #fff;
 }
 
 .cart-header .btn-close {

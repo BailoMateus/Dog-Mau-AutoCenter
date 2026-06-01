@@ -11,7 +11,8 @@
     </div>
 
     <!-- Cards de Produtos -->
-    <div class="row g-4 justify-content-center">
+    <p id="homeEmptyMsg" class="text-center text-muted mb-4" style="display: none;">Nenhum produto encontrado para sua busca.</p>
+    <div class="row g-4 justify-content-center" id="homeProductGrid">
       {% for produto in produtos_destaque %}
       {% set p_nome = produto.nome %}
       {% set p_desc = produto.descricao %}

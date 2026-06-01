@@ -4,7 +4,7 @@
  */
 
 (function() {
-    const API_BASE = '/api';
+    const API_BASE = '';
 
     // ─── Carregamento de Movimentações ───
     async function carregarMovimentacoes(filtros = {}) {

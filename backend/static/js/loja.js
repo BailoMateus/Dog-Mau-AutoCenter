@@ -28,6 +28,16 @@
 
   if (searchInput) {
     searchInput.addEventListener('input', filterProducts);
+    const searchBtn = searchInput.closest('.input-group')?.querySelector('.btn-loja-search');
+    if (searchBtn) {
+      searchBtn.addEventListener('click', filterProducts);
+    }
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get('q');
+    if (q) {
+      searchInput.value = q;
+      filterProducts();
+    }
   }
 
   function showToast(message, type) {

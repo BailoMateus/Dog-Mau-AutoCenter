@@ -107,6 +107,16 @@ def create_my_veiculo(
     return veiculo_service.create_veiculo_for_user(int(current["user_id"]), data)
 
 
+@router.post("/veiculos/resolver", response_model=VeiculoPublic)
+def resolve_my_veiculo(
+    data: VeiculoCreate,
+    current=Depends(get_current_user),
+):
+    """Reutiliza veículo pela placa ou cria um novo para o usuário logado."""
+    logger.info("POST /me/veiculos/resolver user_id=%s placa=%s", current["user_id"], data.placa)
+    return veiculo_service.find_or_create_veiculo_for_user(int(current["user_id"]), data)
+
+
 @router.get("/veiculos/{veiculo_id}", response_model=VeiculoPublic)
 def get_my_veiculo(
     veiculo_id: Annotated[int, Path(ge=1)],

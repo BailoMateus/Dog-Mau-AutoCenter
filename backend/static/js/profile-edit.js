@@ -68,6 +68,9 @@ async function loadUserProfile() {
 
         if (!response.ok) {
             console.error('Erro ao carregar perfil');
+            const loader = document.getElementById('perfilLoader');
+            if (loader) loader.style.display = 'none';
+            showAlert('danger', 'Não foi possível carregar os dados do perfil. Tente novamente.');
             return;
         }
 
@@ -94,6 +97,8 @@ async function loadUserProfile() {
 
     } catch (error) {
         console.error('Erro ao carregar perfil:', error);
+        const loader = document.getElementById('perfilLoader');
+        if (loader) loader.style.display = 'none';
         showAlert('danger', 'Erro ao carregar dados do perfil');
     }
 }

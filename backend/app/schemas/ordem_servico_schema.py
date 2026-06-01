@@ -19,10 +19,12 @@ class OrdemServicoPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id_os: int
+    id_orcamento: int | None = None
     id_veiculo: int
     id_usuario: int
     descricao_problema: str
     status: str
+    orcamento_status: str | None = None
     data_abertura: datetime | None = None
     data_conclusao: datetime | None = None
     created_at: datetime | None = None

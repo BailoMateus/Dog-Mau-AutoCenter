@@ -1,111 +1,107 @@
-// services.js — Lógica do wizard de serviços
+// services.js — fluxo público de contratação de serviços
 
 let selectedServices = [];
-let selectedVehicleId = null;
-let selectedVehicleName = "";
 
-document.addEventListener('DOMContentLoaded', () => {
-    if (typeof userLoggedIn !== 'undefined' && userLoggedIn) {
-        fetchUserVehicles();
-    }
-});
+function showInlineMessage(el, message, type) {
+    if (!el) return;
+    el.className = `alert alert-${type || 'warning'} mt-3`;
+    el.textContent = message;
+    el.classList.remove('d-none');
+}
 
-async function fetchUserVehicles() {
-    try {
-        const response = await fetch('/api/me/veiculos');
-        if (!response.ok) throw new Error('Erro ao buscar veículos');
-        
-        const data = await response.json();
-        const vehicles = data.items || [];
-        
-        document.getElementById('vehicleLoading').classList.add('d-none');
-        
-        if (vehicles.length === 0) {
-            document.getElementById('noVehiclesAlert').classList.remove('d-none');
-        } else {
-            const select = document.getElementById('userVehicleSelect');
-            vehicles.forEach(v => {
-                const option = document.createElement('option');
-                option.value = v.id_veiculo;
-                option.textContent = `${v.placa} - ${v.marca} ${v.modelo}`;
-                select.appendChild(option);
-            });
-            document.getElementById('vehicleSelectionArea').classList.remove('d-none');
-        }
-    } catch (error) {
-        console.error('Error fetching vehicles:', error);
-        document.getElementById('vehicleLoading').classList.add('d-none');
-        document.getElementById('noVehiclesAlert').classList.remove('d-none');
-        document.getElementById('noVehiclesAlert').querySelector('p').textContent = "Erro ao carregar veículos. Tente recarregar a página.";
-    }
+function hideInlineMessage(el) {
+    if (el) el.classList.add('d-none');
 }
 
 function nextStep(step) {
-    if (step === 2) {
-        const select = document.getElementById('userVehicleSelect');
-        if (!select.value) {
-            alert("Por favor, selecione um veículo antes de continuar.");
-            return;
-        }
-        selectedVehicleId = select.value;
-        selectedVehicleName = select.options[select.selectedIndex].text;
-    }
-
-    if (step === 3 && selectedServices.length === 0) {
-        alert("Por favor, selecione pelo menos um serviço antes de continuar.");
+    if (step === 2 && selectedServices.length === 0) {
+        const err = document.getElementById('submitError');
+        showInlineMessage(err, 'Selecione pelo menos um serviço para continuar.', 'warning');
         return;
     }
+    hideInlineMessage(document.getElementById('submitError'));
 
-    document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
-    
+    document.querySelectorAll('#screen1, #screen2, #screen3').forEach((c) => c.classList.add('hidden'));
+
     const targetScreen = document.getElementById('screen' + step);
-    if(targetScreen) targetScreen.classList.remove('hidden');
+    if (targetScreen) targetScreen.classList.remove('hidden');
 
-    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-    
-    for(let i = 1; i <= step; i++){
+    document.querySelectorAll('.step').forEach((s) => s.classList.remove('active'));
+    for (let i = 1; i <= step; i++) {
         const stepEl = document.getElementById('step' + i);
-        if(stepEl) stepEl.classList.add('active');
+        if (stepEl) stepEl.classList.add('active');
     }
 
-    if(step === 3){
-        document.getElementById('vehicleSummary').innerText = selectedVehicleName;
-        
-        const list = document.getElementById('servicesSummaryList');
-        list.innerHTML = '';
-        let total = 0;
-        selectedServices.forEach(s => {
-            const li = document.createElement('li');
-            li.className = "d-flex justify-content-between mb-1";
-            li.innerHTML = `<span>${s.name}</span> <span class="text-secondary">R$ ${parseFloat(s.price).toFixed(2)}</span>`;
-            list.appendChild(li);
-            total += parseFloat(s.price);
-        });
-        
-        document.getElementById('priceSummary').innerText = `R$ ${total.toFixed(2)}`;
+    if (step === 2) {
+        renderServicesReview();
     }
 }
 
 function toggleService(element, id, name, price) {
     const checkbox = element.querySelector('.service-checkbox');
     checkbox.checked = !checkbox.checked;
-    
+
     if (checkbox.checked) {
         element.style.borderColor = 'rgba(192, 37, 43)';
         element.style.backgroundColor = 'rgba(192, 37, 43, 0.1)';
-        selectedServices.push({ id, name, price: parseFloat(price) });
+        selectedServices.push({ id: String(id), name, price: parseFloat(price) });
     } else {
         element.style.borderColor = '#333';
         element.style.backgroundColor = 'transparent';
-        selectedServices = selectedServices.filter(s => String(s.id) !== String(id));
+        selectedServices = selectedServices.filter((s) => String(s.id) !== String(id));
     }
-    
+
     updateTotal();
 }
 
 function updateTotal() {
     const total = selectedServices.reduce((acc, s) => acc + s.price, 0);
-    document.getElementById('step2Total').innerText = `R$ ${total.toFixed(2)}`;
+    const el = document.getElementById('step1Total');
+    if (el) el.innerText = `R$ ${total.toFixed(2)}`;
+}
+
+function renderServicesReview() {
+    const list = document.getElementById('selectedServicesReview');
+    if (!list) return;
+    list.innerHTML = '';
+    selectedServices.forEach((s) => {
+        const li = document.createElement('li');
+        li.className = 'd-flex justify-content-between mb-2 border-bottom border-secondary pb-2';
+        li.innerHTML = `<span>${s.name}</span><span class="text-danger fw-bold">R$ ${s.price.toFixed(2)}</span>`;
+        list.appendChild(li);
+    });
+}
+
+function prosseguirVeiculo() {
+    if (selectedServices.length === 0) {
+        showInlineMessage(document.getElementById('submitError'), 'Selecione pelo menos um serviço.', 'warning');
+        return;
+    }
+    if (!userLoggedIn) {
+        sessionStorage.setItem('dogmau_pending_services', JSON.stringify(selectedServices));
+        window.location.href = '/login?next=' + encodeURIComponent('/servicos');
+        return;
+    }
+    nextStep(3);
+}
+
+function populateModelos() {
+    const marcaId = document.getElementById('marcaSelect')?.value;
+    const modeloSelect = document.getElementById('modeloSelect');
+    if (!modeloSelect) return;
+
+    modeloSelect.innerHTML = '<option value="" disabled selected>Selecione o modelo...</option>';
+    modeloSelect.disabled = !marcaId;
+
+    if (!marcaId || !modelosPorMarca[marcaId]) return;
+
+    modelosPorMarca[marcaId].forEach((mod) => {
+        const opt = document.createElement('option');
+        opt.value = mod.id;
+        opt.textContent = mod.nome;
+        modeloSelect.appendChild(opt);
+    });
+    modeloSelect.disabled = false;
 }
 
 async function enviarSolicitacao() {
@@ -113,51 +109,81 @@ async function enviarSolicitacao() {
     const spinner = document.getElementById('submitSpinner');
     const icon = document.getElementById('submitIcon');
     const errorDiv = document.getElementById('submitError');
-    const observacoes = document.getElementById('observacoes').value;
-    
-    errorDiv.classList.add('d-none');
+
+    const idModelo = document.getElementById('modeloSelect')?.value;
+    const cor = document.getElementById('veiculoCor')?.value?.trim();
+    const ano = document.getElementById('veiculoAno')?.value;
+    const placa = document.getElementById('veiculoPlaca')?.value?.trim().toUpperCase();
+    const observacoes = document.getElementById('observacoes')?.value || '';
+
+    hideInlineMessage(errorDiv);
+
+    if (!idModelo || !cor || !ano || !placa) {
+        showInlineMessage(errorDiv, 'Preencha marca, modelo, cor, ano e placa do veículo.', 'warning');
+        return;
+    }
+
+    if (!userLoggedIn || !userId) {
+        window.location.href = '/login?next=' + encodeURIComponent('/servicos');
+        return;
+    }
+
     btn.disabled = true;
     spinner.classList.remove('d-none');
     icon.classList.add('d-none');
-    
+
     const total = selectedServices.reduce((acc, s) => acc + s.price, 0);
-    
+
     try {
-        // 1. Criar Orçamento
+        const veiculoRes = await fetch('/api/me/veiculos/resolver', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+                id_modelo: parseInt(idModelo, 10),
+                placa,
+                ano_fabricacao: parseInt(ano, 10),
+                cor
+            })
+        });
+        if (!veiculoRes.ok) {
+            const err = await veiculoRes.json().catch(() => ({}));
+            throw new Error(err.detail || 'Não foi possível registrar o veículo.');
+        }
+        const veiculo = await veiculoRes.json();
+
         const orcResponse = await fetch('/orcamentos/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({
                 id_usuario: userId,
-                id_veiculo: parseInt(selectedVehicleId),
+                id_veiculo: veiculo.id_veiculo,
                 valor_total: total,
-                observacoes: observacoes
+                observacoes
             })
         });
-        
         if (!orcResponse.ok) throw new Error('Falha ao criar orçamento.');
-        
+
         const orcamento = await orcResponse.json();
         const idOrcamento = orcamento.id_orcamento;
-        
-        // 2. Adicionar Serviços
+
         for (const s of selectedServices) {
             const itemResponse = await fetch(`/orcamentos/${idOrcamento}/itens/servicos`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id_servico: s.id, valor_unitario: s.price })
+                credentials: 'include',
+                body: JSON.stringify({ id_servico: parseInt(s.id, 10), valor_unitario: s.price })
             });
             if (!itemResponse.ok) throw new Error('Falha ao associar serviço ao orçamento.');
         }
-        
-        // 3. Sucesso
+
+        sessionStorage.removeItem('dogmau_pending_services');
         const myModal = new bootstrap.Modal(document.getElementById('sucessoModal'));
         myModal.show();
-        
     } catch (error) {
         console.error(error);
-        errorDiv.textContent = error.message || 'Ocorreu um erro ao processar sua solicitação.';
-        errorDiv.classList.remove('d-none');
+        showInlineMessage(errorDiv, error.message || 'Ocorreu um erro ao processar sua solicitação.', 'danger');
     } finally {
         btn.disabled = false;
         spinner.classList.add('d-none');
@@ -167,21 +193,34 @@ async function enviarSolicitacao() {
 
 function resetForm() {
     selectedServices = [];
-    selectedVehicleId = null;
-    selectedVehicleName = "";
-    document.getElementById('observacoes').value = "";
-    
-    document.querySelectorAll('.service-checkbox').forEach(cb => cb.checked = false);
-    document.querySelectorAll('.service').forEach(el => {
+    document.getElementById('observacoes').value = '';
+    document.querySelectorAll('.service-checkbox').forEach((cb) => { cb.checked = false; });
+    document.querySelectorAll('.service').forEach((el) => {
         el.style.borderColor = '#333';
         el.style.backgroundColor = 'transparent';
     });
-    
     updateTotal();
     nextStep(1);
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('marcaSelect')?.addEventListener('change', populateModelos);
+
+    const pending = sessionStorage.getItem('dogmau_pending_services');
+    if (pending && userLoggedIn) {
+        try {
+            selectedServices = JSON.parse(pending);
+            if (selectedServices.length > 0) {
+                nextStep(3);
+            }
+        } catch (_) {
+            sessionStorage.removeItem('dogmau_pending_services');
+        }
+    }
+});
+
 window.nextStep = nextStep;
 window.toggleService = toggleService;
+window.prosseguirVeiculo = prosseguirVeiculo;
 window.enviarSolicitacao = enviarSolicitacao;
 window.resetForm = resetForm;

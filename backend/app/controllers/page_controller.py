@@ -262,9 +262,17 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
                 "usuario_nome": usuario_nome
             })
 
-        # Veículos (Admin vê todos, cliente vê os seus)
+        # Veículos (Admin vê todos com nome do proprietário, cliente vê os seus)
         if user.get("role") in ("admin", "mecanico"):
-            veiculos = veiculo_service.list_all_veiculos()
+            veiculos = execute_query(
+                "SELECT v.id_veiculo, v.placa, v.ano_fabricacao, v.cor, v.id_usuario, v.id_modelo, "
+                "u.nome AS proprietario_nome "
+                "FROM veiculo v "
+                "JOIN usuario u ON v.id_usuario = u.id_usuario "
+                "WHERE v.deleted_at IS NULL "
+                "ORDER BY v.created_at DESC",
+                fetch="all",
+            ) or []
         else:
             veiculos = veiculo_service.list_veiculos_by_user(int(user["user_id"]))
             

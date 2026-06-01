@@ -7,9 +7,36 @@ import psycopg2
 from app.models.entities import OrdemServico
 from app.repositories import ordem_servico_repository as os_repo
 from app.repositories import mecanico_repository as mecanico_repo
-from app.schemas.ordem_servico_schema import OrdemServicoCreate, OrdemServicoUpdate, OrdemServicoStatusUpdate
+from app.repositories import orcamento_repository as orcamento_repo
+from app.schemas.ordem_servico_schema import (
+    OrdemServicoCreate,
+    OrdemServicoPublic,
+    OrdemServicoUpdate,
+    OrdemServicoStatusUpdate,
+)
 
 logger = logging.getLogger(__name__)
+
+def build_ordem_servico_public(ordem_servico: OrdemServico) -> OrdemServicoPublic:
+    orcamento_status = None
+    if ordem_servico.id_orcamento:
+        orc = orcamento_repo.get_orcamento_by_id(ordem_servico.id_orcamento)
+        if orc:
+            orcamento_status = getattr(orc, "status", None) or (orc.get("status") if isinstance(orc, dict) else None)
+    return OrdemServicoPublic(
+        id_os=ordem_servico.id_os,
+        id_orcamento=ordem_servico.id_orcamento,
+        id_veiculo=ordem_servico.id_veiculo,
+        id_usuario=ordem_servico.id_usuario,
+        descricao_problema=ordem_servico.descricao_problema,
+        status=ordem_servico.status,
+        orcamento_status=orcamento_status,
+        data_abertura=ordem_servico.data_abertura,
+        data_conclusao=ordem_servico.data_conclusao,
+        created_at=ordem_servico.created_at,
+        updated_at=ordem_servico.updated_at,
+    )
+
 
 def list_ordens_servico():
     """Lista todas as ordens de serviço."""
@@ -144,6 +171,17 @@ def update_ordem_servico(id_os: int, data: OrdemServicoUpdate):
 def update_status_ordem_servico(id_os: int, data: OrdemServicoStatusUpdate):
     """Atualiza apenas o status da ordem de serviço."""
     ordem_servico = get_ordem_servico_or_404(id_os)
+
+    if ordem_servico.id_orcamento:
+        orc = orcamento_repo.get_orcamento_by_id(ordem_servico.id_orcamento)
+        orc_status = getattr(orc, "status", None) if orc else None
+        if isinstance(orc, dict):
+            orc_status = orc.get("status")
+        if orc_status != "aprovado":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="A alteração de status só é permitida após aprovação do orçamento.",
+            )
     
     # Validação de status
     status_validos = ["aberta", "em_andamento", "concluida", "cancelada"]

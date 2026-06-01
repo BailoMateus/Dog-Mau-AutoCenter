@@ -18,7 +18,6 @@
         <li class="nav-item"><a href="/" class="nav-link px-3 fs-5 {% if page == 'home' %}active{% endif %}">Home</a></li>
         <li class="nav-item"><a href="/produtos" class="nav-link px-3 fs-5 {% if page == 'produtos' %}active{% endif %}">Produtos</a></li>
         <li class="nav-item"><a href="/servicos" class="nav-link px-3 fs-5 {% if page == 'servicos' %}active{% endif %}">Serviços</a></li>
-        <li class="nav-item"><a href="#" class="nav-link px-3 fs-5 {% if page == 'sobre' %}active{% endif %}">Sobre</a></li>
         {% if user %}
         <li class="nav-item">
           <a href="/painel" class="nav-link px-3 fs-5 {% if page == 'painel' %}active{% endif %}">
@@ -31,9 +30,9 @@
       <!-- Action Area: Search and Profile -->
       <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-3">
         <!-- Search Box -->
-        <form class="d-flex w-100 search-box">
-            <input type="search" class="form-control search-input flex-grow-1" placeholder="Buscar..." />
-            <button class="btn btn-danger ms-2 flex-shrink-0" type="button">
+        <form class="d-flex w-100 search-box" id="globalSearchForm" role="search">
+            <input type="search" id="globalSearchInput" class="form-control search-input flex-grow-1" placeholder="Buscar produtos..." aria-label="Buscar produtos" />
+            <button class="btn btn-danger ms-2 flex-shrink-0" type="submit">
                 <i class="bi bi-search text-white"></i>
             </button>
         </form>

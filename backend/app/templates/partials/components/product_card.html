@@ -29,9 +29,19 @@
     </p>
     
     {% if showcase_mode %}
-      <a href="/loja" class="btn btn-loja-comprar text-decoration-none text-center d-inline-block">
-        <i class="bi bi-cart me-2"></i>Veja Mais Produtos
-      </a>
+      <button type="button"
+              class="btn btn-loja-comprar"
+              data-demo="{{ 'true' if is_demo else 'false' }}"
+              {% if not is_demo %}
+              data-logged-in="{{ 'true' if user else 'false' }}"
+              data-produto-id="{{ p_id }}"
+              data-preco="{{ p_preco }}"
+              data-estoque="{{ p_estoque }}"
+              {% endif %}
+              {% if not is_demo and p_estoque <= 0 %}disabled{% endif %}>
+        <i class="bi bi-cart-plus me-2"></i>
+        {% if not is_demo and p_estoque <= 0 %}Indisponível{% else %}Adicionar ao carrinho{% endif %}
+      </button>
     {% else %}
       <button type="button"
               class="btn btn-loja-comprar"

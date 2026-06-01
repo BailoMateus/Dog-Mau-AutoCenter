@@ -15,6 +15,22 @@ def get_modelo_or_404(modelo_id: int):
     if not modelo_repo.get_modelo_by_id(modelo_id):
         raise HTTPException(status_code=404, detail="Modelo não encontrado")
 
+def find_or_create_veiculo_for_user(user_id: int, data: VeiculoCreate):
+    """Reutiliza veículo existente pela placa do usuário ou cria um novo."""
+    user_service.get_user_or_404(user_id)
+    get_modelo_or_404(data.id_modelo)
+    existing = repo.get_veiculo_by_placa_for_user(data.placa, user_id)
+    if existing:
+        if data.id_modelo is not None:
+            existing.id_modelo = data.id_modelo
+        if data.ano_fabricacao is not None:
+            existing.ano_fabricacao = data.ano_fabricacao
+        if data.cor is not None:
+            existing.cor = data.cor
+        return repo.update_veiculo(existing)
+    return create_veiculo_for_user(user_id, data)
+
+
 def create_veiculo_for_user(user_id: int, data: VeiculoCreate):
     user_service.get_user_or_404(user_id)
     get_modelo_or_404(data.id_modelo)

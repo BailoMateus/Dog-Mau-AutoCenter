@@ -4,7 +4,7 @@
  */
 
 (function() {
-    const API_BASE = '/api';
+    const API_BASE = '';
 
     // ─── Datas Padrão ───
     function setDatasPadraoFiltros() {
@@ -30,7 +30,7 @@
             loader.classList.add('active');
             content.style.display = 'none';
             
-            const response = await fetch(`${API_BASE}/relatorios/dashboard`);
+            const response = await fetch(`${API_BASE}/relatorios/dashboard`, { credentials: 'include' });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             
             const data = await response.json();
@@ -108,6 +108,7 @@
             const response = await fetch(`${API_BASE}/relatorios/faturamento`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({
                     data_abertura: dataInicio,
                     data_fim: dataFim
@@ -140,6 +141,7 @@
         } catch (error) {
             console.error('Erro ao carregar faturamento:', error);
             mostrarAlerta('Erro ao carregar relatório: ' + error.message, 'danger');
+            document.getElementById('faturamentoLoader')?.classList.remove('active');
         }
     });
 
@@ -163,6 +165,7 @@
             const response = await fetch(`${API_BASE}/relatorios/servicos-realizados`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({
                     data_abertura: dataInicio,
                     data_fim: dataFim
@@ -207,7 +210,7 @@
             loader.classList.add('active');
             content.style.display = 'none';
             
-            const response = await fetch(`${API_BASE}/relatorios/estoque`);
+            const response = await fetch(`${API_BASE}/relatorios/estoque`, { credentials: 'include' });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const data = await response.json();
             
@@ -256,6 +259,7 @@
             const response = await fetch(`${API_BASE}/relatorios/financeiro-periodo`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({
                     data_abertura: dataInicio,
                     data_fim: dataFim
@@ -312,6 +316,7 @@
             const response = await fetch(`${API_BASE}/relatorios/ordens-servico`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({
                     data_abertura: dataInicio,
                     data_fim: dataFim

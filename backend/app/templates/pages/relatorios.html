@@ -129,6 +129,9 @@
 
 {% block content %}
 <div class="container py-5">
+    <a href="/painel?tab=usuarios" class="btn btn-sm btn-outline-danger mb-3">
+        <i class="bi bi-arrow-left me-1"></i>Voltar
+    </a>
     <!-- Cabeçalho -->
     <div class="row mb-4 align-items-center">
         <div class="col">
@@ -183,7 +186,7 @@
                         <input type="date" class="form-control" id="faturamentoDataFim">
                     </div>
                     <div class="col-md-6 d-flex align-items-end gap-2">
-                        <button class="btn btn-primary" id="btnFaturamento">
+                        <button class="btn btn-danger" id="btnFaturamento">
                             <i class="bi bi-arrow-repeat me-2"></i>Gerar Relatório
                         </button>
                         <button class="btn btn-secondary" id="btnFaturamentoExportar" style="display: none;">
@@ -231,7 +234,7 @@
                         <input type="date" class="form-control" id="servicosDataFim">
                     </div>
                     <div class="col-md-6 d-flex align-items-end gap-2">
-                        <button class="btn btn-primary" id="btnServicos">
+                        <button class="btn btn-danger" id="btnServicos">
                             <i class="bi bi-arrow-repeat me-2"></i>Gerar Relatório
                         </button>
                         <button class="btn btn-secondary" id="btnServicosExportar" style="display: none;">
@@ -269,7 +272,7 @@
         <!-- Estoque -->
         <div class="tab-pane fade" id="estoque" role="tabpanel">
             <div class="mb-3 d-flex gap-2">
-                <button class="btn btn-primary" id="btnEstoque">
+                <button class="btn btn-danger" id="btnEstoque">
                     <i class="bi bi-arrow-repeat me-2"></i>Carregar Relatório de Estoque
                 </button>
                 <button class="btn btn-secondary" id="btnEstoqueExportar" style="display: none;">
@@ -314,7 +317,7 @@
                         <input type="date" class="form-control" id="financeiroDataFim">
                     </div>
                     <div class="col-md-6 d-flex align-items-end gap-2">
-                        <button class="btn btn-primary" id="btnFinanceiro">
+                        <button class="btn btn-danger" id="btnFinanceiro">
                             <i class="bi bi-arrow-repeat me-2"></i>Gerar Relatório
                         </button>
                         <button class="btn btn-secondary" id="btnFinanceiroExportar" style="display: none;">
@@ -362,7 +365,7 @@
                         <input type="date" class="form-control" id="ordensDataFim">
                     </div>
                     <div class="col-md-6 d-flex align-items-end gap-2">
-                        <button class="btn btn-primary" id="btnOrdens">
+                        <button class="btn btn-danger" id="btnOrdens">
                             <i class="bi bi-arrow-repeat me-2"></i>Gerar Relatório
                         </button>
                         <button class="btn btn-secondary" id="btnOrdensExportar" style="display: none;">

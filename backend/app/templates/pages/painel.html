@@ -36,29 +36,6 @@
         </div>
     </div>
 
-    <!-- Links Rápidos para Seções Administrativas -->
-    {% if user.role in ['admin', 'mecanico'] %}
-    <div class="row g-2 mb-4">
-        {% if user.role == 'admin' %}
-        <div class="col-auto">
-            <a href="/relatorios" class="btn btn-outline-danger" style="border-color: rgba(192, 37, 43); color: rgba(192, 37, 43);">
-                <i class="bi bi-graph-up me-1"></i>Relatórios
-            </a>
-        </div>
-        <div class="col-auto">
-            <a href="/movimentacoes-financeiras" class="btn btn-outline-danger" style="border-color: rgba(192, 37, 43); color: rgba(192, 37, 43);">
-                <i class="bi bi-cash-coin me-1"></i>Movimentações Financeiras
-            </a>
-        </div>
-        {% endif %}
-        <div class="col-auto">
-            <a href="/movimentacoes-estoque" class="btn btn-outline-danger" style="border-color: rgba(192, 37, 43); color: rgba(192, 37, 43);">
-                <i class="bi bi-arrow-left-right me-1"></i>Movimentações de Estoque
-            </a>
-        </div>
-    </div>
-    {% endif %}
-
     <!-- Navegação em Abas -->
     <ul class="nav nav-tabs mb-4 painel-nav-tabs" id="painelTabs" role="tablist">
         {% if user.role in ['admin', 'mecanico'] %}
@@ -108,7 +85,7 @@
         <li class="nav-item" role="presentation">
             <a class="nav-link nav-tab-link {% if tab == 'orcamentos' %}active{% endif %}" href="?tab=orcamentos" role="tab">
                 <i class="bi bi-file-earmark-text me-1"></i>
-                {% if user.role == 'admin' %}Orçamentos Pendentes{% else %}Meus Orçamentos{% endif %}
+                {% if user.role == 'admin' %}Orçamento{% else %}Meus Orçamentos{% endif %}
             </a>
         </li>
 
@@ -118,6 +95,26 @@
                 {% if user.role == 'admin' %}Gestão de OS{% elif user.role == 'mecanico' %}Minhas OS{% else %}Minhas OS{% endif %}
             </a>
         </li>
+
+        {% if user.role == 'admin' %}
+        <li class="nav-item" role="presentation">
+            <a class="nav-link nav-tab-link" href="/relatorios" role="tab">
+                <i class="bi bi-graph-up me-1"></i>Relatórios
+            </a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link nav-tab-link" href="/movimentacoes-financeiras" role="tab">
+                <i class="bi bi-cash-coin me-1"></i>Movimentações Financeiras
+            </a>
+        </li>
+        {% endif %}
+        {% if user.role in ['admin', 'mecanico'] %}
+        <li class="nav-item" role="presentation">
+            <a class="nav-link nav-tab-link" href="/movimentacoes-estoque" role="tab">
+                <i class="bi bi-arrow-left-right me-1"></i>Movimentações de Estoque
+            </a>
+        </li>
+        {% endif %}
 
         {% if user.role not in ['admin', 'mecanico'] %}
         <li class="nav-item" role="presentation">

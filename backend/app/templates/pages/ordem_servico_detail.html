@@ -2,6 +2,8 @@
 
 {% block title %}Detalhes da Ordem de Serviço #{{ os_id }} - Dog Mau AutoCenter{% endblock %}
 
+{% block body_attrs %}data-os-id="{{ os_id }}"{% endblock %}
+
 {% block extra_head %}
 <style>
     .os-header {
@@ -123,7 +125,7 @@
 {% block content %}
 <div class="container py-5">
     <!-- Voltar -->
-    <a href="/painel?tab=servicos" class="btn btn-sm btn-secondary mb-3">
+    <a href="/painel?tab=ordens_servico" class="btn btn-sm btn-outline-danger mb-3">
         <i class="bi bi-arrow-left me-1"></i>Voltar
     </a>
 
@@ -144,8 +146,9 @@
                         <i class="bi bi-card-checklist me-2"></i>Ordem de Serviço #<span id="osId">{{ os_id }}</span>
                     </h1>
                 </div>
-                <div class="col-auto">
-                    <div id="osStatusBadge" class="os-status">Carregando...</div>
+                <div class="col-auto text-end">
+                    <div id="osStatusBadge" class="os-status mb-2">Carregando...</div>
+                    <div id="osStatusControl" class="d-flex align-items-center justify-content-end flex-wrap gap-2"></div>
                 </div>
             </div>
         </div>

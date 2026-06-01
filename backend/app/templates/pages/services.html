@@ -3,25 +3,12 @@
 {% block title %}DogMau Auto Center - Serviços{% endblock %}
 
 {% block content %}
-<div class="container my-5 py-4" style="max-width: 800px;">
-    
+<div class="container my-5 py-4" style="max-width: 900px;">
+
     <div class="text-center mb-5">
         <h1 class="text-white">CONTRATE UM SERVIÇO</h1>
-        <p class="subtitle fs-5">Siga os passos abaixo para agendar a manutenção do seu veículo</p>
+        <p class="subtitle fs-5">Escolha os serviços, informe seu veículo e solicite o orçamento</p>
     </div>
-
-    {% if not user %}
-    <div class="card text-center p-5 bg-dark border-secondary text-white shadow-sm rounded-4">
-        <i class="bi bi-lock-fill text-danger mb-3" style="font-size: 4rem;"></i>
-        <h2 class="mb-3">Acesso Restrito</h2>
-        <p class="text-secondary mb-4 fs-5">Para solicitar um orçamento de serviço, você precisa estar logado em nosso sistema.</p>
-        <div>
-            <a href="/login?next=/servicos" class="btn btn-primary px-4 py-3 rounded-3 fw-bold transition-hover" style="font-size: 1.1rem;">
-                <i class="bi bi-box-arrow-in-right me-2"></i> Fazer Login ou Cadastrar
-            </a>
-        </div>
-    </div>
-    {% else %}
 
     <div class="steps mb-5">
         <div class="step active transition-hover shadow-sm" id="step1">1</div>
@@ -29,109 +16,109 @@
         <div class="step transition-hover shadow-sm" id="step3">3</div>
     </div>
 
-    <!-- STEP 1 -->
+    <!-- STEP 1: Serviços -->
     <div class="card text-white shadow-sm" id="screen1">
-        <h2 class="mb-4 pb-2 border-bottom border-secondary">1. Selecionar Veículo</h2>
-
-        <div id="vehicleLoading" class="text-center py-5">
-            <div class="spinner-border text-danger" role="status">
-                <span class="visually-hidden">Carregando veículos...</span>
-            </div>
-            <p class="mt-3 text-secondary">Buscando seus veículos cadastrados...</p>
-        </div>
-
-        <div id="noVehiclesAlert" class="d-none text-center p-5 border border-danger rounded-4" style="background-color: rgba(192, 37, 43, 0.05);">
-            <i class="bi bi-car-front-fill text-danger mb-3" style="font-size: 3rem;"></i>
-            <h4 class="text-white mb-3">Nenhum veículo encontrado</h4>
-            <p class="text-secondary mb-4">Você ainda não possui veículos cadastrados em seu perfil. Para solicitar um orçamento, é obrigatório cadastrar o seu veículo primeiro.</p>
-            <a href="/painel?tab=veiculos" class="btn btn-danger px-4 py-2 fw-bold transition-hover rounded-3">Cadastrar Veículo Agora</a>
-        </div>
-
-        <div id="vehicleSelectionArea" class="d-none">
-            <div class="mb-4">
-                <label class="form-label text-secondary fw-bold">Selecione seu Veículo</label>
-                <select id="userVehicleSelect" class="form-select bg-dark text-white border-secondary shadow-none p-3 rounded-3">
-                    <option value="" disabled selected>Escolha um veículo...</option>
-                </select>
-            </div>
-            <div class="text-end mt-4">
-                <button class="btn btn-primary px-4 py-2 rounded-3 transition-hover fw-bold" onclick="nextStep(2)">Continuar <i class="bi bi-arrow-right ms-2"></i></button>
-            </div>
-        </div>
-    </div>
-
-    <!-- STEP 2 -->
-    <div class="card hidden text-white shadow-sm" id="screen2">
-        <h2 class="mb-4 pb-2 border-bottom border-secondary">2. Selecionar Serviços</h2>
+        <h2 class="mb-4 pb-2 border-bottom border-secondary">1. Selecionar Serviços</h2>
 
         <div class="services g-4" id="servicesList">
             {% for servico in servicos %}
-            <div class="service transition-hover position-relative p-3 mb-3 rounded-3 border" style="border-color: #333; cursor: pointer;" onclick="toggleService(this, '{{ servico.id_servico }}', '{{ servico.descricao }}', {{ servico.preco }})">
+            <div class="service transition-hover position-relative p-3 mb-3 rounded-3 border" style="border-color: #333; cursor: pointer;"
+                 onclick="toggleService(this, '{{ servico.id_servico }}', {{ servico.descricao | tojson }}, {{ servico.preco }})">
                 <div class="d-flex justify-content-between align-items-center w-100">
                     <strong class="fs-5">{{ servico.descricao }}</strong>
                     <span class="price fs-5 fw-bold text-danger">R$ {{ "%.2f"|format(servico.preco) }}</span>
                 </div>
-                <input type="checkbox" class="d-none service-checkbox" value="{{ servico.id_servico }}" data-name="{{ servico.descricao }}" data-price="{{ servico.preco }}">
+                <input type="checkbox" class="d-none service-checkbox" value="{{ servico.id_servico }}">
             </div>
             {% else %}
             <div class="col-12 text-center py-4">
-                <p class="text-muted fs-5">Nenhum serviço disponível no momento.</p>
+                <p class="text-muted fs-5 mb-0">Nenhum serviço disponível no momento.</p>
             </div>
             {% endfor %}
         </div>
 
         <div class="mt-4 p-3 rounded-3 d-flex justify-content-between align-items-center border border-secondary shadow-sm" style="background-color: #111;">
-            <span class="fs-5 text-secondary">Total Selecionado:</span>
-            <span class="fs-4 fw-bold text-white" id="step2Total">R$ 0,00</span>
+            <span class="fs-5">Total Selecionado:</span>
+            <span class="fs-4 fw-bold text-white" id="step1Total">R$ 0,00</span>
         </div>
 
-        <div class="d-flex justify-content-between mt-4">
-            <button class="btn btn-secondary px-4 py-2 rounded-3 transition-hover fw-bold" onclick="nextStep(1)"><i class="bi bi-arrow-left me-2"></i> Voltar</button>
-            <button class="btn btn-primary px-4 py-2 rounded-3 transition-hover fw-bold" onclick="nextStep(3)">Continuar <i class="bi bi-arrow-right ms-2"></i></button>
+        <div class="text-end mt-4">
+            <button type="button" class="btn btn-danger px-4 py-2 rounded-3 fw-bold" onclick="nextStep(2)">
+                Continuar <i class="bi bi-arrow-right ms-2"></i>
+            </button>
         </div>
     </div>
 
-    <!-- STEP 3 -->
-    <div class="card hidden text-white shadow-sm" id="screen3">
-        <h2 class="mb-4 pb-2 border-bottom border-secondary">3. Resumo do Pedido</h2>
+    <!-- STEP 2: Revisão / adicionar mais -->
+    <div class="card hidden text-white shadow-sm" id="screen2">
+        <h2 class="mb-4 pb-2 border-bottom border-secondary">2. Revisar Serviços</h2>
 
-        <div class="p-4 mb-4 rounded-4 shadow-sm" style="background-color: rgba(192, 37, 43, 0.05); border: 1px solid rgba(192, 37, 43, 0.3);">
-            <p class="mb-3 fs-5 d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-car-front text-danger me-2"></i> <strong>Veículo:</strong></span>
-                <span id="vehicleSummary" class="text-light"></span>
-            </p>
-            <div class="mb-3 fs-5">
-                <span class="d-block mb-2"><i class="bi bi-tools text-danger me-2"></i> <strong>Serviços Selecionados:</strong></span>
-                <ul id="servicesSummaryList" class="list-unstyled ms-4 text-light mb-0"></ul>
+        <ul id="selectedServicesReview" class="list-unstyled mb-4"></ul>
+
+        <div class="d-flex flex-wrap gap-2 justify-content-between mt-4">
+            <button type="button" class="btn btn-secondary px-4 py-2 rounded-3 fw-bold" onclick="nextStep(1)">
+                <i class="bi bi-plus-circle me-2"></i>Adicionar mais serviços
+            </button>
+            <button type="button" class="btn btn-danger px-4 py-2 rounded-3 fw-bold" onclick="prosseguirVeiculo()">
+                Prosseguir para veículo <i class="bi bi-arrow-right ms-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- STEP 3: Veículo -->
+    <div class="card hidden text-white shadow-sm" id="screen3">
+        <h2 class="mb-4 pb-2 border-bottom border-secondary">3. Dados do Veículo</h2>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Marca</label>
+                <select id="marcaSelect" class="form-select bg-dark text-white border-secondary p-3 rounded-3">
+                    <option value="" disabled selected>Selecione a marca...</option>
+                    {% for marca in marcas %}
+                    <option value="{{ marca.id_marca }}">{{ marca.nome }}</option>
+                    {% endfor %}
+                </select>
             </div>
-            <hr style="border-color: rgba(192, 37, 43, 0.3);">
-            <p class="mb-0 fs-4 d-flex justify-content-between align-items-center">
-                <span><strong>Total:</strong></span>
-                <span id="priceSummary" class="text-danger fw-bold"></span>
-            </p>
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Modelo</label>
+                <select id="modeloSelect" class="form-select bg-dark text-white border-secondary p-3 rounded-3" disabled>
+                    <option value="" disabled selected>Selecione a marca primeiro...</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Cor</label>
+                <input type="text" id="veiculoCor" class="form-control bg-dark text-white border-secondary p-3 rounded-3" placeholder="Ex: Prata">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Ano</label>
+                <input type="number" id="veiculoAno" class="form-control bg-dark text-white border-secondary p-3 rounded-3" min="1950" max="2100" placeholder="2020">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Placa</label>
+                <input type="text" id="veiculoPlaca" class="form-control bg-dark text-white border-secondary p-3 rounded-3 text-uppercase" placeholder="ABC1D23" maxlength="8">
+            </div>
         </div>
 
-        <div class="mb-4">
-            <label class="form-label text-secondary fw-bold">Observações (Opcional)</label>
-            <textarea id="observacoes" class="form-control bg-dark text-white border-secondary shadow-none p-3 rounded-3" rows="3" placeholder="Descreva problemas específicos, barulhos, ou detalhes adicionais..."></textarea>
+        <div class="mb-4 mt-3">
+            <label class="form-label fw-bold">Observações (opcional)</label>
+            <textarea id="observacoes" class="form-control bg-dark text-white border-secondary p-3 rounded-3" rows="3" placeholder="Descreva problemas, barulhos ou detalhes..."></textarea>
         </div>
 
         <div id="submitError" class="alert alert-danger d-none" role="alert"></div>
 
         <div class="d-flex justify-content-between mt-2">
-            <button class="btn btn-secondary px-4 py-2 rounded-3 transition-hover fw-bold" onclick="nextStep(2)"><i class="bi bi-arrow-left me-2"></i> Voltar</button>
-            <button id="btnSubmit" class="btn btn-primary px-4 py-2 rounded-3 transition-hover fw-bold" onclick="enviarSolicitacao()">
-                <span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true" id="submitSpinner"></span>
-                <i class="bi bi-check2-circle me-2" id="submitIcon"></i> Confirmar Agendamento
+            <button type="button" class="btn btn-secondary px-4 py-2 rounded-3 fw-bold" onclick="nextStep(2)">
+                <i class="bi bi-arrow-left me-2"></i> Voltar
+            </button>
+            <button type="button" id="btnSubmit" class="btn btn-danger px-4 py-2 rounded-3 fw-bold" onclick="enviarSolicitacao()">
+                <span class="spinner-border spinner-border-sm d-none me-2" id="submitSpinner"></span>
+                <i class="bi bi-check2-circle me-2" id="submitIcon"></i> Finalizar solicitação
             </button>
         </div>
     </div>
 
-    {% endif %}
-
 </div>
 
-<!-- Modal de Sucesso -->
 <div class="modal fade" id="sucessoModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content bg-dark text-white border-danger">
@@ -140,11 +127,15 @@
       </div>
       <div class="modal-body text-center py-4">
         <i class="bi bi-calendar-check text-danger mb-3" style="font-size: 4rem;"></i>
-        <h4 class="mt-3">Agendamento Solicitado</h4>
-        <p class="text-secondary mt-2">Seu orçamento foi enviado com sucesso. Você pode acompanhar o status pelo seu painel.</p>
+        <h4 class="mt-3">Solicitação enviada</h4>
+        <p class="mt-2 mb-0">Seu orçamento foi registrado. Acompanhe pelo painel após o login.</p>
       </div>
       <div class="modal-footer border-secondary justify-content-center">
-        <button type="button" class="btn btn-primary px-4 py-2 fw-bold" onclick="window.location.href='/painel?tab=orcamentos'">Acompanhar Orçamento</button>
+        {% if user %}
+        <button type="button" class="btn btn-danger px-4 py-2 fw-bold" onclick="window.location.href='/painel?tab=orcamentos'">Acompanhar orçamento</button>
+        {% else %}
+        <a href="/login?next=/painel%3Ftab%3Dorcamentos" class="btn btn-danger px-4 py-2 fw-bold">Fazer login e acompanhar</a>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -152,13 +143,10 @@
 {% endblock %}
 
 {% block extra_scripts %}
-    <script>
-        const userLoggedIn = {% if user %}true{% else %}false{% endif %};
-        {% if user %}
-        const userId = {{ user.user_id }};
-        {% else %}
-        const userId = null;
-        {% endif %}
-    </script>
-    <script src="/static/js/services.js"></script>
+<script>
+    const userLoggedIn = {% if user %}true{% else %}false{% endif %};
+    const userId = {% if user %}{{ user.user_id }}{% else %}null{% endif %};
+    const modelosPorMarca = {{ modelos_por_marca | tojson }};
+</script>
+<script src="/static/js/services.js"></script>
 {% endblock %}

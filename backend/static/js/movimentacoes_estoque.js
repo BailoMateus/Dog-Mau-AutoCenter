@@ -4,13 +4,13 @@
  */
 
 (function() {
-    const API_BASE = '/api';
+    const API_BASE = '';
     let pecasCache = [];
 
     // ─── Carregamento de Peças ───
     async function carregarPecas() {
         try {
-            const response = await fetch(`${API_BASE}/pecas`);
+            const response = await fetch(`${API_BASE}/pecas`, { credentials: 'include' });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             pecasCache = await response.json();
             
@@ -51,7 +51,7 @@
                 url = `${API_BASE}/movimentacoes-estoque/peca/${filtros.peca_id}`;
             }
             
-            const response = await fetch(url);
+            const response = await fetch(url, { credentials: 'include' });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const movimentacoes = await response.json();
             
@@ -95,14 +95,16 @@
         const pecaId = document.getElementById('pecaSelect').value;
         const quantidade = document.getElementById('quantidade').value;
         const motivo = document.getElementById('motivo').value;
+        const dataMov = document.getElementById('dataMovimentacao')?.value;
         
-        if (!tipoMovimentacao || !pecaId || !quantidade || !motivo) {
+        if (!tipoMovimentacao || !pecaId || !quantidade || !motivo || !dataMov) {
             mostrarAlerta('Preencha todos os campos obrigatórios', 'warning');
             return;
         }
         
         try {
             const endpoint = tipoMovimentacao === 'entrada' ? 'entrada' : 'saida';
+            const motivoCompleto = `[${dataMov}] ${motivo}`;
             const response = await fetch(`${API_BASE}/movimentacoes-estoque/${endpoint}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -110,7 +112,7 @@
                 body: JSON.stringify({
                     id_peca: parseInt(pecaId),
                     quantidade: parseInt(quantidade),
-                    motivo: motivo
+                    motivo: motivoCompleto
                 })
             });
             
@@ -182,6 +184,10 @@
 
     // ─── Inicialização ───
     document.addEventListener('DOMContentLoaded', () => {
+        const dataInput = document.getElementById('dataMovimentacao');
+        if (dataInput) {
+            dataInput.value = new Date().toISOString().split('T')[0];
+        }
         carregarPecas();
         carregarMovimentacoes();
     });

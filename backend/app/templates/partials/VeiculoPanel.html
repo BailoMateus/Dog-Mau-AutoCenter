@@ -26,7 +26,7 @@
                 <th class="py-3">Ano</th>
                 <th class="py-3">Cor</th>
                 {% if user.role in ['admin', 'mecanico'] %}
-                <th class="py-3">ID Dono</th>
+                <th class="py-3">Proprietário</th>
                 {% endif %}
                 <th class="text-center py-3">Ações</th>
             </tr>
@@ -48,7 +48,7 @@
                 <td>{{ v.ano_fabricacao }}</td>
                 <td>{{ v.cor }}</td>
                 {% if user.role in ['admin', 'mecanico'] %}
-                <td><span class="badge bg-secondary">User #{{ v.id_usuario }}</span></td>
+                <td>{{ v.proprietario_nome or ('User #' ~ v.id_usuario) }}</td>
                 {% endif %}
                 <td class="text-center">
                     <button class="btn btn-sm btn-outline-primary me-2" 
