@@ -10,132 +10,39 @@
       </div>
     </div>
 
-    <!-- Cards de Serviços -->
+    <!-- Cards de Serviços (dinâmicos, vindos do banco) -->
     <div class="row g-4">
-      <!-- Troca de Óleo -->
+      {% for servico in servicos_destaque %}
       <div class="col-md-4">
-        <div class="service-card">
+        <div class="service-card" style="cursor: pointer;" onclick="window.location.href='/servicos'">
           <div class="service-icon">
-            <i class="bi bi-droplet-fill"></i>
+            <i class="bi bi-tools"></i>
           </div>
-          <h5 class="service-title">TROCA DE ÓLEO</h5>
-          <p class="service-description">Troca de óleo + filtro + mão de obra. Preço fechado promocional.</p>
+          <h5 class="service-title">{{ servico.nome_servico | upper }}</h5>
+          <p class="service-description mb-2">{{ servico.descricao }}</p>
+          {% if servico.tempo_estimado %}
+          <p class="small text-muted mb-3" style="font-size: 0.85rem;"><i class="bi bi-clock me-1"></i>{{ servico.tempo_estimado }}</p>
+          {% else %}
+          <p class="small text-muted mb-3" style="font-size: 0.85rem;">&nbsp;</p>
+          {% endif %}
           <div class="service-footer">
-            <span class="service-badge">Premium</span>
+            <span class="service-badge">R$ {{ "%.2f" | format(servico.preco | float) }}</span>
           </div>
         </div>
       </div>
-
-      <!-- Bateria -->
-      <div class="col-md-4">
-        <div class="service-card">
-          <div class="service-icon">
-            <i class="bi bi-lightning-charge-fill"></i>
-          </div>
-          <h5 class="service-title">BATERIA NOVA</h5>
-          <p class="service-description">Baterias com até 15% de desconto + instalação grátis!</p>
-          <div class="service-footer">
-            <span class="service-badge">Desconto</span>
-          </div>
-        </div>
+      {% else %}
+      <div class="col-12 text-center text-muted">
+        <p>Nenhum serviço cadastrado no momento.</p>
       </div>
+      {% endfor %}
+    </div>
 
-      <!-- Pneus -->
-      <div class="col-md-4">
-        <div class="service-card">
-          <div class="service-icon">
-            <i class="bi bi-circle-fill"></i>
-          </div>
-          <h5 class="service-title">PNEUS & RODAS</h5>
-          <p class="service-description">Balanceamento, alinhamento e venda de pneus de qualidade.</p>
-          <div class="service-footer">
-            <span class="service-badge">Completo</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Freios -->
-      <div class="col-md-4">
-        <div class="service-card">
-          <div class="service-icon">
-            <i class="bi bi-hand-thumbs-up-fill"></i>
-          </div>
-          <h5 class="service-title">SISTEMA DE FREIOS</h5>
-          <p class="service-description">Inspeção e manutenção completa do sistema de freios.</p>
-          <div class="service-footer">
-            <span class="service-badge">Segurança</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Ar Condicionado -->
-      <div class="col-md-4">
-        <div class="service-card">
-          <div class="service-icon">
-            <i class="bi bi-snow"></i>
-          </div>
-          <h5 class="service-title">AR CONDICIONADO</h5>
-          <p class="service-description">Higienização, recarga e reparos do sistema de ar.</p>
-          <div class="service-footer">
-            <span class="service-badge">Conforto</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Alinhamento -->
-      <div class="col-md-4">
-        <div class="service-card">
-          <div class="service-icon">
-            <i class="bi bi-arrow-left-right"></i>
-          </div>
-          <h5 class="service-title">ALINHAMENTO</h5>
-          <p class="service-description">Alinhamento de direção e geometria completa do veículo.</p>
-          <div class="service-footer">
-            <span class="service-badge">Precisão</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Suspensão -->
-      <div class="col-md-4">
-        <div class="service-card">
-          <div class="service-icon">
-            <i class="bi bi-arrow-bar-down"></i>
-          </div>
-          <h5 class="service-title">SUSPENSÃO</h5>
-          <p class="service-description">Manutenção e reparo de amortecedores e molas.</p>
-          <div class="service-footer">
-            <span class="service-badge">Conforto</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Motor -->
-      <div class="col-md-4">
-        <div class="service-card">
-          <div class="service-icon">
-            <i class="bi bi-gear-fill"></i>
-          </div>
-          <h5 class="service-title">MANUTENÇÃO DO MOTOR</h5>
-          <p class="service-description">Revisão periódica e diagnóstico eletrônico completo.</p>
-          <div class="service-footer">
-            <span class="service-badge">Completo</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Elétrica -->
-      <div class="col-md-4">
-        <div class="service-card">
-          <div class="service-icon">
-            <i class="bi bi-lightning-fill"></i>
-          </div>
-          <h5 class="service-title">SISTEMA ELÉTRICO</h5>
-          <p class="service-description">Reparo de alternador, partida e sistema elétrico geral.</p>
-          <div class="service-footer">
-            <span class="service-badge">Especializado</span>
-          </div>
-        </div>
+    <!-- Botão Veja Mais -->
+    <div class="row mt-5">
+      <div class="col-12 text-center">
+        <a href="/servicos" class="btn btn-outline-danger btn-lg px-5 py-3 fw-bold transition-hover" style="border-radius: 30px; letter-spacing: 1px;">
+          <i class="bi bi-tools me-2"></i> VEJA TODOS OS SERVIÇOS
+        </a>
       </div>
     </div>
   </div>

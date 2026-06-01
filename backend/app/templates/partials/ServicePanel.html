@@ -24,7 +24,9 @@
         <thead class="table-dark text-uppercase small" style="border-bottom: 2px solid #222;">
             <tr>
                 <th class="py-3">ID</th>
+                <th class="py-3">Nome</th>
                 <th class="py-3">Descrição</th>
+                <th class="py-3">Tempo Estimado</th>
                 <th class="py-3">Preço</th>
                 {% if user.role == 'admin' %}
                 <th class="text-center py-3">Ações</th>
@@ -35,21 +37,25 @@
             {% for s in servicos %}
             <tr>
                 <td>{{ s.id_servico }}</td>
+                <td>{{ s.nome_servico }}</td>
                 <td>{{ s.descricao }}</td>
+                <td>{{ s.tempo_estimado or '—' }}</td>
                 <td>R$ {{ "%.2f" | format(s.preco | float) }}</td>
                 {% if user.role == 'admin' %}
                 <td class="text-center">
                     <button class="btn btn-sm btn-outline-primary me-2"
                             onclick="openServiceModal('edit', this)"
                             data-svc-id="{{ s.id_servico }}"
+                            data-svc-nome="{{ s.nome_servico }}"
                             data-svc-descricao="{{ s.descricao }}"
+                            data-svc-tempo="{{ s.tempo_estimado or '' }}"
                             data-svc-preco="{{ s.preco }}">
                         <i class="bi bi-pencil"></i> Editar
                     </button>
                     <button class="btn btn-sm btn-outline-danger"
                             onclick="openDeleteServiceModal(this)"
                             data-svc-id="{{ s.id_servico }}"
-                            data-svc-descricao="{{ s.descricao }}">
+                            data-svc-descricao="{{ s.nome_servico }}">
                         <i class="bi bi-trash"></i> Excluir
                     </button>
                 </td>
@@ -57,7 +63,7 @@
             </tr>
             {% else %}
             <tr>
-                <td colspan="{% if user.role == 'admin' %}4{% else %}3{% endif %}" class="text-center py-4 text-muted">Nenhum serviço cadastrado.</td>
+                <td colspan="{% if user.role == 'admin' %}6{% else %}5{% endif %}" class="text-center py-4 text-muted">Nenhum serviço cadastrado.</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -77,13 +83,28 @@
                 <input type="hidden" id="serviceId" name="id" />
 
                 <div class="form-floating mb-3">
+                    <input type="text" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="serviceNome" name="nome_servico" placeholder="Nome do Serviço" required>
+                    <label for="serviceNome" class="text-white-50">Nome do Serviço</label>
+                </div>
+
+                <div class="form-floating mb-3">
                     <input type="text" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="serviceDescricao" name="descricao" placeholder="Descrição do Serviço" required>
                     <label for="serviceDescricao" class="text-white-50">Descrição</label>
                 </div>
 
-                <div class="form-floating mb-3">
-                    <input type="number" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="servicePreco" name="preco" placeholder="0.00" step="0.01" min="0.01" required>
-                    <label for="servicePreco" class="text-white-50">Preço (R$)</label>
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <div class="form-floating">
+                            <input type="text" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="serviceTempo" name="tempo_estimado" placeholder="Ex: 2 dias">
+                            <label for="serviceTempo" class="text-white-50">Tempo Estimado (Dias)</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-floating">
+                            <input type="number" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="servicePreco" name="preco" placeholder="0.00" step="0.01" min="0.01" required>
+                            <label for="servicePreco" class="text-white-50">Preço (R$)</label>
+                        </div>
+                    </div>
                 </div>
 
                 <div id="serviceFormError" class="alert alert-danger d-none small"></div>
@@ -164,7 +185,9 @@
         } else if (mode === 'edit' && btnElement) {
             title.textContent = 'Editar Serviço';
             document.getElementById('serviceId').value = btnElement.getAttribute('data-svc-id');
+            document.getElementById('serviceNome').value = btnElement.getAttribute('data-svc-nome');
             document.getElementById('serviceDescricao').value = btnElement.getAttribute('data-svc-descricao');
+            document.getElementById('serviceTempo').value = btnElement.getAttribute('data-svc-tempo') || '';
             document.getElementById('servicePreco').value = btnElement.getAttribute('data-svc-preco');
         }
 
@@ -204,10 +227,16 @@
         saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Salvando...';
 
         const id = document.getElementById('serviceId').value;
+        const nome_servico = document.getElementById('serviceNome').value;
         const descricao = document.getElementById('serviceDescricao').value;
+        let tempo_estimado = document.getElementById('serviceTempo').value.trim();
+        if (tempo_estimado && !isNaN(tempo_estimado)) {
+            tempo_estimado = tempo_estimado + (tempo_estimado == 1 ? ' dia' : ' dias');
+        }
+        tempo_estimado = tempo_estimado === '' ? null : tempo_estimado;
         const preco = parseFloat(document.getElementById('servicePreco').value);
 
-        const payload = { descricao, preco };
+        const payload = { nome_servico, descricao, tempo_estimado, preco };
 
         const url = svcCurrentMode === 'create' ? '/api/servicos' : `/api/servicos/${id}`;
         const method = svcCurrentMode === 'create' ? 'POST' : 'PATCH';
