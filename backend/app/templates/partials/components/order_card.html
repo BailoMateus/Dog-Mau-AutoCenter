@@ -40,12 +40,17 @@
         <div class="pedido-total fw-bold" style="color: #4ade80;">R$ {{ "%.2f" | format(ped.valor_total | float) }}</div>
         <div class="pedido-status">
             {% if user and user.role in ['admin', 'mecanico'] %}
-            <select class="form-select form-select-sm pedido-status-select" data-ped-id="{{ ped.id_pedido }}">
-                <option value="pendente" {% if ped.status == 'pendente' %}selected{% endif %}>Pendente</option>
-                <option value="em_andamento" {% if ped.status == 'em_andamento' %}selected{% endif %}>Em Andamento</option>
-                <option value="concluido" {% if ped.status == 'concluido' %}selected{% endif %}>Concluído</option>
-                <option value="cancelado" {% if ped.status == 'cancelado' %}selected{% endif %}>Cancelado</option>
-            </select>
+            <div class="input-group input-group-sm">
+                <select class="form-select pedido-status-select" id="status-select-{{ ped.id_pedido }}" data-ped-id="{{ ped.id_pedido }}">
+                    <option value="pendente" {% if ped.status == 'pendente' %}selected{% endif %}>Pendente</option>
+                    <option value="em_andamento" {% if ped.status == 'em_andamento' %}selected{% endif %}>Em Andamento</option>
+                    <option value="concluido" {% if ped.status == 'concluido' %}selected{% endif %}>Concluído</option>
+                    <option value="cancelado" {% if ped.status == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                </select>
+                <button class="btn btn-outline-success btn-save-status" data-ped-id="{{ ped.id_pedido }}" type="button" title="Salvar Status">
+                    <i class="bi bi-check-lg"></i>
+                </button>
+            </div>
             {% else %}
                 {% if ped.status == 'concluido' %}
                 <span class="badge bg-success">Concluído</span>

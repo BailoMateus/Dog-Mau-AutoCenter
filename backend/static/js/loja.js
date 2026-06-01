@@ -104,13 +104,17 @@
   });
 
   // Change Status in Pedido Card
-  document.addEventListener('change', async (e) => {
-    if (e.target.classList.contains('pedido-status-select')) {
-      const select = e.target;
-      const pedidoId = select.dataset.pedId;
-      const newStatus = select.value;
-      const originalValue = select.dataset.originalValue || select.value;
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.btn-save-status');
+    if (btn) {
+      const pedidoId = btn.dataset.pedId;
+      const select = document.getElementById(`status-select-${pedidoId}`);
+      if (!select) return;
       
+      const newStatus = select.value;
+      const originalValue = select.dataset.originalValue || select.querySelector('option[selected]')?.value || 'pendente';
+      
+      btn.disabled = true;
       select.disabled = true;
       try {
         const res = await fetch(`/api/pedidos/${pedidoId}`, {
@@ -122,6 +126,11 @@
         if (res.ok) {
           showToast(`Status do pedido #${pedidoId} atualizado para ${newStatus}.`, 'success');
           select.dataset.originalValue = newStatus;
+          
+          // Se o status for concluído, recarregar a página após um breve delay para refletir no estoque
+          if (newStatus === 'concluido') {
+            setTimeout(() => window.location.reload(), 1500);
+          }
         } else {
           const data = await res.json();
           showToast(data.detail || 'Erro ao atualizar status.', 'danger');
@@ -131,17 +140,9 @@
         showToast('Erro de rede ao atualizar status.', 'danger');
         select.value = originalValue;
       } finally {
+        btn.disabled = false;
         select.disabled = false;
       }
-    }
-  });
-
-  // Track original value on focus to allow revert
-  document.addEventListener('focusin', (e) => {
-    if (e.target.classList.contains('pedido-status-select')) {
-        if (!e.target.dataset.originalValue) {
-            e.target.dataset.originalValue = e.target.value;
-        }
     }
   });
 
