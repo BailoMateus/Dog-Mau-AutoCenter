@@ -4,7 +4,7 @@
  */
 
 (function() {
-    const API_BASE = '/api';
+    const API_BASE = '';
     let pecasCache = [];
 
     // ─── Carregamento de Peças ───

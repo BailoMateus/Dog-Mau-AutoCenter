@@ -4,7 +4,7 @@
  */
 
 (function() {
-    const API_BASE = '/api';
+    const API_BASE = '';
     const osId = document.querySelector('body').getAttribute('data-os-id') || 
                  (new URLSearchParams(window.location.search).get('id')) ||
                  window.location.pathname.split('/').pop();

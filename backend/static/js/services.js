@@ -6,7 +6,9 @@ let selectedVehicleName = "";
 
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof userLoggedIn !== 'undefined' && userLoggedIn) {
-        fetchUserVehicles();
+        if (document.getElementById('vehicleLoading')) {
+            fetchUserVehicles();
+        }
     }
 });
 
@@ -16,7 +18,7 @@ async function fetchUserVehicles() {
         if (!response.ok) throw new Error('Erro ao buscar veículos');
         
         const data = await response.json();
-        const vehicles = data.items || [];
+        const vehicles = Array.isArray(data) ? data : (data.items || []);
         
         document.getElementById('vehicleLoading').classList.add('d-none');
         
