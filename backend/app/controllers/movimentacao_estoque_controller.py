@@ -4,12 +4,34 @@ from fastapi import APIRouter, HTTPException, status, Query
 
 from app.services import movimentacao_estoque_service
 from app.schemas.movimentacao_estoque_schema import (
-    MovimentacaoEstoqueCreate, MovimentacaoEstoquePublic
+    MovimentacaoEstoqueCreate, MovimentacaoEstoqueFiltro, MovimentacaoEstoquePublic
 )
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/movimentacoes-estoque", tags=["Movimentações de Estoque"])
+
+
+def _to_public(mov) -> MovimentacaoEstoquePublic:
+    return MovimentacaoEstoquePublic(
+        id_movimentacao=mov.id_movimentacao,
+        id_peca=mov.id_peca,
+        id_produto=getattr(mov, "id_produto", None),
+        id_os=getattr(mov, "id_os", None),
+        tipo_movimentacao=mov.tipo_movimentacao,
+        quantidade=mov.quantidade,
+        motivo=mov.motivo,
+        created_at=mov.created_at,
+    )
+
+
+@router.post("/filtrar", response_model=list[MovimentacaoEstoquePublic])
+def filtrar_movimentacoes(data: MovimentacaoEstoqueFiltro):
+    """Consulta movimentações com filtros de período, tipo, peça ou produto."""
+    logger.info("POST /movimentacoes-estoque/filtrar tipo=%s peca=%s", data.tipo_movimentacao, data.id_peca)
+    movimentacoes = movimentacao_estoque_service.list_movimentacoes_filtradas(data)
+    return [_to_public(m) for m in movimentacoes]
+
 
 @router.post("/entrada", response_model=MovimentacaoEstoquePublic, status_code=status.HTTP_201_CREATED)
 def registrar_entrada_estoque(data: MovimentacaoEstoqueCreate):
@@ -119,9 +141,9 @@ def get_ultima_movimentacao_peca(peca_id: int):
         )
     return MovimentacaoEstoquePublic(
         id_movimentacao=movimentacao.id_movimentacao,
-        id_peca=mov.id_peca,
-        tipo_movimentacao=mov.tipo_movimentacao,
-        quantidade=mov.quantidade,
-        motivo=mov.motivo,
-        created_at=mov.created_at
+        id_peca=movimentacao.id_peca,
+        tipo_movimentacao=movimentacao.tipo_movimentacao,
+        quantidade=movimentacao.quantidade,
+        motivo=movimentacao.motivo,
+        created_at=movimentacao.created_at
     )

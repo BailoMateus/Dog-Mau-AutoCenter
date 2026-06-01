@@ -83,8 +83,8 @@ def validate_ordem_servico_data(id_veiculo: int = None, id_usuario: int = None, 
             detail="Veículo não encontrado"
         )
     
-    # Validação de mecânico existente
-    if id_usuario and not os_repo.check_cliente_exists(id_usuario):
+    # Validação de mecânico existente (usuário com perfil mecânico/admin)
+    if id_usuario and not os_repo.check_mecanico_atribuivel(id_usuario):
         logger.warning("mecânico não encontrado mecanico_id=%s", id_usuario)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -264,27 +264,9 @@ def concluir_ordem_servico(id_os: int):
         os_repo.concluir_ordem_servico(id_os)
         logger.info("ordem de serviço concluída id=%s", id_os)
         
-        # --- Lógica de Automação de Estoque e Financeiro ---
-        from app.repositories import os_peca_repository
-        from app.repositories import movimentacao_estoque_repository
+        # --- Movimentação financeira na conclusão (estoque já baixado na reserva/consumo) ---
         from app.repositories import movimentacao_financeira_repository
         
-        # 1. Movimentação de estoque e custo das peças
-        pecas_da_os = os_peca_repository.get_pecas_by_os(id_os)
-        custo_total_pecas = 0.0
-        
-        for p in pecas_da_os:
-            try:
-                movimentacao_estoque_repository.registrar_saida_estoque(
-                    peca_id=p.id_peca,
-                    quantidade=p.quantidade,
-                    motivo=f"Peça utilizada na OS #{id_os}"
-                )
-                custo_total_pecas += float(p.peca_preco) * p.quantidade
-            except Exception as e:
-                logger.error("Erro ao dar baixa no estoque da peca=%s: %s", p.id_peca, e)
-        
-        # 2. Movimentação Financeira
         ordem_servico_atualizada = get_ordem_servico_or_404(id_os)
         valor_total = float(ordem_servico_atualizada.valor_total) if ordem_servico_atualizada.valor_total else 0.0
         
@@ -292,12 +274,6 @@ def concluir_ordem_servico(id_os: int):
             movimentacao_financeira_repository.registrar_entrada_financeira(
                 valor=valor_total,
                 descricao=f"Faturamento da OS #{id_os}"
-            )
-            
-        if custo_total_pecas > 0:
-            movimentacao_financeira_repository.registrar_saida_financeira(
-                valor=custo_total_pecas,
-                descricao=f"Custo de peças consumidas na OS #{id_os}"
             )
         # ----------------------------------------------------
         

@@ -22,8 +22,11 @@ from app.core.config import SECRET_KEY, ALGORITHM
 from app.core.settings import get_settings
 from app.database.db import execute_query
 from app.services.user_service import list_users
-from app.services import servico_service
+from app.core.file_storage import normalize_stored_image_url
+from app.repositories import produto_repository as produto_repo
+from app.repositories import servico_repository as servico_repo
 from app.services import produto_service
+from app.services import servico_service
 from app.services import pedido_service
 from app.services import veiculo_service
 from app.services import modelo_service
@@ -170,37 +173,37 @@ def loja_page(request: Request, user=Depends(get_page_user)):
 
 @router.get("/api/busca", include_in_schema=False)
 def busca_global(q: str = ""):
-    """Busca pública de produtos e serviços para autocomplete."""
-    term = (q or "").strip().lower()
-    produtos = produto_service.list_produtos()
-    servicos = servico_service.list_servicos()
+    """Busca pública de produtos e serviços (autocomplete parcial)."""
+    term = (q or "").strip()
+    if len(term) < 1:
+        return {"produtos": [], "servicos": []}
+
+    produtos = produto_repo.buscar_produtos(term, limit=8)
+    servicos = servico_repo.buscar_servicos(term, limit=8)
 
     produtos_out = []
     for p in produtos:
-        nome = getattr(p, "nome", "") or ""
-        desc = getattr(p, "descricao", "") or ""
-        if not term or term in nome.lower() or term in desc.lower():
-            produtos_out.append({
-                "id": getattr(p, "id_produto", None),
-                "nome": nome,
-                "descricao": desc,
-                "preco": float(getattr(p, "preco", 0) or 0),
-                "imagem": getattr(p, "imagem_produto", None),
-                "tipo": "produto",
-            })
+        img = normalize_stored_image_url(getattr(p, "imagem_produto", None))
+        produtos_out.append({
+            "id": p.id_produto,
+            "nome": p.nome or "",
+            "descricao": p.descricao or "",
+            "preco": float(p.preco or 0),
+            "imagem": img,
+            "tipo": "produto",
+        })
 
     servicos_out = []
     for s in servicos:
-        desc = getattr(s, "descricao", "") or ""
-        if not term or term in desc.lower():
-            servicos_out.append({
-                "id": getattr(s, "id_servico", None),
-                "nome": desc,
-                "preco": float(getattr(s, "preco", 0) or 0),
-                "tipo": "servico",
-            })
+        nome = (getattr(s, "nome_servico", None) or s.descricao or "").strip()
+        servicos_out.append({
+            "id": s.id_servico,
+            "nome": nome,
+            "preco": float(s.preco or 0),
+            "tipo": "servico",
+        })
 
-    return {"produtos": produtos_out[:8], "servicos": servicos_out[:8]}
+    return {"produtos": produtos_out, "servicos": servicos_out}
 
 
 @router.get("/logout", include_in_schema=False)

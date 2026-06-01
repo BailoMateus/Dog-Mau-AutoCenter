@@ -225,9 +225,21 @@ def check_cliente_exists(usuario_id: int):
     SELECT COUNT(*) as count
     FROM usuario
     WHERE id_usuario = %s
-    AND role = 'cliente'
+    AND LOWER(role) = 'cliente'
     """
     
     result = execute_query(query, (usuario_id,), fetch="one")
     
+    return result["count"] > 0 if result else False
+
+
+def check_mecanico_atribuivel(usuario_id: int):
+    """Verifica se usuário pode ser atribuído como mecânico responsável na OS."""
+    query = """
+    SELECT COUNT(*) as count
+    FROM usuario
+    WHERE id_usuario = %s AND deleted_at IS NULL AND ativo = TRUE
+      AND LOWER(role) IN ('mecanico', 'admin')
+    """
+    result = execute_query(query, (usuario_id,), fetch="one")
     return result["count"] > 0 if result else False

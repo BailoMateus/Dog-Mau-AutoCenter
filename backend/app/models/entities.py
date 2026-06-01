@@ -208,6 +208,7 @@ class MovimentacaoEstoque:
     id_movimentacao: Optional[int] = None
     id_peca: Optional[int] = None
     id_produto: Optional[int] = None
+    id_os: Optional[int] = None
     tipo_movimentacao: str = ""  # 'saida' ou 'entrada'
     quantidade: int = 0
     motivo: str = ""

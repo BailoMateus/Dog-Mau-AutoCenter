@@ -4,15 +4,38 @@ from datetime import datetime, timezone
 from fastapi import HTTPException, status
 import psycopg2
 
+from app.database.db import execute_query
 from app.models.entities import OrdemServico, OrdemServicoPeca, OrdemServicoServico
 from app.repositories import orcamento_repository as orcamento_repo
 from app.repositories import ordem_servico_repository as os_repo
-from app.repositories import ordem_servico_peca_repository as os_peca_repo
-from app.repositories import ordem_servico_servico_repository as os_servico_repo
+from app.repositories import os_peca_repository as os_peca_repo
+from app.repositories import os_servico_repository as os_servico_repo
 from app.repositories import orcamento_peca_repository as orc_peca_repo
 from app.repositories import orcamento_servico_repository as orc_servico_repo
+from app.repositories import movimentacao_estoque_repository as movimentacao_repo
 
 logger = logging.getLogger(__name__)
+
+
+def _get_mecanico_reserva_id() -> int:
+    """Mecânico/admin padrão para OS gerada (atribuição pode ser feita depois)."""
+    row = execute_query(
+        """
+        SELECT id_usuario FROM usuario
+        WHERE deleted_at IS NULL AND ativo = TRUE
+          AND LOWER(role) IN ('mecanico', 'admin')
+        ORDER BY id_usuario
+        LIMIT 1
+        """,
+        fetch="one",
+    )
+    if not row:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Nenhum mecânico disponível para gerar a ordem de serviço",
+        )
+    return int(row["id_usuario"])
+
 
 def aprovar_orcamento(orcamento_id: int):
     """Aprova orçamento e gera OS automaticamente."""
@@ -41,10 +64,10 @@ def aprovar_orcamento(orcamento_id: int):
         ordem_servico = OrdemServico(
             id_orcamento=orcamento_id,
             id_veiculo=orcamento.id_veiculo,
-            id_usuario=orcamento.id_usuario,
+            id_usuario=_get_mecanico_reserva_id(),
             status="aberta",
             valor_total=float(orcamento.valor_total),
-            data_abertura=datetime.now(timezone.utc)
+            data_abertura=datetime.now(timezone.utc),
         )
         ordem_servico = os_repo.create_ordem_servico(ordem_servico)
         
@@ -107,8 +130,17 @@ def _copiar_itens_orcamento_para_os(orcamento_id: int, id_os: int):
             id_peca=peca_orc.id_peca,
             quantidade=peca_orc.quantidade
         )
-        os_peca_repo.add_peca_to_ordem_servico(os_peca)
-    
+        os_peca_repo.add_peca_to_os(os_peca)
+        try:
+            movimentacao_repo.registrar_saida_estoque(
+                peca_id=peca_orc.id_peca,
+                quantidade=peca_orc.quantidade,
+                motivo=f"Reserva peça na aprovação da OS #{id_os}",
+                id_os=id_os,
+            )
+        except ValueError as exc:
+            logger.warning("estoque insuficiente ao aprovar orçamento os=%s peca=%s: %s", id_os, peca_orc.id_peca, exc)
+
     # Copia serviços
     servicos_orcamento = orc_servico_repo.get_servicos_by_orcamento(orcamento_id)
     for servico_orc in servicos_orcamento:
@@ -117,7 +149,7 @@ def _copiar_itens_orcamento_para_os(orcamento_id: int, id_os: int):
             id_servico=servico_orc.id_servico,
             quantidade=servico_orc.quantidade
         )
-        os_servico_repo.add_servico_to_ordem_servico(os_servico)
+        os_servico_repo.add_servico_to_os(os_servico)
     
     logger.info("itens copiados para OS orcamento=%s os=%s pecas=%s servicos=%s", 
                 orcamento_id, id_os, len(pecas_orcamento), len(servicos_orcamento))

@@ -154,12 +154,28 @@ def get_historico_peca(peca_id: int, dias: int = 30):
 
 def get_ultima_movimentacao_peca(peca_id: int):
     """Busca última movimentação de uma peça."""
-    # Verifica se peça existe
     if not peca_base_repo.check_peca_exists(peca_id):
-        logger.warning("peça não encontrada peca_id=%s", peca_id)
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Peça não encontrada"
-        )
-    
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Peça não encontrada")
     return movimentacao_repo.get_ultima_movimentacao_peca(peca_id)
+
+
+def list_movimentacoes_filtradas(data):
+    """Lista movimentações com filtros combinados."""
+    if data.data_inicio and data.data_fim and data.data_inicio >= data.data_fim:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Data de início deve ser anterior à data de fim",
+        )
+    if data.tipo_movimentacao and data.tipo_movimentacao not in ("entrada", "saida"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Tipo inválido. Use entrada ou saida.",
+        )
+    return movimentacao_repo.get_movimentacoes_filtradas(
+        tipo=data.tipo_movimentacao,
+        peca_id=data.id_peca,
+        produto_id=data.id_produto,
+        data_inicio=data.data_inicio,
+        data_fim=data.data_fim,
+        limit=data.limit,
+    )

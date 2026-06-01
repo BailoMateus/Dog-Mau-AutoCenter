@@ -42,33 +42,27 @@
             content.style.display = 'none';
             emptyState.style.display = 'none';
             
-            let url = `${API_BASE}/movimentacoes-estoque/`;
-            
-            // Construir URL com filtros
-            if (filtros.tipo) {
-                url = `${API_BASE}/movimentacoes-estoque/tipo/${filtros.tipo}`;
-            } else if (filtros.peca_id) {
-                url = `${API_BASE}/movimentacoes-estoque/peca/${filtros.peca_id}`;
-            }
-            
-            const response = await fetch(url, { credentials: 'include' });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            let movimentacoes = await response.json();
+            let movimentacoes;
+            const hasFiltro = filtros.tipo || filtros.peca_id || filtros.data_inicio || filtros.data_fim;
 
-            if (filtros.tipo) {
-                movimentacoes = movimentacoes.filter(m => m.tipo_movimentacao === filtros.tipo);
-            }
-            if (filtros.peca_id) {
-                movimentacoes = movimentacoes.filter(m => String(m.id_peca) === String(filtros.peca_id));
-            }
-            if (filtros.data_inicio && filtros.data_fim) {
-                const ini = new Date(filtros.data_inicio);
-                const fim = new Date(filtros.data_fim);
-                fim.setHours(23, 59, 59, 999);
-                movimentacoes = movimentacoes.filter(m => {
-                    const d = new Date(m.created_at);
-                    return d >= ini && d <= fim;
+            if (hasFiltro) {
+                const body = { limit: 500 };
+                if (filtros.tipo) body.tipo_movimentacao = filtros.tipo;
+                if (filtros.peca_id) body.id_peca = parseInt(filtros.peca_id, 10);
+                if (filtros.data_inicio) body.data_inicio = `${filtros.data_inicio}T00:00:00`;
+                if (filtros.data_fim) body.data_fim = `${filtros.data_fim}T23:59:59`;
+                const response = await fetch(`${API_BASE}/movimentacoes-estoque/filtrar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(body),
                 });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                movimentacoes = await response.json();
+            } else {
+                const response = await fetch(`${API_BASE}/movimentacoes-estoque/`, { credentials: 'include' });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                movimentacoes = await response.json();
             }
             
             if (!Array.isArray(movimentacoes) || movimentacoes.length === 0) {
