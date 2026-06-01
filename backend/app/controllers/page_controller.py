@@ -28,6 +28,7 @@ from app.services import pedido_service
 from app.services import veiculo_service
 from app.services import modelo_service
 from app.services import marca_service
+from app.services import peca_service
 
 logger = logging.getLogger(__name__)
 
@@ -220,11 +221,13 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
         usuarios = []
         servicos = []
         produtos = []
+        pecas = []
         marcas = []
         if user.get("role") in ("admin", "mecanico"):
             usuarios = list_users()
             servicos = servico_service.list_servicos()
             produtos = produto_service.list_produtos()
+            pecas = peca_service.list_pecas()
             marcas = marca_service.list_marcas()
 
         # Pedidos (Apenas cliente vê os seus no painel)
@@ -328,6 +331,7 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
             "usuarios": usuarios,
             "servicos": servicos,
             "produtos": produtos,
+            "pecas": pecas,
             "pedidos": pedidos,
             "veiculos": veiculos,
             "modelos": modelos,
