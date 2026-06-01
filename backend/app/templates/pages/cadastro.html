@@ -62,6 +62,11 @@
         </div>
 
         <div class="form-floating mt-2">
+          <input type="tel" class="form-control" id="floatingTelefone" name="telefone" placeholder="(00) 00000-0000" />
+          <label for="floatingTelefone">Telefone / Celular</label>
+        </div>
+
+        <div class="form-floating mt-2">
           <input type="date" class="form-control" id="floatingNascimento" name="data_nascimento" required />
           <label for="floatingNascimento">Data de nascimento <span class="text-danger">*</span></label>
           <div class="invalid-feedback">Você precisa ser maior de idade para se cadastrar e informar a data.</div>
@@ -153,4 +158,52 @@
         }
     </script>
     <script src="/static/js/cadastro.js"></script>
+
+    <!-- IMask CDN para máscaras de input -->
+    <script src="https://unpkg.com/imask@7.6.1/dist/imask.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- Máscara de CPF / CNPJ (dinâmica) ---
+        const cpfField = document.getElementById('floatingCpf');
+        if (cpfField) {
+            IMask(cpfField, {
+                mask: [
+                    { mask: '000.000.000-00', maxLength: 14 },   // CPF
+                    { mask: '00.000.000/0000-00' }                // CNPJ
+                ],
+                dispatch: function(appended, dynamicMasked) {
+                    const number = (dynamicMasked.value + appended).replace(/\D/g, '');
+                    return dynamicMasked.compiledMasks.find(function(m) {
+                        return number.length <= 11 ? m.mask === '000.000.000-00' : m.mask === '00.000.000/0000-00';
+                    });
+                }
+            });
+        }
+
+        // --- Máscara de Telefone / Celular ---
+        const telField = document.getElementById('floatingTelefone');
+        if (telField) {
+            IMask(telField, {
+                mask: [
+                    { mask: '(00) 0000-0000' },    // fixo
+                    { mask: '(00) 00000-0000' }     // celular
+                ],
+                dispatch: function(appended, dynamicMasked) {
+                    const number = (dynamicMasked.value + appended).replace(/\D/g, '');
+                    return dynamicMasked.compiledMasks.find(function(m) {
+                        return number.length <= 10 ? m.mask === '(00) 0000-0000' : m.mask === '(00) 00000-0000';
+                    });
+                }
+            });
+        }
+
+        // --- Máscara de CEP ---
+        const cepField = document.getElementById('floatingCep');
+        if (cepField) {
+            IMask(cepField, {
+                mask: '00000-000'
+            });
+        }
+    });
+    </script>
 {% endblock %}
