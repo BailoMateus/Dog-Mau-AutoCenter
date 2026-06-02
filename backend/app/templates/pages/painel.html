@@ -41,18 +41,18 @@
     <div class="row g-2 mb-4">
         {% if user.role == 'admin' %}
         <div class="col-auto">
-            <a href="/relatorios" class="btn btn-outline-danger" style="border-color: rgba(192, 37, 43); color: rgba(192, 37, 43);">
+            <a href="/relatorios" class="btn btn-outline-danger" style="border-color: rgba(192, 37, 43); color: white;" onmouseover="this.style.color='rgba(192, 37, 43)'" onmouseout="this.style.color='white'">
                 <i class="bi bi-graph-up me-1"></i>Relatórios
             </a>
         </div>
         <div class="col-auto">
-            <a href="/movimentacoes-financeiras" class="btn btn-outline-danger" style="border-color: rgba(192, 37, 43); color: rgba(192, 37, 43);">
+            <a href="/movimentacoes-financeiras" class="btn btn-outline-danger" style="border-color: rgba(192, 37, 43); color: white;" onmouseover="this.style.color='rgba(192, 37, 43)'" onmouseout="this.style.color='white'">
                 <i class="bi bi-cash-coin me-1"></i>Movimentações Financeiras
             </a>
         </div>
         {% endif %}
         <div class="col-auto">
-            <a href="/movimentacoes-estoque" class="btn btn-outline-danger" style="border-color: rgba(192, 37, 43); color: rgba(192, 37, 43);">
+            <a href="/movimentacoes-estoque" class="btn btn-outline-danger" style="border-color: rgba(192, 37, 43); color: white;" onmouseover="this.style.color='rgba(192, 37, 43)'" onmouseout="this.style.color='white'">
                 <i class="bi bi-arrow-left-right me-1"></i>Movimentações de Estoque
             </a>
         </div>
@@ -104,6 +104,14 @@
                 {% if user.role in ['admin', 'mecanico'] %}Serviços{% else %}Meus Serviços{% endif %}
             </a>
         </li>
+
+        {% if user.role in ['admin', 'mecanico'] %}
+        <li class="nav-item" role="presentation">
+            <a class="nav-link nav-tab-link {% if tab == 'pedidos' %}active{% endif %}" href="?tab=pedidos" role="tab">
+                <i class="bi bi-cart3 me-1"></i>Pedidos
+            </a>
+        </li>
+        {% endif %}
 
         <li class="nav-item" role="presentation">
             <a class="nav-link nav-tab-link {% if tab == 'orcamentos' %}active{% endif %}" href="?tab=orcamentos" role="tab">
@@ -298,7 +306,11 @@
                             <!-- Cargo (somente leitura) -->
                             <div class="col-md-6 mb-3">
                                 <label class="text-muted small d-block">Cargo</label>
+                                {% if user.role == 'admin' %}
+                                <span class="badge bg-primary">{{ user.role | upper }}</span>
+                                {% else %}
                                 <span class="badge bg-info text-dark">{{ user.role | upper }}</span>
+                                {% endif %}
                                 <small class="text-muted d-block mt-1">Não pode ser alterado</small>
                             </div>
                         </div>
@@ -358,6 +370,13 @@
         {% if tab == 'ordens_servico' %}
         <div class="tab-pane fade show active" id="ordens_servico" role="tabpanel">
             {% include "partials/OSPanel.html" %}
+        </div>
+        {% endif %}
+
+        {# ── Aba de Pedidos (Admin/Mecânico) ── #}
+        {% if user.role in ['admin', 'mecanico'] and tab == 'pedidos' %}
+        <div class="tab-pane fade show active" id="pedidos" role="tabpanel">
+            {% include "partials/PedidoPanel.html" %}
         </div>
         {% endif %}
 

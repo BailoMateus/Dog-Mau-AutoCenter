@@ -66,7 +66,7 @@
 
         <div class="services g-4" id="servicesList">
             {% for servico in servicos %}
-            <div class="service transition-hover position-relative p-3 mb-3 rounded-3 border" style="border-color: #333; cursor: pointer;" onclick="toggleService(this, '{{ servico.id_servico }}', '{{ servico.descricao }}', {{ servico.preco }})">
+            <div class="service transition-hover position-relative p-3 mb-3 rounded-3 border" style="border-color: #333; cursor: pointer; user-select: none;" onclick="toggleService(this, '{{ servico.id_servico }}', '{{ servico.descricao }}', {{ servico.preco }})">
                 <div class="d-flex justify-content-between align-items-center w-100">
                     <strong class="fs-5">{{ servico.descricao }}</strong>
                     <span class="price fs-5 fw-bold text-danger">R$ {{ "%.2f"|format(servico.preco) }}</span>
@@ -86,7 +86,7 @@
         </div>
 
         <div class="d-flex justify-content-between mt-4">
-            <button class="btn btn-secondary px-4 py-2 rounded-3 transition-hover fw-bold" onclick="nextStep(1)"><i class="bi bi-arrow-left me-2"></i> Voltar</button>
+            <button class="btn btn-secondary px-4 py-2 rounded-3 transition-hover fw-bold text-white" onclick="nextStep(1)"><i class="bi bi-arrow-left me-2"></i> Voltar</button>
             <button class="btn btn-primary px-4 py-2 rounded-3 transition-hover fw-bold" onclick="nextStep(3)">Continuar <i class="bi bi-arrow-right ms-2"></i></button>
         </div>
     </div>
@@ -119,7 +119,7 @@
         <div id="submitError" class="alert alert-danger d-none" role="alert"></div>
 
         <div class="d-flex justify-content-between mt-2">
-            <button class="btn btn-secondary px-4 py-2 rounded-3 transition-hover fw-bold" onclick="nextStep(2)"><i class="bi bi-arrow-left me-2"></i> Voltar</button>
+            <button class="btn btn-secondary px-4 py-2 rounded-3 transition-hover fw-bold text-white" onclick="nextStep(2)"><i class="bi bi-arrow-left me-2"></i> Voltar</button>
             <button id="btnSubmit" class="btn btn-primary px-4 py-2 rounded-3 transition-hover fw-bold" onclick="enviarSolicitacao()">
                 <span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true" id="submitSpinner"></span>
                 <i class="bi bi-check2-circle me-2" id="submitIcon"></i> Confirmar Agendamento

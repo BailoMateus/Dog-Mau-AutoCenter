@@ -115,10 +115,21 @@ class InputMask {
   }
 
   static _maskPlate(value) {
-    // "ABC1234" → "ABC-1234" (mercosul: ABCD1234)
-    const cleaned = value.replace(/[^A-Z0-9]/g, '').toUpperCase().slice(0, 8);
+    // Handle both Mercosul (LLL9A99) and old Brazilian (LLL-9994) formats
+    const cleaned = value.replace(/[^A-Z0-9]/g, '').toUpperCase().slice(0, 7);
+    
     if (cleaned.length <= 3) return cleaned;
-    return cleaned.slice(0, 3) + '-' + cleaned.slice(3);
+    
+    // Detect Mercosul format (4th character is a digit)
+    if (cleaned.length >= 4 && /\d/.test(cleaned[3])) {
+      // Mercosul: ABC1D23
+      if (cleaned.length <= 4) return cleaned;
+      if (cleaned.length <= 5) return cleaned.slice(0, 4) + cleaned[4];
+      return cleaned.slice(0, 4) + cleaned[4] + cleaned.slice(5);
+    } else {
+      // Old Brazilian: ABC-1234
+      return cleaned.slice(0, 3) + '-' + cleaned.slice(3);
+    }
   }
 
   static _maskCurrency(value) {
