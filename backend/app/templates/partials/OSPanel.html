@@ -30,7 +30,7 @@
                             {% if os.status == 'aberta' %}
                                 <span class="badge bg-warning text-dark"><i class="bi bi-envelope-open me-1"></i> Aberta</span>
                             {% elif os.status == 'em_andamento' %}
-                                <span class="badge bg-primary"><i class="bi bi-gear-wide-connected me-1"></i> Em Andamento</span>
+                                <span class="badge" style="background:#c0252b;"><i class="bi bi-gear-wide-connected me-1"></i> Em Andamento</span>
                             {% elif os.status == 'concluida' or os.status == 'finalizada' %}
                                 <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> Concluída</span>
                             {% elif os.status == 'cancelada' %}
@@ -39,7 +39,6 @@
                                 <span class="badge bg-secondary">{{ os.status }}</span>
                             {% endif %}
                         </td>
-                        
                         {% if user.role == 'admin' %}
                         <td>
                             {% if os.status == 'aberta' and not os.id_mecanico_responsavel %}
@@ -57,19 +56,18 @@
                             {% endif %}
                         </td>
                         {% endif %}
-
                         <td>
                             {% if user.role == 'mecanico' %}
                                 {% if os.status == 'aberta' %}
-                                <button class="btn btn-sm btn-primary fw-bold" onclick="iniciarOS({{ os.id_os }})">
-                                    <i class="bi bi-play-fill me-1"></i> Iniciar Execução
+                                <button class="btn btn-sm btn-danger fw-bold" onclick="iniciarOS({{ os.id_os }})">
+                                    <i class="bi bi-play-fill me-1"></i> Iniciar
                                 </button>
                                 {% elif os.status == 'em_andamento' %}
                                 <button class="btn btn-sm btn-success fw-bold" onclick="concluirOS({{ os.id_os }})">
-                                    <i class="bi bi-check-all me-1"></i> Concluir Execução
+                                    <i class="bi bi-check-all me-1"></i> Concluir
                                 </button>
                                 {% else %}
-                                -
+                                —
                                 {% endif %}
                             {% else %}
                                 <a href="/ordem-servico/{{ os.id_os }}" class="btn btn-sm btn-secondary"><i class="bi bi-eye me-1"></i> Detalhes</a>
@@ -88,66 +86,64 @@
 </div>
 
 <script>
+function osNotify(msg, type) {
+    if (window.UINotification) UINotification.toast(msg, type || 'info');
+}
+
 {% if user.role == 'admin' %}
 async function atribuirMecanico(id_os) {
     const select = document.getElementById(`mecanicoSelect_${id_os}`);
     if(!select || !select.value) {
-        alert("Selecione um mecânico.");
+        osNotify('Selecione um mecânico.', 'warning');
         return;
     }
-    const id_mecanico = select.value;
-    
     try {
         const response = await fetch(`/ordens-servico/${id_os}/atribuir-mecanico`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id_usuario: parseInt(id_mecanico) })
+            credentials: 'include',
+            body: JSON.stringify({ id_usuario: parseInt(select.value) })
         });
         if(!response.ok) {
             const data = await response.json();
             throw new Error(data.detail || 'Falha ao atribuir mecânico.');
         }
-        alert("Mecânico atribuído com sucesso!");
-        window.location.reload();
+        osNotify('Mecânico atribuído com sucesso!', 'success');
+        setTimeout(() => window.location.reload(), 800);
     } catch (error) {
-        console.error(error);
-        alert(error.message);
+        osNotify(error.message, 'error');
     }
 }
 {% endif %}
 
 {% if user.role == 'mecanico' %}
 async function iniciarOS(id_os) {
-    if(!confirm("Deseja iniciar a execução desta Ordem de Serviço?")) return;
+    const ok = window.UINotification
+        ? await UINotification.confirm('Iniciar OS', 'Deseja iniciar a execução desta Ordem de Serviço?', 'Iniciar', 'danger')
+        : true;
+    if(!ok) return;
     try {
-        const response = await fetch(`/ordens-servico/${id_os}/iniciar`, {
-            method: 'POST'
-        });
-        if(!response.ok) {
-            const data = await response.json();
-            throw new Error(data.detail || 'Falha ao iniciar OS.');
-        }
-        alert("OS Iniciada!");
-        window.location.reload();
+        const response = await fetch(`/ordens-servico/${id_os}/iniciar`, { method: 'POST', credentials: 'include' });
+        if(!response.ok) throw new Error((await response.json()).detail || 'Falha ao iniciar OS.');
+        osNotify('OS iniciada!', 'success');
+        setTimeout(() => window.location.reload(), 800);
     } catch (error) {
-        alert(error.message);
+        osNotify(error.message, 'error');
     }
 }
 
 async function concluirOS(id_os) {
-    if(!confirm("Deseja concluir esta Ordem de Serviço? Isso irá gerar a movimentação de estoque e financeira automaticamente.")) return;
+    const ok = window.UINotification
+        ? await UINotification.confirm('Concluir OS', 'Deseja concluir esta OS? Isso gerará movimentações de estoque e financeira.', 'Concluir', 'danger')
+        : true;
+    if(!ok) return;
     try {
-        const response = await fetch(`/ordens-servico/${id_os}/concluir`, {
-            method: 'POST'
-        });
-        if(!response.ok) {
-            const data = await response.json();
-            throw new Error(data.detail || 'Falha ao concluir OS.');
-        }
-        alert("OS Concluída com sucesso!");
-        window.location.reload();
+        const response = await fetch(`/ordens-servico/${id_os}/concluir`, { method: 'POST', credentials: 'include' });
+        if(!response.ok) throw new Error((await response.json()).detail || 'Falha ao concluir OS.');
+        osNotify('OS concluída com sucesso!', 'success');
+        setTimeout(() => window.location.reload(), 800);
     } catch (error) {
-        alert(error.message);
+        osNotify(error.message, 'error');
     }
 }
 {% endif %}

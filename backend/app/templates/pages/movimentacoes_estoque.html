@@ -115,6 +115,9 @@
 
 {% block content %}
 <div class="container py-5">
+    <a href="/painel?tab=produtos" class="btn btn-sm btn-outline-danger mb-3">
+        <i class="bi bi-arrow-left me-1"></i>Voltar
+    </a>
     <!-- Cabeçalho -->
     <div class="row mb-4 align-items-center">
         <div class="col">
@@ -131,8 +134,8 @@
     </div>
 
     <!-- Filtros -->
-    <div class="filtro-form">
-        <div class="row g-3">
+    <div class="filtro-form filtro-form-centered">
+        <div class="row g-3 justify-content-center">
             <div class="col-md-3">
                 <label class="form-label">Tipo de Movimentação</label>
                 <select class="form-select" id="filtroTipo">
@@ -156,7 +159,7 @@
                 </div>
             </div>
             <div class="col-md-2 d-flex align-items-end gap-2">
-                <button class="btn btn-primary w-100" id="btnFiltrar">
+                <button class="btn btn-danger w-100" id="btnFiltrar">
                     <i class="bi bi-search me-1"></i>Filtrar
                 </button>
                 <button class="btn btn-secondary w-100" id="btnLimparFiltro">
@@ -235,6 +238,11 @@
                     </div>
 
                     <div class="mb-3">
+                        <label class="form-label">Data da movimentação</label>
+                        <input type="date" class="form-control bg-dark text-white border-secondary" id="dataMovimentacao" required>
+                    </div>
+
+                    <div class="mb-3">
                         <label class="form-label">Motivo</label>
                         <textarea class="form-control bg-dark text-white border-secondary" id="motivo" 
                                   rows="3" required placeholder="Descreva o motivo da movimentação"></textarea>
@@ -243,7 +251,7 @@
             </div>
             <div class="modal-footer border-secondary">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="btnSalvarMovimentacao">Salvar Movimentação</button>
+                <button type="button" class="btn btn-danger" id="btnSalvarMovimentacao">Salvar Movimentação</button>
             </div>
         </div>
     </div>

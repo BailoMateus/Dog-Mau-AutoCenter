@@ -4,7 +4,7 @@
  */
 
 (function() {
-    const API_BASE = '/api';
+    const API_BASE = '';
 
     // ─── Carregamento de Movimentações ───
     async function carregarMovimentacoes(filtros = {}) {
@@ -31,23 +31,17 @@
                         data_fim: filtros.data_fim
                     })
                 });
-                
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const movimentacoes = await response.json();
-                renderizarMovimentacoes(movimentacoes);
+                renderizarMovimentacoes(await response.json());
             } else {
                 const response = await fetch(url, { credentials: 'include' });
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const movimentacoes = await response.json();
-                renderizarMovimentacoes(movimentacoes);
+                renderizarMovimentacoes(await response.json());
             }
-            
-            // Carregar resumo
+
             await carregarResumo();
-            
             loader.classList.remove('active');
-            content.style.display = 'block';
-            
+
         } catch (error) {
             console.error('Erro ao carregar movimentações:', error);
             mostrarAlerta('Erro ao carregar movimentações: ' + error.message, 'danger');
@@ -57,12 +51,17 @@
     }
 
     function renderizarMovimentacoes(movimentacoes) {
+        const content = document.getElementById('movimentacaoContent');
         const emptyState = document.getElementById('emptyMovimentacao');
         
         if (!Array.isArray(movimentacoes) || movimentacoes.length === 0) {
-            emptyState.style.display = 'block';
+            if (content) content.style.display = 'none';
+            if (emptyState) emptyState.style.display = 'block';
             return;
         }
+        
+        if (emptyState) emptyState.style.display = 'none';
+        if (content) content.style.display = 'block';
         
         let html = '';
         movimentacoes.forEach(mov => {
@@ -234,6 +233,9 @@
         document.getElementById('filtroDataInicio').value = formatoData(treintaDiasAtras);
         document.getElementById('filtroDataFim').value = formatoData(hoje);
         
-        carregarMovimentacoes();
+        carregarMovimentacoes({
+            data_inicio: formatoData(treintaDiasAtras),
+            data_fim: formatoData(hoje)
+        });
     });
 })();

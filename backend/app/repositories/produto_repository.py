@@ -31,6 +31,22 @@ def get_all_produtos():
     logger.debug("get_all_produtos count=%s", len(produtos))
     return produtos
 
+
+def buscar_produtos(termo: str, limit: int = 8):
+    """Busca parcial de produtos por nome ou descrição."""
+    pattern = f"%{termo.strip()}%"
+    query = """
+    SELECT id_produto, nome, descricao, preco, quantidade_estoque, imagem_produto,
+           created_at, updated_at, deleted_at
+    FROM produto
+    WHERE deleted_at IS NULL
+      AND (nome ILIKE %s OR descricao ILIKE %s)
+    ORDER BY nome ASC
+    LIMIT %s
+    """
+    results = execute_query(query, (pattern, pattern, limit))
+    return [dict_to_produto(row) for row in results]
+
 def create_produto(produto: Produto):
     """Cria um novo produto."""
     query = """

@@ -28,6 +28,16 @@
 
   if (searchInput) {
     searchInput.addEventListener('input', filterProducts);
+    const searchBtn = searchInput.closest('.input-group')?.querySelector('.btn-loja-search');
+    if (searchBtn) {
+      searchBtn.addEventListener('click', filterProducts);
+    }
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get('q');
+    if (q) {
+      searchInput.value = q;
+      filterProducts();
+    }
   }
 
   function showToast(message, type) {
@@ -151,8 +161,12 @@
     if (!btn) return;
     
     const id = btn.dataset.pedId;
-    if (confirm(`Tem certeza que deseja excluir o pedido #${id}?`)) {
-      btn.disabled = true;
+    if (window.UINotification) {
+      const ok = await UINotification.confirm('Excluir pedido', `Tem certeza que deseja excluir o pedido #${id}?`, 'Excluir', 'danger');
+      if (!ok) return;
+    }
+    
+    btn.disabled = true;
       try {
         const response = await fetch(`/api/pedidos/${id}`, {
           method: 'DELETE',
@@ -174,7 +188,6 @@
         showToast('Erro de rede ao se comunicar com o servidor.', 'danger');
         btn.disabled = false;
       }
-    }
   });
 
 })();

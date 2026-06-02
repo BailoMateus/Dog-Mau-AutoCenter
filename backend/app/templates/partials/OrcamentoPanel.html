@@ -30,7 +30,7 @@
                             {% if o.status == 'pendente' %}
                                 <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i> Pendente</span>
                             {% elif o.status == 'aprovado' %}
-                                <span class="badge bg-primary"><i class="bi bi-check-circle me-1"></i> Aprovado</span>
+                                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> Aprovado</span>
                             {% elif o.status == 'rejeitado' %}
                                 <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i> Rejeitado</span>
                             {% else %}
@@ -62,24 +62,24 @@
 
 <script>
 async function aprovarOrcamento(id_orcamento) {
-    if(!confirm("Deseja realmente aprovar este orçamento? Uma Ordem de Serviço será gerada automaticamente.")) return;
-    
+    const ok = window.UINotification
+        ? await UINotification.confirm('Aprovar orçamento', 'Deseja aprovar este orçamento? Uma Ordem de Serviço será gerada automaticamente.', 'Aprovar', 'danger')
+        : true;
+    if(!ok) return;
     try {
         const response = await fetch(`/orcamentos/${id_orcamento}/aprovacao/aprovar`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
         });
-        
         if (!response.ok) {
             const data = await response.json();
             throw new Error(data.detail || 'Falha ao aprovar orçamento.');
         }
-        
-        alert("Orçamento aprovado com sucesso! Ordem de serviço criada.");
-        window.location.reload();
+        if (window.UINotification) UINotification.toast('Orçamento aprovado! Ordem de serviço criada.', 'success');
+        setTimeout(() => window.location.reload(), 800);
     } catch (error) {
-        console.error(error);
-        alert(error.message);
+        if (window.UINotification) UINotification.toast(error.message, 'error');
     }
 }
 </script>

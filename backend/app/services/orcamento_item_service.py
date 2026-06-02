@@ -8,7 +8,9 @@ from app.repositories import orcamento_repository as orcamento_repo
 from app.repositories import orcamento_peca_repository as peca_repo
 from app.repositories import orcamento_servico_repository as servico_repo
 from app.repositories import peca_repository as peca_base_repo
+from app.repositories import peca_repository as peca_base_repo
 from app.repositories import servico_repository as servico_base_repo
+from app.repositories import servico_item_repository as servico_item_repo
 from app.schemas.orcamento_item_schema import (
     OrcamentoPecaCreate, OrcamentoPecaUpdate, OrcamentoServicoCreate, OrcamentoServicoUpdate
 )
@@ -134,6 +136,17 @@ def add_servico_to_orcamento(orcamento_id: int, data: OrcamentoServicoCreate):
     try:
         # Adiciona serviço ao orçamento
         servico_repo.add_servico_to_orcamento(item)
+
+        # Vincula peças/produtos do catálogo do serviço ao orçamento
+        for sp in servico_item_repo.get_pecas_by_servico(data.id_servico):
+            try:
+                peca_repo.add_peca_to_orcamento(OrcamentoPeca(
+                    id_orcamento=orcamento_id,
+                    id_peca=sp["id_peca"],
+                    quantidade=int(sp.get("quantidade") or 1) * data.quantidade,
+                ))
+            except Exception as exc:
+                logger.debug("peça vinculada ao serviço não adicionada: %s", exc)
         
         # Recalcula valor total do orçamento
         recalcular_valor_total_orcamento(orcamento_id)

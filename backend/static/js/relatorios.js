@@ -4,7 +4,7 @@
  */
 
 (function() {
-    const API_BASE = '/api';
+    const API_BASE = '';
 
     // ─── Datas Padrão ───
     function setDatasPadraoFiltros() {
@@ -30,7 +30,7 @@
             loader.classList.add('active');
             content.style.display = 'none';
             
-            const response = await fetch(`${API_BASE}/relatorios/dashboard`);
+            const response = await fetch(`${API_BASE}/relatorios/dashboard`, { credentials: 'include' });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             
             const data = await response.json();
@@ -50,19 +50,19 @@
             <div class="col-md-4">
                 <div class="metric-card">
                     <div class="metric-label">Faturamento Total</div>
-                    <div class="metric-value">R$ ${formatarMoeda(data.faturamento_total || 0)}</div>
+                    <div class="metric-value">R$ ${formatarMoeda(data.faturamento_total ?? data.faturamento ?? 0)}</div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="metric-card">
                     <div class="metric-label">Serviços Realizados</div>
-                    <div class="metric-value">${data.servicos_realizados || 0}</div>
+                    <div class="metric-value">${data.servicos_realizados ?? data.quantidade_servicos_concluidos ?? 0}</div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="metric-card">
                     <div class="metric-label">Ordens de Serviço</div>
-                    <div class="metric-value">${data.total_ordem_servico || 0}</div>
+                    <div class="metric-value">${data.total_ordem_servico ?? data.quantidade_servicos_concluidos ?? 0}</div>
                 </div>
             </div>
             <div class="col-md-4">
@@ -74,7 +74,7 @@
             <div class="col-md-4">
                 <div class="metric-card">
                     <div class="metric-label">Prejuízo Total</div>
-                    <div class="metric-value" style="color: #f44336;">R$ ${formatarMoeda(data.prejuizo_total || 0)}</div>
+                    <div class="metric-value" style="color: #f44336;">R$ ${formatarMoeda(data.prejuizo_total ?? data.prejuizo_despesas_total ?? 0)}</div>
                 </div>
             </div>
             <div class="col-md-4">
@@ -108,6 +108,7 @@
             const response = await fetch(`${API_BASE}/relatorios/faturamento`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({
                     data_abertura: dataInicio,
                     data_fim: dataFim
@@ -120,12 +121,14 @@
             let html = '';
             if (data.detalhes && data.detalhes.length > 0) {
                 data.detalhes.forEach(item => {
+                    const qtd = item.quantidade_pagamentos || 0;
+                    const total = item.valor_total || 0;
                     html += `
                         <tr>
-                            <td>${formatarData(item.data || item.periodo)}</td>
-                            <td class="text-end">R$ ${formatarMoeda(item.total_faturado || 0)}</td>
-                            <td class="text-end">${item.qtd_pedidos || 0}</td>
-                            <td class="text-end">R$ ${formatarMoeda(item.ticket_medio || 0)}</td>
+                            <td>${item.mes || 'N/A'} (${item.forma_pagamento || '—'})</td>
+                            <td class="text-end">R$ ${formatarMoeda(total)}</td>
+                            <td class="text-end">${qtd}</td>
+                            <td class="text-end">R$ ${formatarMoeda(qtd ? total / qtd : 0)}</td>
                         </tr>
                     `;
                 });
@@ -140,6 +143,7 @@
         } catch (error) {
             console.error('Erro ao carregar faturamento:', error);
             mostrarAlerta('Erro ao carregar relatório: ' + error.message, 'danger');
+            document.getElementById('faturamentoLoader')?.classList.remove('active');
         }
     });
 
@@ -163,6 +167,7 @@
             const response = await fetch(`${API_BASE}/relatorios/servicos-realizados`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({
                     data_abertura: dataInicio,
                     data_fim: dataFim
@@ -195,6 +200,7 @@
         } catch (error) {
             console.error('Erro ao carregar serviços:', error);
             mostrarAlerta('Erro ao carregar relatório: ' + error.message, 'danger');
+            document.getElementById('servicosLoader')?.classList.remove('active');
         }
     });
 
@@ -207,7 +213,7 @@
             loader.classList.add('active');
             content.style.display = 'none';
             
-            const response = await fetch(`${API_BASE}/relatorios/estoque`);
+            const response = await fetch(`${API_BASE}/relatorios/estoque`, { credentials: 'include' });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const data = await response.json();
             
@@ -216,9 +222,9 @@
                 data.detalhes.forEach(item => {
                     html += `
                         <tr>
-                            <td>${item.nome_peca || item.peca || 'N/A'}</td>
-                            <td class="text-end">${item.quantidade || 0}</td>
-                            <td class="text-end">R$ ${formatarMoeda(item.valor_total || 0)}</td>
+                            <td>${item.nome || item.nome_peca || 'N/A'}</td>
+                            <td class="text-end">${item.quantidade_estoque ?? item.quantidade ?? 0}</td>
+                            <td class="text-end">R$ ${formatarMoeda(item.valor_total_estoque ?? item.valor_total ?? 0)}</td>
                         </tr>
                     `;
                 });
@@ -233,6 +239,7 @@
         } catch (error) {
             console.error('Erro ao carregar estoque:', error);
             mostrarAlerta('Erro ao carregar relatório: ' + error.message, 'danger');
+            document.getElementById('estoqueLoader')?.classList.remove('active');
         }
     });
 
@@ -256,6 +263,7 @@
             const response = await fetch(`${API_BASE}/relatorios/financeiro-periodo`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({
                     data_abertura: dataInicio,
                     data_fim: dataFim
@@ -289,6 +297,7 @@
         } catch (error) {
             console.error('Erro ao carregar financeiro:', error);
             mostrarAlerta('Erro ao carregar relatório: ' + error.message, 'danger');
+            document.getElementById('financeiroLoader')?.classList.remove('active');
         }
     });
 
@@ -312,6 +321,7 @@
             const response = await fetch(`${API_BASE}/relatorios/ordens-servico`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({
                     data_abertura: dataInicio,
                     data_fim: dataFim
@@ -326,9 +336,9 @@
                 data.detalhes.forEach(item => {
                     html += `
                         <tr>
-                            <td>${item.status || 'N/A'}</td>
-                            <td class="text-end">${item.qtd_ordens || 0}</td>
-                            <td class="text-end">R$ ${formatarMoeda(item.receita_total || 0)}</td>
+                            <td>${item.status || 'N/A'} (${item.mes || '—'})</td>
+                            <td class="text-end">${item.quantidade ?? item.qtd_ordens ?? 0}</td>
+                            <td class="text-end">R$ ${formatarMoeda(item.valor_total ?? item.receita_total ?? 0)}</td>
                         </tr>
                     `;
                 });
@@ -343,6 +353,7 @@
         } catch (error) {
             console.error('Erro ao carregar ordens:', error);
             mostrarAlerta('Erro ao carregar relatório: ' + error.message, 'danger');
+            document.getElementById('ordensLoader')?.classList.remove('active');
         }
     });
 

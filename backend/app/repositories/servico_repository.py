@@ -31,6 +31,21 @@ def get_all_servicos():
     logger.debug("get_all_servicos count=%s", len(servicos))
     return servicos
 
+
+def buscar_servicos(termo: str, limit: int = 8):
+    """Busca parcial de serviços por nome ou descrição."""
+    pattern = f"%{termo.strip()}%"
+    query = """
+    SELECT id_servico, nome_servico, descricao, tempo_estimado, preco, created_at, updated_at, deleted_at
+    FROM servico
+    WHERE deleted_at IS NULL
+      AND (descricao ILIKE %s OR COALESCE(nome_servico, '') ILIKE %s)
+    ORDER BY descricao ASC
+    LIMIT %s
+    """
+    results = execute_query(query, (pattern, pattern, limit))
+    return [dict_to_servico(row) for row in results]
+
 def create_servico(servico: Servico):
     """Cria um novo serviço."""
     query = """

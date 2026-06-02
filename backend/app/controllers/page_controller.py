@@ -22,8 +22,11 @@ from app.core.config import SECRET_KEY, ALGORITHM
 from app.core.settings import get_settings
 from app.database.db import execute_query
 from app.services.user_service import list_users
-from app.services import servico_service
+from app.core.file_storage import normalize_stored_image_url
+from app.repositories import produto_repository as produto_repo
+from app.repositories import servico_repository as servico_repo
 from app.services import produto_service
+from app.services import servico_service
 from app.services import pedido_service
 from app.services import veiculo_service
 from app.services import modelo_service
@@ -168,6 +171,41 @@ def loja_page(request: Request, user=Depends(get_page_user)):
     })
 
 
+@router.get("/api/busca", include_in_schema=False)
+def busca_global(q: str = ""):
+    """Busca pública de produtos e serviços (autocomplete parcial)."""
+    term = (q or "").strip()
+    if len(term) < 1:
+        return {"produtos": [], "servicos": []}
+
+    produtos = produto_repo.buscar_produtos(term, limit=8)
+    servicos = servico_repo.buscar_servicos(term, limit=8)
+
+    produtos_out = []
+    for p in produtos:
+        img = normalize_stored_image_url(getattr(p, "imagem_produto", None))
+        produtos_out.append({
+            "id": p.id_produto,
+            "nome": p.nome or "",
+            "descricao": p.descricao or "",
+            "preco": float(p.preco or 0),
+            "imagem": img,
+            "tipo": "produto",
+        })
+
+    servicos_out = []
+    for s in servicos:
+        nome = (getattr(s, "nome_servico", None) or s.descricao or "").strip()
+        servicos_out.append({
+            "id": s.id_servico,
+            "nome": nome,
+            "preco": float(s.preco or 0),
+            "tipo": "servico",
+        })
+
+    return {"produtos": produtos_out, "servicos": servicos_out}
+
+
 @router.get("/logout", include_in_schema=False)
 def logout(request: Request):
     """Limpa o cookie de autenticação e redireciona para a home."""
@@ -262,9 +300,17 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
                 "usuario_nome": usuario_nome
             })
 
-        # Veículos (Admin vê todos, cliente vê os seus)
+        # Veículos (Admin vê todos com nome do proprietário, cliente vê os seus)
         if user.get("role") in ("admin", "mecanico"):
-            veiculos = veiculo_service.list_all_veiculos()
+            veiculos = execute_query(
+                "SELECT v.id_veiculo, v.placa, v.ano_fabricacao, v.cor, v.id_usuario, v.id_modelo, "
+                "u.nome AS proprietario_nome "
+                "FROM veiculo v "
+                "JOIN usuario u ON v.id_usuario = u.id_usuario "
+                "WHERE v.deleted_at IS NULL "
+                "ORDER BY v.created_at DESC",
+                fetch="all",
+            ) or []
         else:
             veiculos = veiculo_service.list_veiculos_by_user(int(user["user_id"]))
             

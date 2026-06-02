@@ -93,8 +93,8 @@ def add_peca_to_os(os_id: int, data: OsPecaCreate):
             movimentacao_repo.registrar_saida_estoque(
                 peca_id=data.id_peca,
                 quantidade=quantidade_adicional,
+                motivo=f"Adição de peça na OS #{os_id}",
                 id_os=os_id,
-                motivo=f"Adição de peça na OS #{os_id}"
             )
         
         logger.info("peça adicionada à OS os=%s peca=%s quantidade=%s estoque_anterior=%s", 
@@ -151,8 +151,8 @@ def update_quantidade_peca(os_id: int, peca_id: int, data: OsPecaUpdate):
             movimentacao_repo.registrar_saida_estoque(
                 peca_id=peca_id,
                 quantidade=quantidade_diferenca,
+                motivo=f"Ajuste de quantidade na OS #{os_id} (+{quantidade_diferenca})",
                 id_os=os_id,
-                motivo=f"Ajuste de quantidade na OS #{os_id} (+{quantidade_diferenca})"
             )
         elif quantidade_diferenca < 0:
             # Entrada de estoque (removeu peças)

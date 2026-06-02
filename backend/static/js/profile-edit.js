@@ -17,16 +17,15 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!profileForm) return;
 
     // Carrega dados do usuário primeiro
-    loadUserProfile();
-
-    // Armazena valores originais
-    originalData = {
-        nome: document.getElementById('nome')?.value || '',
-        email: document.getElementById('email')?.value || '',
-        telefone: document.getElementById('telefone')?.value || '',
-        cpf_cnpj: document.getElementById('cpf_cnpj')?.value || '',
-        data_nascimento: document.getElementById('data_nascimento')?.value || ''
-    };
+    loadUserProfile().then(() => {
+        originalData = {
+            nome: document.getElementById('nome')?.value || '',
+            email: document.getElementById('email')?.value || '',
+            telefone: document.getElementById('telefone')?.value || '',
+            cpf_cnpj: document.getElementById('cpf_cnpj')?.value || '',
+            data_nascimento: document.getElementById('data_nascimento')?.value || ''
+        };
+    });
 
     // Cria modal de confirmação
     createConfirmationModal();
@@ -68,6 +67,9 @@ async function loadUserProfile() {
 
         if (!response.ok) {
             console.error('Erro ao carregar perfil');
+            const loader = document.getElementById('perfilLoader');
+            if (loader) loader.style.display = 'none';
+            showAlert('danger', 'Não foi possível carregar os dados do perfil. Tente novamente.');
             return;
         }
 
@@ -94,6 +96,8 @@ async function loadUserProfile() {
 
     } catch (error) {
         console.error('Erro ao carregar perfil:', error);
+        const loader = document.getElementById('perfilLoader');
+        if (loader) loader.style.display = 'none';
         showAlert('danger', 'Erro ao carregar dados do perfil');
     }
 }
@@ -192,10 +196,10 @@ function createConfirmationModal() {
                     </div>
                     <div class="modal-body text-white">
                         <p class="mb-3">Deseja realmente alterar <strong id="fieldName"></strong>?</p>
-                        <div class="alert alert-info" style="background-color: #1a3a3a; border-color: #555;">
+                        <div class="alert alert-secondary" style="background-color: #111; border-color: #333;">
                             <small>
                                 <strong>Valor anterior:</strong> <span id="oldValue" class="text-muted"></span><br>
-                                <strong>Novo valor:</strong> <span id="newValue" style="color: #4fc3f7;"></span>
+                                <strong>Novo valor:</strong> <span id="newValue" style="color: #c0252b;"></span>
                             </small>
                         </div>
                     </div>

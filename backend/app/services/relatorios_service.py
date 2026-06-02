@@ -88,14 +88,15 @@ def gerar_relatorio_servicos_realizados(data: RelatorioPeriodo):
     """Gera relatório de serviços realizados por período."""
     validate_periodo(data)
     
-    # Busca OS concluídas no período
-    query = """
+    from app.database.db import execute_query
+
+    query_resumo = """
     SELECT 
         DATE_TRUNC('month', os.data_conclusao) as mes,
         COUNT(DISTINCT os.id_os) as quantidade_os,
         COUNT(DISTINCT oss.id_servico) as servicos_diferentes,
-        COUNT(oss.id_os_servico) as total_servicos,
-        COALESCE(SUM(oss.quantidade * s.valor), 0) as valor_total_servicos
+        COUNT(*) as total_servicos,
+        COALESCE(SUM(oss.quantidade * s.preco), 0) as valor_total_servicos
     FROM ordem_servico os
     JOIN os_servico oss ON os.id_os = oss.id_os
     JOIN servico s ON oss.id_servico = s.id_servico
@@ -105,9 +106,23 @@ def gerar_relatorio_servicos_realizados(data: RelatorioPeriodo):
     GROUP BY DATE_TRUNC('month', os.data_conclusao)
     ORDER BY mes DESC
     """
-    
-    from app.database.db import execute_query
-    results = execute_query(query, (data.data_abertura, data.data_fim))
+    results = execute_query(query_resumo, (data.data_abertura, data.data_fim))
+
+    query_detalhes = """
+    SELECT 
+        COALESCE(NULLIF(s.nome_servico, ''), s.descricao) as nome_servico,
+        SUM(oss.quantidade) as qtd_realizadas,
+        COALESCE(SUM(oss.quantidade * s.preco), 0) as receita_total
+    FROM ordem_servico os
+    JOIN os_servico oss ON os.id_os = oss.id_os
+    JOIN servico s ON oss.id_servico = s.id_servico
+    WHERE os.status = 'concluida'
+    AND os.data_conclusao BETWEEN %s AND %s
+    AND os.deleted_at IS NULL
+    GROUP BY s.id_servico, s.nome_servico, s.descricao
+    ORDER BY qtd_realizadas DESC
+    """
+    detalhes_rows = execute_query(query_detalhes, (data.data_abertura, data.data_fim))
     
     relatorio = []
     valor_total_geral = 0.0
@@ -126,6 +141,17 @@ def gerar_relatorio_servicos_realizados(data: RelatorioPeriodo):
         valor_total_geral += valor_total
         os_total += row["quantidade_os"]
         servicos_total += row["total_servicos"]
+
+    detalhes = []
+    for row in detalhes_rows:
+        qtd = int(row["qtd_realizadas"] or 0)
+        receita = float(row["receita_total"] or 0)
+        detalhes.append({
+            "nome_servico": row["nome_servico"],
+            "qtd_realizadas": qtd,
+            "receita_total": receita,
+            "receita_media": receita / qtd if qtd else 0,
+        })
     
     logger.info("relatório serviços realizados período=%s a %s os=%s servicos=%s", 
                 data.data_abertura, data.data_fim, os_total, servicos_total)
@@ -140,7 +166,8 @@ def gerar_relatorio_servicos_realizados(data: RelatorioPeriodo):
             "quantidade_total_os": os_total,
             "quantidade_total_servicos": servicos_total
         },
-        "detalhes": relatorio
+        "detalhes": detalhes,
+        "por_mes": relatorio,
     }
 
 def gerar_relatorio_estoque():
@@ -151,16 +178,16 @@ def gerar_relatorio_estoque():
         p.id_peca,
         p.nome,
         p.quantidade_estoque,
-        p.valor_unitario,
-        COALESCE(p.quantidade_estoque* p.valor_unitario, 0) as valor_total_estoque,
+        p.preco_unitario,
+        COALESCE(p.quantidade_estoque * p.preco_unitario, 0) as valor_total_estoque,
         CASE 
-            WHEN p.quantidade_estoque<= 5 THEN 'baixo'
-            WHEN p.quantidade_estoque<= 10 THEN 'medio'
+            WHEN p.quantidade_estoque <= 5 THEN 'baixo'
+            WHEN p.quantidade_estoque <= 10 THEN 'medio'
             ELSE 'alto'
         END as nivel_estoque
     FROM peca p
     WHERE p.deleted_at IS NULL
-    ORDER BY nivel_estoque, p.quantidade_estoqueASC
+    ORDER BY nivel_estoque, p.quantidade_estoque ASC
     """
     
     from app.database.db import execute_query
@@ -176,7 +203,7 @@ def gerar_relatorio_estoque():
             "id_peca": row["id_peca"],
             "nome": row["nome"],
             "quantidade_estoque": row["quantidade_estoque"],
-            "valor_unitario": float(row["valor_unitario"]),
+            "valor_unitario": float(row["preco_unitario"]),
             "valor_total_estoque": valor_total,
             "nivel_estoque": row["nivel_estoque"]
         })
@@ -209,13 +236,13 @@ def gerar_relatorio_ordens_servico(data: RelatorioPeriodo):
         COUNT(*) as quantidade,
         COALESCE(
             (
-                SELECT COALESCE(SUM(oss.quantidade * s.valor), 0)
+                SELECT COALESCE(SUM(oss.quantidade * s.preco), 0)
                 FROM os_servico oss
                 JOIN servico s ON oss.id_servico = s.id_servico
                 WHERE oss.id_os = os.id_os
             ) + 
             (
-                SELECT COALESCE(SUM(osp.quantidade * p.valor_unitario), 0)
+                SELECT COALESCE(SUM(osp.quantidade * p.preco_unitario), 0)
                 FROM os_peca osp
                 JOIN peca p ON osp.id_peca = p.id_peca
                 WHERE osp.id_os = os.id_os
@@ -393,10 +420,17 @@ def gerar_relatorio_dashboard():
     return {
         "lucro_total": lucro_total,
         "faturamento": entradas,
+        "faturamento_total": entradas,
         "prejuizo_despesas_total": saidas,
+        "prejuizo_total": saidas,
         "total_movimentado_financeiramente": total_movimentado,
         "quantidade_servicos_concluidos": qtd_os_concluidas,
+        "servicos_realizados": qtd_os_concluidas,
+        "total_ordem_servico": qtd_os_concluidas,
         "quantidade_pedidos_concluidos": qtd_pedidos_concluidos,
+        "quantidade_estoque": sum(p.get("quantidade_estoque", 0) for p in execute_query(
+            "SELECT quantidade_estoque FROM peca WHERE deleted_at IS NULL"
+        ) or []),
         "pecas_mais_utilizadas": pecas_mais_utilizadas,
         "produtos_mais_vendidos": produtos_mais_vendidos
     }

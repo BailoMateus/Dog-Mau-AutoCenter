@@ -4,13 +4,13 @@
  */
 
 (function() {
-    const API_BASE = '/api';
+    const API_BASE = '';
     let pecasCache = [];
 
     // ─── Carregamento de Peças ───
     async function carregarPecas() {
         try {
-            const response = await fetch(`${API_BASE}/pecas`);
+            const response = await fetch(`${API_BASE}/pecas`, { credentials: 'include' });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             pecasCache = await response.json();
             
@@ -42,18 +42,28 @@
             content.style.display = 'none';
             emptyState.style.display = 'none';
             
-            let url = `${API_BASE}/movimentacoes-estoque/`;
-            
-            // Construir URL com filtros
-            if (filtros.tipo) {
-                url = `${API_BASE}/movimentacoes-estoque/tipo/${filtros.tipo}`;
-            } else if (filtros.peca_id) {
-                url = `${API_BASE}/movimentacoes-estoque/peca/${filtros.peca_id}`;
+            let movimentacoes;
+            const hasFiltro = filtros.tipo || filtros.peca_id || filtros.data_inicio || filtros.data_fim;
+
+            if (hasFiltro) {
+                const body = { limit: 500 };
+                if (filtros.tipo) body.tipo_movimentacao = filtros.tipo;
+                if (filtros.peca_id) body.id_peca = parseInt(filtros.peca_id, 10);
+                if (filtros.data_inicio) body.data_inicio = `${filtros.data_inicio}T00:00:00`;
+                if (filtros.data_fim) body.data_fim = `${filtros.data_fim}T23:59:59`;
+                const response = await fetch(`${API_BASE}/movimentacoes-estoque/filtrar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(body),
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                movimentacoes = await response.json();
+            } else {
+                const response = await fetch(`${API_BASE}/movimentacoes-estoque/`, { credentials: 'include' });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                movimentacoes = await response.json();
             }
-            
-            const response = await fetch(url);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const movimentacoes = await response.json();
             
             if (!Array.isArray(movimentacoes) || movimentacoes.length === 0) {
                 loader.classList.remove('active');
@@ -95,14 +105,16 @@
         const pecaId = document.getElementById('pecaSelect').value;
         const quantidade = document.getElementById('quantidade').value;
         const motivo = document.getElementById('motivo').value;
+        const dataMov = document.getElementById('dataMovimentacao')?.value;
         
-        if (!tipoMovimentacao || !pecaId || !quantidade || !motivo) {
+        if (!tipoMovimentacao || !pecaId || !quantidade || !motivo || !dataMov) {
             mostrarAlerta('Preencha todos os campos obrigatórios', 'warning');
             return;
         }
         
         try {
             const endpoint = tipoMovimentacao === 'entrada' ? 'entrada' : 'saida';
+            const motivoCompleto = `[${dataMov}] ${motivo}`;
             const response = await fetch(`${API_BASE}/movimentacoes-estoque/${endpoint}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -110,7 +122,7 @@
                 body: JSON.stringify({
                     id_peca: parseInt(pecaId),
                     quantidade: parseInt(quantidade),
-                    motivo: motivo
+                    motivo: motivoCompleto
                 })
             });
             
@@ -182,6 +194,10 @@
 
     // ─── Inicialização ───
     document.addEventListener('DOMContentLoaded', () => {
+        const dataInput = document.getElementById('dataMovimentacao');
+        if (dataInput) {
+            dataInput.value = new Date().toISOString().split('T')[0];
+        }
         carregarPecas();
         carregarMovimentacoes();
     });

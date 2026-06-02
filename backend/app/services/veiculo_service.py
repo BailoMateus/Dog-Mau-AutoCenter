@@ -15,6 +15,22 @@ def get_modelo_or_404(modelo_id: int):
     if not modelo_repo.get_modelo_by_id(modelo_id):
         raise HTTPException(status_code=404, detail="Modelo não encontrado")
 
+def find_or_create_veiculo_for_user(user_id: int, data: VeiculoCreate):
+    """Reutiliza veículo existente pela placa do usuário ou cria um novo."""
+    user_service.get_user_or_404(user_id)
+    get_modelo_or_404(data.id_modelo)
+    existing = repo.get_veiculo_by_placa_for_user(data.placa, user_id)
+    if existing:
+        if data.id_modelo is not None:
+            existing.id_modelo = data.id_modelo
+        if data.ano_fabricacao is not None:
+            existing.ano_fabricacao = data.ano_fabricacao
+        if data.cor is not None:
+            existing.cor = data.cor
+        return repo.update_veiculo(existing)
+    return create_veiculo_for_user(user_id, data)
+
+
 def create_veiculo_for_user(user_id: int, data: VeiculoCreate):
     user_service.get_user_or_404(user_id)
     get_modelo_or_404(data.id_modelo)
@@ -75,3 +91,29 @@ def update_veiculo(veiculo_id: int, data: VeiculoUpdate):
 def delete_veiculo(veiculo_id: int):
     veiculo = get_veiculo_by_id_or_404(veiculo_id)
     return repo.soft_delete_veiculo(veiculo)
+
+
+def get_veiculo_by_user_or_404(user_id: int, veiculo_id: int):
+    """Retorna veículo apenas se pertencer ao usuário."""
+    veiculo = get_veiculo_by_id_or_404(veiculo_id)
+    if veiculo.id_usuario != user_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Veículo não pertence ao usuário")
+    return veiculo
+
+
+def update_veiculo_by_user(user_id: int, veiculo_id: int, data: VeiculoUpdate):
+    """Atualiza veículo garantindo propriedade do usuário."""
+    veiculo = get_veiculo_by_user_or_404(user_id, veiculo_id)
+    if data.id_modelo is not None:
+        get_modelo_or_404(data.id_modelo)
+        veiculo.id_modelo = data.id_modelo
+    if data.placa is not None:
+        veiculo.placa = data.placa
+    if data.ano_fabricacao is not None:
+        veiculo.ano_fabricacao = data.ano_fabricacao
+    if data.cor is not None:
+        veiculo.cor = data.cor
+    try:
+        return repo.update_veiculo(veiculo)
+    except psycopg2.IntegrityError:
+        raise HTTPException(status_code=409, detail="Placa já cadastrada")

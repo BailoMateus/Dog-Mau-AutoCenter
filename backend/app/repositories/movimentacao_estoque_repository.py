@@ -8,16 +8,36 @@ logger = logging.getLogger(__name__)
 
 def create_movimentacao_estoque(movimentacao: MovimentacaoEstoque):
     """Cria uma nova movimentação de estoque."""
-    query = """
+    query_full = """
+    INSERT INTO movimentacao_estoque (id_peca, id_produto, id_os, tipo_movimentacao, quantidade, motivo)
+    VALUES (%s, %s, %s, %s, %s, %s)
+    RETURNING id_movimentacao
+    """
+    query_legacy = """
     INSERT INTO movimentacao_estoque (id_peca, id_produto, tipo_movimentacao, quantidade, motivo)
     VALUES (%s, %s, %s, %s, %s)
     RETURNING id_movimentacao
     """
-    params = (
-        movimentacao.id_peca, movimentacao.id_produto, movimentacao.tipo_movimentacao, 
-        movimentacao.quantidade, movimentacao.motivo
+    params_full = (
+        movimentacao.id_peca, movimentacao.id_produto, movimentacao.id_os,
+        movimentacao.tipo_movimentacao, movimentacao.quantidade, movimentacao.motivo
     )
-    movimentacao_id = execute_insert(query, params)
+    params_legacy = (
+        movimentacao.id_peca, movimentacao.id_produto,
+        movimentacao.tipo_movimentacao, movimentacao.quantidade, movimentacao.motivo
+    )
+    try:
+        movimentacao_id = execute_insert(query_full, params_full)
+    except Exception:
+        if movimentacao.id_os and movimentacao.motivo:
+            movimentacao.motivo = f"{movimentacao.motivo} [OS #{movimentacao.id_os}]"
+        elif movimentacao.id_os:
+            movimentacao.motivo = f"OS #{movimentacao.id_os}"
+        params_legacy = (
+            movimentacao.id_peca, movimentacao.id_produto,
+            movimentacao.tipo_movimentacao, movimentacao.quantidade, movimentacao.motivo
+        )
+        movimentacao_id = execute_insert(query_legacy, params_legacy)
     movimentacao.id_movimentacao = movimentacao_id
     movimentacao.created_at = datetime.now(timezone.utc)
     logger.info("movimentação de estoque criada id=%s peca=%s produto=%s tipo=%s quantidade=%s", 
@@ -92,7 +112,7 @@ def get_ultima_movimentacao_peca(peca_id: int):
     result = execute_query(query, (peca_id,), fetch="one")
     return dict_to_movimentacao_estoque(result) if result else None
 
-def registrar_saida_estoque(peca_id: int, quantidade: int, motivo: str = ""):
+def registrar_saida_estoque(peca_id: int, quantidade: int, motivo: str = "", id_os: int | None = None):
     """Registra saída de estoque de uma peça."""
     # Buscar estoque atual
     from app.repositories.os_peca_repository import get_peca_estoque
@@ -111,6 +131,7 @@ def registrar_saida_estoque(peca_id: int, quantidade: int, motivo: str = ""):
     movimentacao = MovimentacaoEstoque(
         id_peca=peca_id,
         id_produto=None,
+        id_os=id_os,
         tipo_movimentacao="saida",
         quantidade=quantidade,
         motivo=motivo or "Saída manual"
@@ -184,12 +205,76 @@ def registrar_saida_estoque_produto(produto_id: int, quantidade: int, motivo: st
 def get_historico_estoque(peca_id: int, dias: int = 30):
     """Busca histórico de estoque de uma peça nos últimos dias."""
     query = """
-    SELECT id_movimentacao, id_peca, id_produto, tipo_movimentacao, quantidade, motivo, created_at
+    SELECT id_movimentacao, id_peca, id_produto, id_os, tipo_movimentacao, quantidade, motivo, created_at
     FROM movimentacao_estoque 
-    WHERE id_peca = %s AND created_at >= CURRENT_DATE - INTERVAL '%s days'
+    WHERE id_peca = %s AND created_at >= CURRENT_DATE - make_interval(days => %s)
     ORDER BY created_at DESC
     """
     results = execute_query(query, (peca_id, dias))
     movimentacoes = [dict_to_movimentacao_estoque(row) for row in results]
     logger.debug("get_historico_estoque peca_id=%s dias=%s count=%s", peca_id, dias, len(movimentacoes))
     return movimentacoes
+
+
+def get_movimentacoes_by_os(os_id: int, limit: int = 100):
+    """Lista movimentações de estoque vinculadas a uma OS."""
+    query = """
+    SELECT id_movimentacao, id_peca, id_produto, id_os, tipo_movimentacao, quantidade, motivo, created_at
+    FROM movimentacao_estoque
+    WHERE id_os = %s OR motivo LIKE %s
+    ORDER BY created_at DESC
+    LIMIT %s
+    """
+    pattern = f"%OS #{os_id}%"
+    results = execute_query(query, (os_id, pattern, limit))
+    return [dict_to_movimentacao_estoque(row) for row in results]
+
+
+def get_movimentacoes_by_periodo(data_inicio, data_fim, limit: int = 500):
+    """Lista movimentações de estoque em um período."""
+    query = """
+    SELECT id_movimentacao, id_peca, id_produto, id_os, tipo_movimentacao, quantidade, motivo, created_at
+    FROM movimentacao_estoque
+    WHERE created_at BETWEEN %s AND %s
+    ORDER BY created_at DESC
+    LIMIT %s
+    """
+    results = execute_query(query, (data_inicio, data_fim, limit))
+    return [dict_to_movimentacao_estoque(row) for row in results]
+
+
+def get_movimentacoes_filtradas(
+    tipo: str | None = None,
+    peca_id: int | None = None,
+    produto_id: int | None = None,
+    data_inicio=None,
+    data_fim=None,
+    limit: int = 500,
+):
+    """Consulta flexível de movimentações de estoque."""
+    clauses = ["1=1"]
+    params: list = []
+
+    if tipo:
+        clauses.append("tipo_movimentacao = %s")
+        params.append(tipo)
+    if peca_id:
+        clauses.append("id_peca = %s")
+        params.append(peca_id)
+    if produto_id:
+        clauses.append("id_produto = %s")
+        params.append(produto_id)
+    if data_inicio and data_fim:
+        clauses.append("created_at BETWEEN %s AND %s")
+        params.extend([data_inicio, data_fim])
+
+    params.append(limit)
+    query = f"""
+    SELECT id_movimentacao, id_peca, id_produto, id_os, tipo_movimentacao, quantidade, motivo, created_at
+    FROM movimentacao_estoque
+    WHERE {' AND '.join(clauses)}
+    ORDER BY created_at DESC
+    LIMIT %s
+    """
+    results = execute_query(query, tuple(params))
+    return [dict_to_movimentacao_estoque(row) for row in results]

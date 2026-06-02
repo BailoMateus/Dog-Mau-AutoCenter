@@ -32,6 +32,21 @@ def get_veiculo_by_id(veiculo_id: int):
     return dict_to_veiculo(result)
 
 
+def get_veiculo_by_placa_for_user(placa: str, user_id: int):
+    query = """
+    SELECT id_veiculo, placa, ano_fabricacao, cor, id_usuario, id_modelo,
+           created_at, updated_at, deleted_at
+    FROM veiculo
+    WHERE UPPER(REPLACE(placa, '-', '')) = UPPER(REPLACE(%s, '-', ''))
+      AND id_usuario = %s AND deleted_at IS NULL
+    LIMIT 1
+    """
+    result = execute_query(query, (placa, user_id), fetch="one")
+    if not result:
+        return None
+    return dict_to_veiculo(result)
+
+
 def list_veiculos_by_user(user_id: int):
     query = """
     SELECT id_veiculo, placa, ano_fabricacao, cor, id_usuario, id_modelo,

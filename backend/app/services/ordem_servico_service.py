@@ -4,12 +4,62 @@ from datetime import datetime, timezone
 from fastapi import HTTPException, status
 import psycopg2
 
-from app.models.entities import OrdemServico
+from app.models.entities import OrdemServico, dict_to_ordem_servico
 from app.repositories import ordem_servico_repository as os_repo
 from app.repositories import mecanico_repository as mecanico_repo
-from app.schemas.ordem_servico_schema import OrdemServicoCreate, OrdemServicoUpdate, OrdemServicoStatusUpdate
+from app.repositories import orcamento_repository as orcamento_repo
+from app.schemas.ordem_servico_schema import (
+    OrdemServicoCreate,
+    OrdemServicoPublic,
+    OrdemServicoUpdate,
+    OrdemServicoStatusUpdate,
+)
 
 logger = logging.getLogger(__name__)
+
+def build_ordem_servico_public(ordem_servico: OrdemServico) -> OrdemServicoPublic:
+    orcamento_status = None
+    if ordem_servico.id_orcamento:
+        orc = orcamento_repo.get_orcamento_by_id(ordem_servico.id_orcamento)
+        if orc:
+            orcamento_status = getattr(orc, "status", None)
+    return OrdemServicoPublic(
+        id_os=ordem_servico.id_os,
+        id_orcamento=ordem_servico.id_orcamento,
+        id_veiculo=ordem_servico.id_veiculo,
+        id_usuario=ordem_servico.id_usuario,
+        descricao_problema=ordem_servico.descricao_problema,
+        status=ordem_servico.status,
+        valor_total=getattr(ordem_servico, "valor_total", None),
+        orcamento_status=orcamento_status,
+        data_abertura=ordem_servico.data_abertura,
+        data_conclusao=ordem_servico.data_conclusao,
+        created_at=ordem_servico.created_at,
+        updated_at=ordem_servico.updated_at,
+    )
+
+
+def build_ordem_servico_public_from_row(row: dict) -> OrdemServicoPublic:
+    os = dict_to_ordem_servico(row)
+    pub = build_ordem_servico_public(os)
+    return pub.model_copy(update={
+        "valor_total": float(row.get("valor_total") or 0),
+        "orcamento_status": row.get("orcamento_status"),
+        "placa": row.get("placa"),
+        "cor": row.get("cor"),
+        "ano_fabricacao": row.get("ano_fabricacao"),
+        "nome_modelo": row.get("nome_modelo"),
+        "proprietario_nome": row.get("proprietario_nome"),
+        "mecanico_nome": row.get("mecanico_nome"),
+    })
+
+
+def get_ordem_servico_detalhada_or_404(id_os: int) -> OrdemServicoPublic:
+    row = os_repo.get_ordem_servico_detalhada(id_os)
+    if not row:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ordem de serviço não encontrada")
+    return build_ordem_servico_public_from_row(row)
+
 
 def list_ordens_servico():
     """Lista todas as ordens de serviço."""
@@ -33,8 +83,8 @@ def validate_ordem_servico_data(id_veiculo: int = None, id_usuario: int = None, 
             detail="Veículo não encontrado"
         )
     
-    # Validação de mecânico existente
-    if id_usuario and not os_repo.check_cliente_exists(id_usuario):
+    # Validação de mecânico existente (usuário com perfil mecânico/admin)
+    if id_usuario and not os_repo.check_mecanico_atribuivel(id_usuario):
         logger.warning("mecânico não encontrado mecanico_id=%s", id_usuario)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -144,6 +194,17 @@ def update_ordem_servico(id_os: int, data: OrdemServicoUpdate):
 def update_status_ordem_servico(id_os: int, data: OrdemServicoStatusUpdate):
     """Atualiza apenas o status da ordem de serviço."""
     ordem_servico = get_ordem_servico_or_404(id_os)
+
+    if ordem_servico.id_orcamento:
+        orc = orcamento_repo.get_orcamento_by_id(ordem_servico.id_orcamento)
+        orc_status = getattr(orc, "status", None) if orc else None
+        if isinstance(orc, dict):
+            orc_status = orc.get("status")
+        if orc_status != "aprovado":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="A alteração de status só é permitida após aprovação do orçamento.",
+            )
     
     # Validação de status
     status_validos = ["aberta", "em_andamento", "concluida", "cancelada"]
@@ -203,27 +264,9 @@ def concluir_ordem_servico(id_os: int):
         os_repo.concluir_ordem_servico(id_os)
         logger.info("ordem de serviço concluída id=%s", id_os)
         
-        # --- Lógica de Automação de Estoque e Financeiro ---
-        from app.repositories import os_peca_repository
-        from app.repositories import movimentacao_estoque_repository
+        # --- Movimentação financeira na conclusão (estoque já baixado na reserva/consumo) ---
         from app.repositories import movimentacao_financeira_repository
         
-        # 1. Movimentação de estoque e custo das peças
-        pecas_da_os = os_peca_repository.get_pecas_by_os(id_os)
-        custo_total_pecas = 0.0
-        
-        for p in pecas_da_os:
-            try:
-                movimentacao_estoque_repository.registrar_saida_estoque(
-                    peca_id=p.id_peca,
-                    quantidade=p.quantidade,
-                    motivo=f"Peça utilizada na OS #{id_os}"
-                )
-                custo_total_pecas += float(p.peca_preco) * p.quantidade
-            except Exception as e:
-                logger.error("Erro ao dar baixa no estoque da peca=%s: %s", p.id_peca, e)
-        
-        # 2. Movimentação Financeira
         ordem_servico_atualizada = get_ordem_servico_or_404(id_os)
         valor_total = float(ordem_servico_atualizada.valor_total) if ordem_servico_atualizada.valor_total else 0.0
         
@@ -231,12 +274,6 @@ def concluir_ordem_servico(id_os: int):
             movimentacao_financeira_repository.registrar_entrada_financeira(
                 valor=valor_total,
                 descricao=f"Faturamento da OS #{id_os}"
-            )
-            
-        if custo_total_pecas > 0:
-            movimentacao_financeira_repository.registrar_saida_financeira(
-                valor=custo_total_pecas,
-                descricao=f"Custo de peças consumidas na OS #{id_os}"
             )
         # ----------------------------------------------------
         
