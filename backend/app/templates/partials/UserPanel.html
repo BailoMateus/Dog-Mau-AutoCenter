@@ -41,7 +41,7 @@
                 <td>{{ u.nome }}</td>
                 <td>{{ u.email }}</td>
                 <td>
-                    <span class="badge {% if u.role == 'admin' %}bg-danger{% elif u.role == 'mecanico' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">
+                    <span class="badge {% if u.role == 'admin' %}bg-primary{% elif u.role == 'mecanico' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">
                         {{ u.role | upper }}
                     </span>
                 </td>

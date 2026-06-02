@@ -195,3 +195,24 @@ def get_ordens_by_veiculo(veiculo_id: int):
         )
         for os in ordens
     ]
+
+@router.get("/{id_os}/servicos")
+def get_ordem_servico_servicos(id_os: int):
+    """Busca serviços vinculados à ordem de serviço."""
+    logger.info("GET /ordens-servico/%s/servicos", id_os)
+    servicos = ordem_servico_service.get_ordem_servico_servicos(id_os)
+    return servicos
+
+@router.get("/{id_os}/pecas")
+def get_ordem_servico_pecas(id_os: int):
+    """Busca peças vinculadas à ordem de serviço."""
+    logger.info("GET /ordens-servico/%s/pecas", id_os)
+    pecas = ordem_servico_service.get_ordem_servico_pecas(id_os)
+    return pecas
+
+@router.get("/{id_os}/pecas/movimentacoes")
+def get_ordem_servico_movimentacoes(id_os: int):
+    """Busca movimentações de estoque das peças da ordem de serviço."""
+    logger.info("GET /ordens-servico/%s/pecas/movimentacoes", id_os)
+    movimentacoes = ordem_servico_service.get_ordem_servico_movimentacoes(id_os)
+    return movimentacoes

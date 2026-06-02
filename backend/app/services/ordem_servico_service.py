@@ -313,16 +313,16 @@ def get_ordens_by_veiculo(veiculo_id: int):
 def iniciar_ordem_servico(id_os: int):
     """Inicia uma ordem de serviço."""
     ordem_servico = get_ordem_servico_or_404(id_os)
-    
+
     # Validação de status
     if ordem_servico.status != "aberta":
-        logger.warning("ordem de serviço não pode ser iniciada status=%s id=%s", 
+        logger.warning("ordem de serviço não pode ser iniciada status=%s id=%s",
                      ordem_servico.status, id_os)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Apenas ordens de serviço 'abertas' podem ser iniciadas"
         )
-    
+
     try:
         os_repo.iniciar_ordem_servico(id_os)
         logger.info("ordem de serviço iniciada id=%s", id_os)
@@ -334,3 +334,15 @@ def iniciar_ordem_servico(id_os: int):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erro ao iniciar ordem de serviço"
         )
+
+def get_ordem_servico_servicos(id_os: int):
+    """Busca serviços vinculados à ordem de serviço."""
+    return os_repo.get_ordem_servico_servicos(id_os)
+
+def get_ordem_servico_pecas(id_os: int):
+    """Busca peças vinculadas à ordem de serviço."""
+    return os_repo.get_ordem_servico_pecas(id_os)
+
+def get_ordem_servico_movimentacoes(id_os: int):
+    """Busca movimentações de estoque das peças da ordem de serviço."""
+    return os_repo.get_ordem_servico_movimentacoes(id_os)

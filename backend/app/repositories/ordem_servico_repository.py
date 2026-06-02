@@ -243,3 +243,42 @@ def check_mecanico_atribuivel(usuario_id: int):
     """
     result = execute_query(query, (usuario_id,), fetch="one")
     return result["count"] > 0 if result else False
+
+def get_ordem_servico_servicos(id_os: int):
+    """Busca serviços vinculados à ordem de serviço."""
+    query = """
+    SELECT osi.id_servico, s.descricao AS servico_descricao, s.preco AS servico_preco,
+           osi.quantidade, osi.valor_unitario
+    FROM orcamento_servico_item osi
+    JOIN servico s ON osi.id_servico = s.id_servico
+    JOIN orcamento o ON osi.id_orcamento = o.id_orcamento
+    JOIN ordem_servico os ON o.id_orcamento = os.id_orcamento
+    WHERE os.id_os = %s
+    """
+    return execute_query(query, (id_os,))
+
+def get_ordem_servico_pecas(id_os: int):
+    """Busca peças vinculadas à ordem de serviço."""
+    query = """
+    SELECT opi.id_peca, p.nome AS peca_nome, p.preco AS peca_preco, p.quantidade_estoque AS peca_estoque,
+           opi.quantidade, opi.valor_unitario
+    FROM orcamento_peca_item opi
+    JOIN peca p ON opi.id_peca = p.id_peca
+    JOIN orcamento o ON opi.id_orcamento = o.id_orcamento
+    JOIN ordem_servico os ON o.id_orcamento = os.id_orcamento
+    WHERE os.id_os = %s
+    """
+    return execute_query(query, (id_os,))
+
+def get_ordem_servico_movimentacoes(id_os: int):
+    """Busca movimentações de estoque das peças da ordem de serviço."""
+    query = """
+    SELECT m.id_movimentacao, m.id_peca, m.tipo_movimentacao, m.quantidade, m.created_at
+    FROM movimentacao_estoque m
+    JOIN orcamento_peca_item opi ON m.id_peca = opi.id_peca
+    JOIN orcamento o ON opi.id_orcamento = o.id_orcamento
+    JOIN ordem_servico os ON o.id_orcamento = os.id_orcamento
+    WHERE os.id_os = %s
+    ORDER BY m.created_at DESC
+    """
+    return execute_query(query, (id_os,))
