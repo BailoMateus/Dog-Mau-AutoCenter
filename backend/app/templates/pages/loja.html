@@ -29,24 +29,6 @@
   </section>
 
   <section class="container">
-    {% if user and user.role in ['admin', 'mecanico'] %}
-    <h2 class="loja-section-title">
-      <i class="bi bi-cart3 me-2" style="color: #c0252b;"></i>Gerenciamento de Pedidos
-    </h2>
-    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4" id="lojaPedidosGrid">
-      {% if pedidos %}
-        {% for ped in pedidos %}
-        <div class="col">
-          {% include "partials/components/order_card.html" %}
-        </div>
-        {% endfor %}
-      {% else %}
-        <div class="col-12 text-center py-5">
-            <p class="text-muted mb-0">Nenhum pedido encontrado.</p>
-        </div>
-      {% endif %}
-    </div>
-    {% else %}
     <h2 class="loja-section-title">
       <i class="bi bi-grid-3x3-gap me-2" style="color: #c0252b;"></i>Vitrine
     </h2>
@@ -91,7 +73,6 @@
         {% endfor %}
       {% endif %}
     </div>
-    {% endif %}
   </section>
 </div>
 

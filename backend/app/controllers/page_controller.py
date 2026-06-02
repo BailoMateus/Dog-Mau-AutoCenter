@@ -49,7 +49,7 @@ def get_page_user(request: Request):
     """Auth opcional: retorna dict com dados do usuário ou None.
     
     Lê o JWT do cookie 'access_token'. Se válido, busca o user no banco
-    e retorna {user_id, role, nome}. Se inválido ou ausente, retorna None.
+    e retorna {user_id, role, nome, avatar}. Se inválido ou ausente, retorna None.
     """
     token = request.cookies.get("__session") or request.cookies.get("access_token")
     if not token:
@@ -63,13 +63,19 @@ def get_page_user(request: Request):
         if not user_id:
             return None
         user = execute_query(
-            "SELECT id_usuario, nome, role FROM usuario WHERE id_usuario = %s AND deleted_at IS NULL",
+            "SELECT id_usuario, nome, role, foto_perfil FROM usuario WHERE id_usuario = %s AND deleted_at IS NULL",
             (int(user_id),),
             fetch="one",
         )
         if not user:
             return None
-        return {"user_id": user_id, "role": payload.get("role"), "nome": user["nome"]}
+        avatar = normalize_stored_image_url(user.get("foto_perfil")) if user.get("foto_perfil") else None
+        return {
+            "user_id": user_id,
+            "role": payload.get("role"),
+            "nome": user["nome"],
+            "avatar": avatar,
+        }
     except Exception:
         return None
 
@@ -155,12 +161,8 @@ def services_page(request: Request, user=Depends(get_page_user)):
 @router.get("/loja", include_in_schema=False)
 def loja_page(request: Request, user=Depends(get_page_user)):
     """Página pública de e-commerce (Loja de Produtos)."""
-    if user and user.get("role") in ("admin", "mecanico"):
-        pedidos = pedido_service.list_pedidos_detalhados()
-        produtos = []
-    else:
-        produtos = produto_service.list_produtos()
-        pedidos = []
+    produtos = produto_service.list_produtos()
+    pedidos = []
 
     return templates.TemplateResponse("pages/loja.html", {
         "request": request,
@@ -265,11 +267,11 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
             produtos = produto_service.list_produtos()
             marcas = marca_service.list_marcas()
 
-        # Pedidos (Apenas cliente vê os seus no painel)
-        if user.get("role") not in ("admin", "mecanico"):
-            pedidos_db = pedido_service.get_pedidos_detalhados_by_usuario(int(user["user_id"]))
+        # Pedidos
+        if user.get("role") in ("admin", "mecanico"):
+            pedidos_db = pedido_service.list_pedidos_detalhados()
         else:
-            pedidos_db = []
+            pedidos_db = pedido_service.get_pedidos_detalhados_by_usuario(int(user["user_id"]))
             
         pedidos = []
         for p in pedidos_db:

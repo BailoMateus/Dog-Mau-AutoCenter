@@ -76,13 +76,15 @@
 
         {% if user.role in ['admin', 'mecanico'] %}
         <li class="nav-item" role="presentation">
+            <a class="nav-link nav-tab-link {% if tab == 'meu_usuario' %}active{% endif %}" href="?tab=meu_usuario" role="tab">
+                <i class="bi bi-person-vcard me-1"></i>Perfil
+            </a>
+        </li>
+        <li class="nav-item" role="presentation">
             <a class="nav-link nav-tab-link {% if tab == 'produtos' %}active{% endif %}" href="?tab=produtos" role="tab">
                 <i class="bi bi-box-seam me-1"></i>Produtos
             </a>
         </li>
-        {% endif %}
-
-        {% if user.role in ['admin', 'mecanico'] %}
         <li class="nav-item" role="presentation">
             <a class="nav-link nav-tab-link {% if tab == 'catalogo_veiculos' %}active{% endif %}" href="?tab=catalogo_veiculos" role="tab">
                 <i class="bi bi-tags-fill me-1"></i>Modelos
@@ -164,7 +166,7 @@
         {% endif %}
 
         {# ── Aba de Perfil (Cliente) ── #}
-        {% if user.role == 'cliente' and tab == 'meu_usuario' %}
+        {% if tab == 'meu_usuario' %}
         <div class="tab-pane fade show active" id="perfil" role="tabpanel">
             <div class="card border-0 shadow rounded" style="background-color: #111;">
                 <div class="card-body p-4">
@@ -184,8 +186,8 @@
                                 <label class="text-muted small d-block mb-2">Foto de Perfil</label>
                                 <div class="text-center mb-3">
                                     <img id="fotoPreview" 
-                                         src="/static/assets/avatar-placeholder.png" 
-                                         alt="Foto de Perfil" 
+                                         src="{{ user.avatar or '/static/assets/avatar-placeholder.png' }}" 
+                                         alt="Foto de Perfil de {{ user.nome }}" 
                                          class="rounded-circle"
                                          style="width: 150px; height: 150px; object-fit: cover; border: 2px solid #555;">
                                 </div>
