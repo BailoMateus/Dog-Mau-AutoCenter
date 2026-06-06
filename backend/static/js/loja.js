@@ -1,5 +1,5 @@
 /**
- * loja.js — busca na vitrine e ação do botão Comprar
+ * loja.js — busca na vitrine e fluxo transacional do botão Comprar
  */
 (function () {
   const searchInput = document.getElementById('lojaSearchInput');
@@ -57,6 +57,7 @@
     setTimeout(() => el.remove(), 4000);
   }
 
+  // Captura o evento de clique nos cards da vitrine pública de produtos
   grid.addEventListener('click', async (e) => {
     const btn = e.target.closest('.btn-loja-comprar');
     if (!btn || btn.disabled) return;
@@ -67,6 +68,7 @@
       return;
     }
 
+    // Item 17: Validar login antes de checkout / compra
     const loggedIn = btn.dataset.loggedIn === 'true';
     if (!loggedIn) {
       const next = encodeURIComponent(window.location.pathname);
@@ -74,120 +76,37 @@
       return;
     }
 
+    // Item 5: Impedir no front a compra de itens sem estoque
     const estoque = parseInt(btn.dataset.estoque, 10);
-    if (estoque <= 0) {
+    if (isNaN(estoque) || estoque <= 0) {
       showToast('Produto sem estoque no momento.', 'warning');
       return;
     }
 
     // Extrair dados do produto a partir do card HTML
-    const card = btn.closest('.loja-card');
+    const card = btn.closest('.loja-card') || btn.closest('[data-loja-card]');
     const produtoId = parseInt(btn.dataset.produtoId, 10);
     const preco = parseFloat(btn.dataset.preco) || 0;
     const nome = card ? (card.dataset.nome || 'Produto') : 'Produto';
-    const imgEl = card ? card.querySelector('.loja-card-img-wrap img') : null;
+    const imgEl = card ? card.querySelector('.loja-card-img-wrap img, .produto-imagem img') : null;
     const imagem = imgEl ? imgEl.src : null;
 
-    // Verificar se o carrinho está disponível
     if (!window.cart) {
       showToast('Sistema de carrinho não carregado. Recarregue a página.', 'danger');
       return;
     }
 
-    // Adicionar ao carrinho local
+    // CORREÇÃO: Alinhamento de chaves com o estado interno global (name/price)
     window.cart.addProduct({
       id_produto: produtoId,
-      nome: nome,
-      preco: preco,
-      imagem_produto: imagem
+      name: nome,
+      price: preco,
+      imagem_produto: imagem,
+      quantity: 1
     });
 
-    // Abrir a barra lateral do carrinho automaticamente
-    const dropdown = document.getElementById('cart-dropdown');
-    const overlay = document.getElementById('cart-overlay');
-    if (dropdown && !dropdown.classList.contains('active')) {
-      dropdown.classList.add('active');
-    }
-    if (overlay && !overlay.classList.contains('active')) {
-      overlay.classList.add('active');
-    }
-  });
-
-  // Change Status in Pedido Card
-  document.addEventListener('change', async (e) => {
-    if (e.target.classList.contains('pedido-status-select')) {
-      const select = e.target;
-      const pedidoId = select.dataset.pedId;
-      const newStatus = select.value;
-      const originalValue = select.dataset.originalValue || select.value;
-      
-      select.disabled = true;
-      try {
-        const res = await fetch(`/api/pedidos/${pedidoId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: newStatus }),
-          credentials: 'include'
-        });
-        if (res.ok) {
-          showToast(`Status do pedido #${pedidoId} atualizado para ${newStatus}.`, 'success');
-          select.dataset.originalValue = newStatus;
-        } else {
-          const data = await res.json();
-          showToast(data.detail || 'Erro ao atualizar status.', 'danger');
-          select.value = originalValue;
-        }
-      } catch (err) {
-        showToast('Erro de rede ao atualizar status.', 'danger');
-        select.value = originalValue;
-      } finally {
-        select.disabled = false;
-      }
-    }
-  });
-
-  // Track original value on focus to allow revert
-  document.addEventListener('focusin', (e) => {
-    if (e.target.classList.contains('pedido-status-select')) {
-        if (!e.target.dataset.originalValue) {
-            e.target.dataset.originalValue = e.target.value;
-        }
-    }
-  });
-
-  // Delete Pedido via AJAX
-  document.addEventListener('click', async (e) => {
-    const btn = e.target.closest('.btn-delete-pedido');
-    if (!btn) return;
-    
-    const id = btn.dataset.pedId;
-    if (window.UINotification) {
-      const ok = await UINotification.confirm('Excluir pedido', `Tem certeza que deseja excluir o pedido #${id}?`, 'Excluir', 'danger');
-      if (!ok) return;
-    }
-    
-    btn.disabled = true;
-      try {
-        const response = await fetch(`/api/pedidos/${id}`, {
-          method: 'DELETE',
-          credentials: 'include'
-        });
-        if (response.ok) {
-          showToast(`Pedido #${id} excluído com sucesso.`, 'success');
-          // Remove o card da grid
-          const cardCol = btn.closest('.col');
-          if (cardCol) {
-            cardCol.remove();
-          }
-        } else {
-          const data = await response.json();
-          showToast(data.detail || 'Não foi possível excluir o pedido.', 'danger');
-          btn.disabled = false;
-        }
-      } catch (error) {
-        showToast('Erro de rede ao se comunicar com o servidor.', 'danger');
-        btn.disabled = false;
-      }
+    // CORREÇÃO (Item 2): Encaminha o cliente diretamente para a página do Checkout Real
+    window.location.href = '/checkout';
   });
 
 })();

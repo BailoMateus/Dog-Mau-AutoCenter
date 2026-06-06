@@ -1,19 +1,15 @@
 <nav class="navbar navbar-expand-lg pb-3 pt-3" style="background-color: black; font-family: 'Orbitron', sans-serif;" data-bs-theme="dark">
   <div class="container">
-    <!-- Branding / Logo -->
     <a href="/" class="navbar-brand d-flex align-items-center text-decoration-none p-0">
       <img src="/static/assets/logo.png" id="logo" alt="Dog Mau logo" style="border-radius: 50%; width: 50px; height: 50px; object-fit: cover;" />
     </a>
 
-    <!-- Hamburger Toggler -->
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#dogMauNavbar" aria-controls="dogMauNavbar" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
-    <!-- Collapsible Wrapper -->
     <div class="collapse navbar-collapse" id="dogMauNavbar">
       
-      <!-- Center Links - Padronizadas para branco -->
       <ul class="navbar-nav mx-auto mb-3 mb-lg-0 text-center mt-3 mt-lg-0">
         <li class="nav-item"><a href="/" class="nav-link px-3 fs-5 {% if page == 'home' %}active{% endif %}" style="color: white;">Home</a></li>
         <li class="nav-item"><a href="/produtos" class="nav-link px-3 fs-5 {% if page == 'produtos' %}active{% endif %}" style="color: white;">Produtos</a></li>
@@ -27,25 +23,27 @@
         {% endif %}
       </ul>
 
-      <!-- Action Area: Search and Profile -->
       <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-3">
-        <!-- Search Box -->
         <div class="search-box-wrap position-relative w-100">
-        <form class="d-flex w-100 search-box" id="globalSearchForm" role="search">
+          <form class="d-flex w-100 search-box" id="globalSearchForm" role="search">
             <input type="search" id="globalSearchInput" class="form-control search-input flex-grow-1" placeholder="Buscar produtos e serviços..." aria-label="Buscar produtos e serviços" autocomplete="off" />
             <button class="btn btn-danger ms-2 flex-shrink-0 btn-dogmau" type="submit">
                 <i class="bi bi-search text-white"></i>
             </button>
-        </form>
+          </form>
         </div>
         
-        <!-- Shopping Cart Icon -->
-        <button id="cart-toggle" class="btn position-relative" type="button" title="Carrinho de Compras" style="background: transparent; border: none; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0;">
+        {# Item 2 e 17: Atributo data-logged-in adicionado para controle transacional do clique no front #}
+        <button id="cart-toggle" 
+                class="btn position-relative" 
+                type="button" 
+                title="Carrinho de Compras" 
+                data-logged-in="{{ 'true' if user else 'false' }}"
+                style="background: transparent; border: none; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0;">
           <i class="bi bi-cart3" style="font-size: 1.3em; color: white;"></i>
           <span class="cart-badge">0</span>
         </button>
         
-        <!-- Profile Dropdown -->
         <div class="dropdown text-center text-lg-start mt-2 mt-lg-0">
           {% if user %}
           <a href="#" class="d-flex align-items-center justify-content-center justify-content-lg-start text-decoration-none dropdown-toggle text-white" data-bs-toggle="dropdown">
@@ -69,6 +67,11 @@
             <li><a class="dropdown-item text-white" href="/movimentacoes-estoque"><i class="bi bi-arrow-left-right me-2"></i>Mov. Estoque</a></li>
             <li><hr class="dropdown-divider"></li>
             {% endif %}
+            
+            {# Links dinâmicos da área logada do usuário #}
+            {% if user.role == 'cliente' %}
+            <li><a class="dropdown-item text-white" href="/painel?tab=pedidos"><i class="bi bi-receipt me-2"></i>Meus Pedidos</a></li>
+            {% endif %}
             <li><a class="dropdown-item text-white" href="/painel?tab=veiculos"><i class="bi bi-car-front me-2"></i>Veículos</a></li>
             <li><a class="dropdown-item text-white" href="/painel?tab=meu_usuario" id="btnHeaderPerfil"><i class="bi bi-person-vcard me-2"></i>Perfil</a></li>
             <li><hr class="dropdown-divider"></li>
@@ -90,3 +93,15 @@
     </div>
   </div>
 </nav>
+
+<script>
+  // Adiciona comportamento defensivo diretamente ao gatilho do carrinho se deslogado
+  document.getElementById('cart-toggle')?.addEventListener('click', function(e) {
+    if (this.getAttribute('data-logged-in') === 'false') {
+      e.preventDefault();
+      e.stopPropagation();
+      const currentPath = encodeURIComponent(window.location.pathname);
+      window.location.href = `/login?next=${currentPath}`;
+    }
+  });
+</script>

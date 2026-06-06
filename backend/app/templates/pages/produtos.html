@@ -246,8 +246,13 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="/static/js/cart.js"></script>
 <script>
+// Captura o estado de login lendo a meta tag global injetada no base.html
+function isUserLoggedIn() {
+    const metaUser = document.querySelector('meta[name="current-user-id"]');
+    return metaUser && metaUser.getAttribute('content') !== '';
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     const produtosList = document.getElementById('produtos-list');
 
@@ -311,7 +316,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             </button>
                             <button 
                                 class="btn-carrinho" 
-                                onclick="addToCart({id_produto: ${produto.id_produto}, nome: '${produto.nome.replace(/'/g, "\\'")}', preco: ${produto.preco}, imagem_produto: '${produto.imagem_produto || ''}'${!temEstoque ? ', disabled: true' : ''}})"
+                                onclick="addToCartWithLogin({id_produto: ${produto.id_produto}, nome: '${produto.nome.replace(/'/g, "\\'")}', preco: ${produto.preco}, imagem_produto: '${produto.imagem_produto || ''}'})"
                                 ${!temEstoque ? 'disabled' : ''}
                                 title="Adicionar ao carrinho"
                             >
@@ -336,43 +341,52 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-// Função para comprar diretamente (pode redirecionar para checkout com o produto)
+// CORREÇÃO: Função compra o produto (adiciona ao carrinho) e redireciona direto para o Checkout Real
 function comprarProduto(id_produto, nome, preco) {
-    // Verifica se está logado
-    const userLoggedIn = {% if user %}true{% else %}false{% endif %};
-    
-    if (!userLoggedIn) {
-        // Redireciona para login com volta ao carrinho
-        window.location.href = '/login?next=/checkout';
+    if (!isUserLoggedIn()) {
+        const currentPath = encodeURIComponent('/checkout');
+        window.location.href = `/login?next=${currentPath}`;
         return;
     }
 
     if (window.cart) {
         window.cart.addProduct({
-            id_produto,
-            nome,
-            preco,
-            quantidade: 1
+            id_produto: parseInt(id_produto),
+            name: nome, 
+            price: parseFloat(preco),
+            quantity: 1
         });
-        // Abre o carrinho
-        window.cart.toggleCart();
+        
+        window.location.href = '/checkout';
     }
 }
 
-// Função para adicionar ao carrinho com verificação de login
+// CORREÇÃO: Valida o login antes de empurrar o item para a estrutura do carrinho local
 function addToCartWithLogin(produtoData) {
-    // Verifica se está logado
-    const userLoggedIn = {% if user %}true{% else %}false{% endif %};
-    
-    if (!userLoggedIn) {
-        // Redireciona para login
-        window.location.href = '/login?next=/produtos';
+    if (!isUserLoggedIn()) {
+        const currentPath = encodeURIComponent(window.location.pathname);
+        window.location.href = `/login?next=${currentPath}`;
         return;
     }
 
-    // Se está logado, adiciona ao carrinho
     if (window.cart) {
-        window.cart.addProduct(produtoData);
+        window.cart.addProduct({
+            id_produto: parseInt(produtoData.id_produto),
+            name: produtoData.nome,
+            price: parseFloat(produtoData.preco),
+            quantity: 1
+        });
+        
+        // Abre a gaveta do carrinho chamando a interface global
+        const cartDropdown = document.getElementById('cart-dropdown');
+        const cartOverlay = document.getElementById('cart-overlay');
+        
+        if (cartDropdown && cartOverlay) {
+            cartDropdown.classList.add('active');
+            cartOverlay.classList.add('active');
+        } else if (typeof window.cart.toggleCart === 'function') {
+            window.cart.toggleCart();
+        }
     }
 }
 </script>

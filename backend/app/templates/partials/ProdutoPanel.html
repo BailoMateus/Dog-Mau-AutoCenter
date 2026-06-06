@@ -1,16 +1,16 @@
 {# ──────────────────────────────────────────────────────────────────
-   Partial: ProdutoPanel.html
-   Conteúdo reutilizável de gerenciamento de produtos.
-   Segue o padrão do ServicePanel.html.
+    Partial: ProdutoPanel.html
+    Conteúdo reutilizável de gerenciamento de produtos e peças.
+    Garante o isolamento estrito para perfis corporativos (Admin/Mecânico).
 
-   Requer no contexto:
-     - user      (dict com .role)
-     - produtos  (lista de dicts de produtos)
-   ────────────────────────────────────────────────────────────────── #}
+    Requer no contexto:
+      - user      (dict com .role)
+      - produtos  (lista de dicts de produtos)
+    ────────────────────────────────────────────────────────────────── #}
 
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
     <h2 class="fw-bold m-0" style="color: rgba(192, 37, 43); font-family: 'Orbitron', sans-serif;">
-        <i class="bi bi-box-seam me-2"></i>Gerenciamento de Produtos
+        <i class="bi bi-box-seam me-2"></i>Gerenciamento de Produtos e Peças
     </h2>
     {% if user.role in ['admin', 'mecanico'] %}
     <button class="btn btn-primary px-4 py-2" onclick="openProdutoModal('create', null)">
@@ -42,13 +42,15 @@
                     <img src="{{ p.imagem_produto or 'https://via.placeholder.com/50x50?text=Sem+Imagem' }}" alt="{{ p.nome }}" class="img-thumbnail rounded" style="width: 50px; height: 50px; object-fit: cover; background-color: #222; border-color: #333; padding: 2px;">
                 </td>
                 <td>{{ p.nome }}</td>
-                <td class="d-none d-md-table-cell">{{ p.descricao }}</td>
-                <td>R$ {{ "%.2f" | format(p.preco | float) }}</td>
+                <td class="d-none d-md-table-cell text-muted">{{ p.descricao or 'Sem descrição cadastrada' }}</td>
+                <td class="fw-bold" style="color: rgba(192, 37, 43);">R$ {{ "%.2f" | format(p.preco | float) }}</td>
                 <td>
-                    {% if p.quantidade_estoque is defined and p.quantidade_estoque <= 5 %}
-                    <span class="badge bg-danger">{{ p.quantidade_estoque }}</span>
+                    {% if p.quantidade_estoque is defined and p.quantidade_estoque == 0 %}
+                    <span class="badge bg-secondary">Esgotado</span>
+                    {% elif p.quantidade_estoque is defined and p.quantidade_estoque <= 5 %}
+                    <span class="badge bg-danger">Crítico: {{ p.quantidade_estoque }}</span>
                     {% elif p.quantidade_estoque is defined %}
-                    <span class="badge bg-success">{{ p.quantidade_estoque }}</span>
+                    <span class="badge bg-success">{{ p.quantidade_estoque }} un</span>
                     {% else %}
                     <span class="badge bg-secondary">—</span>
                     {% endif %}
@@ -60,9 +62,9 @@
                             data-prod-id="{{ p.id_produto }}"
                             data-prod-imagem-produto="{{ p.imagem_produto or '' }}"
                             data-prod-nome="{{ p.nome }}"
-                            data-prod-descricao="{{ p.descricao }}"
+                            data-prod-descricao="{{ p.descricao or '' }}"
                             data-prod-preco="{{ p.preco }}"
-                            data-prod-estoque="{{ p.quantidade_estoque }}">
+                            data-prod-estoque="{{ p.quantidade_estoque or 0 }}">
                         <i class="bi bi-pencil"></i> Editar
                     </button>
                     <button class="btn btn-sm btn-outline-danger"
@@ -76,7 +78,7 @@
             </tr>
             {% else %}
             <tr>
-                <td colspan="{% if user.role in ['admin', 'mecanico'] %}7{% else %}6{% endif %}" class="text-center py-4 text-muted">Nenhum produto cadastrado.</td>
+                <td colspan="{% if user.role in ['admin', 'mecanico'] %}7{% else %}6{% endif %}" class="text-center py-4 text-muted">Nenhum produto cadastrado no catálogo.</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -84,7 +86,6 @@
 </div>
 
 {% if user.role in ['admin', 'mecanico'] %}
-<!-- Modal Formulário (Criar/Editar Produto) -->
 <div id="produtoFormModal" class="custom-modal d-none">
     <div class="custom-modal-content rounded shadow card p-0" style="background-color: #111; border: 1px solid #222; max-width: 500px;">
         <div class="custom-modal-header border-bottom border-secondary p-3 d-flex justify-content-between align-items-center">
@@ -140,7 +141,6 @@
     </div>
 </div>
 
-<!-- Modal Confirmação de Exclusão de Produto -->
 <div id="deleteProdutoModal" class="custom-modal d-none">
     <div class="custom-modal-content rounded shadow card p-0" style="max-width: 400px; background-color: #111; border: 1px solid #222;">
         <div class="custom-modal-header border-bottom border-secondary p-3 text-center position-relative">
@@ -149,7 +149,7 @@
         </div>
         <div class="custom-modal-body p-4 text-center">
             <p class="mb-0 text-white">Tem certeza que deseja excluir o produto <br><strong id="deleteProdutoName" style="color: rgba(192, 37, 43);"></strong>?</p>
-            <p class="text-muted small mt-2">Esta ação não poderá ser desfeita.</p>
+            <p class="text-muted small mt-2">Esta ação não poderá ser desfeita e removerá o item da vitrine.</p>
             <input type="hidden" id="deleteProdutoId">
             <div id="deleteProdutoError" class="alert alert-danger d-none small mt-3"></div>
         </div>
@@ -161,7 +161,6 @@
 </div>
 {% endif %}
 
-{# ── Estilos do Modal (reutiliza se já existir do ServicePanel) ── #}
 <style>
 .custom-modal {
     position: fixed;
@@ -181,9 +180,9 @@
     width: 100%;
     max-width: 500px;
     margin: 1rem;
-    animation: modalFadeIn 0.2s ease-out;
+    animation: modalProductFadeIn 0.2s ease-out;
 }
-@keyframes modalFadeIn {
+@keyframes modalProductFadeIn {
     from { opacity: 0; transform: translateY(-20px); }
     to { opacity: 1; transform: translateY(0); }
 }
@@ -234,7 +233,6 @@
         document.getElementById(modalId).classList.add('d-none');
     }
 
-    // Fechar modal ao clicar fora dele
     document.querySelectorAll('#produtoFormModal, #deleteProdutoModal').forEach(modal => {
         modal.addEventListener('click', function(e) {
             if (e.target === this) {
@@ -251,7 +249,6 @@
         }
     });
 
-    // Submit Form (Create / Edit)
     document.getElementById('produtoForm').addEventListener('submit', async function(e) {
         e.preventDefault();
 
@@ -268,13 +265,28 @@
         const estoque = parseInt(document.getElementById('produtoEstoque').value, 10);
         const imagemInput = document.getElementById('produtoImagemProduto');
 
-        const formData = new FormData();
-        formData.append('nome', nome);
-        formData.append('descricao', descricao);
-        formData.append('preco', String(preco));
-        formData.append('quantidade_estoque', String(estoque));
+        let bodyPayload;
+        let headersPayload = {};
+
+        // CORREÇÃO: Chaveamento inteligente de payload para evitar erros 422 de tipagem no FastAPI
         if (imagemInput.files && imagemInput.files[0]) {
+            const formData = new FormData();
+            formData.append('nome', nome);
+            formData.append('descricao', descricao);
+            formData.append('preco', String(preco));
+            formData.append('quantidade_estoque', String(estoque));
             formData.append('imagem_produto', imagemInput.files[0]);
+            bodyPayload = formData;
+            // O navegador injeta o Content-Type: multipart/form-data com o boundary correto automaticamente
+        } else {
+            // Caso seja apenas texto, envia JSON limpo e performático
+            headersPayload['Content-Type'] = 'application/json';
+            bodyPayload = JSON.stringify({
+                nome: nome,
+                descricao: descricao,
+                preco: preco,
+                quantidade_estoque: estoque
+            });
         }
 
         const url = prodCurrentMode === 'create' ? '/api/produtos' : `/api/produtos/${id}`;
@@ -283,20 +295,21 @@
         try {
             const response = await fetch(url, {
                 method: method,
+                headers: headersPayload,
                 credentials: 'include',
-                body: formData
+                body: bodyPayload
             });
 
             if (response.ok) {
                 window.location.reload();
             } else {
                 const data = await response.json();
-                errBox.textContent = data.detail || 'Erro ao salvar o produto. Verifique os dados.';
+                errBox.textContent = data.detail || 'Erro ao salvar o produto. Verifique os limites informados.';
                 errBox.classList.remove('d-none');
             }
         } catch (error) {
             console.error(error);
-            errBox.textContent = 'Erro de rede ao se comunicar com o servidor.';
+            errBox.textContent = 'Erro de rede ao se comunicar com o servidor da oficina.';
             errBox.classList.remove('d-none');
         } finally {
             saveBtn.disabled = false;
@@ -304,7 +317,6 @@
         }
     });
 
-    // Confirm Delete
     async function confirmProdutoDelete() {
         const id = document.getElementById('deleteProdutoId').value;
         const btn = document.getElementById('btnConfirmProdutoDelete');
@@ -324,12 +336,12 @@
                 window.location.reload();
             } else {
                 const data = await response.json();
-                errBox.textContent = data.detail || 'Produto não pôde ser excluído.';
+                errBox.textContent = data.detail || 'Produto não pôde ser excluído do sistema.';
                 errBox.classList.remove('d-none');
             }
         } catch (error) {
             console.error(error);
-            errBox.textContent = 'Erro de rede ao se comunicar com o servidor.';
+            errBox.textContent = 'Erro de rede ao se comunicar com o servidor da oficina.';
             errBox.classList.remove('d-none');
         } finally {
             btn.disabled = false;

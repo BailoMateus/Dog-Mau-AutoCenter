@@ -1,10 +1,12 @@
 import logging
 from decimal import Decimal
 
-from fastapi import APIRouter, File, Form, Request, UploadFile, status
+from fastapi import APIRouter, File, Form, Request, UploadFile, status, Depends
 
 from app.schemas.produto_schema import ProdutoCreate, ProdutoPublic, ProdutoUpdate
 from app.services import produto_service
+from app.core.security import require_role
+from app.core.roles import ADMIN, MECANICO
 
 logger = logging.getLogger(__name__)
 
@@ -60,8 +62,9 @@ async def _parse_update_request(request: Request) -> tuple[ProdutoUpdate, Upload
     return ProdutoUpdate(**body), None
 
 
+# PROTEGIDO: Somente administradores e mecânicos podem cadastrar itens
 @router.post("", response_model=ProdutoPublic, status_code=status.HTTP_201_CREATED)
-async def create_produto(request: Request):
+async def create_produto(request: Request, _=Depends(require_role([ADMIN, MECANICO]))):
     data, imagem_produto = await _parse_create_request(request)
     logger.info("POST /produtos nome=%s multipart=%s", data.nome, imagem_produto is not None)
     if imagem_produto:
@@ -78,6 +81,7 @@ def create_produto_form(
     descricao: str | None = Form(None),
     quantidade_estoque: int = Form(0),
     imagem_produto: UploadFile | None = File(None),
+    _=Depends(require_role([ADMIN, MECANICO])) # Proteção adicionada
 ):
     data = ProdutoCreate(
         nome=nome,
@@ -89,6 +93,7 @@ def create_produto_form(
     return _to_public(produto)
 
 
+# ABERTO: Clientes e visitantes comuns precisam ler o catálogo de produtos/peças
 @router.get("", response_model=list[ProdutoPublic])
 def list_produtos():
     logger.info("GET /produtos")
@@ -103,8 +108,9 @@ def get_produto(produto_id: int):
     return _to_public(produto)
 
 
+# PROTEGIDO: Somente corporativo altera dados cadastrais e estoque
 @router.patch("/{produto_id}", response_model=ProdutoPublic)
-async def update_produto(produto_id: int, request: Request):
+async def update_produto(produto_id: int, request: Request, _=Depends(require_role([ADMIN, MECANICO]))):
     data, imagem_produto = await _parse_update_request(request)
     logger.info("PATCH /produtos/%s multipart=%s", produto_id, imagem_produto is not None)
     if imagem_produto:
@@ -114,17 +120,20 @@ async def update_produto(produto_id: int, request: Request):
     return _to_public(produto)
 
 
+# PROTEGIDO: Somente corporativo atualiza mídias de estoque
 @router.post("/{produto_id}/imagem-produto", response_model=ProdutoPublic)
 def upload_produto_imagem_produto(
     produto_id: int,
     imagem_produto: UploadFile = File(...),
+    _=Depends(require_role([ADMIN, MECANICO]))
 ):
     logger.info("POST /produtos/%s/imagem-produto", produto_id)
     produto = produto_service.save_produto_imagem_produto(produto_id, imagem_produto)
     return _to_public(produto)
 
 
+# PROTEGIDO: Somente corporativo remove itens do sistema
 @router.delete("/{produto_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_produto(produto_id: int):
+def delete_produto(produto_id: int, _=Depends(require_role([ADMIN, MECANICO]))):
     logger.info("DELETE /produtos/%s", produto_id)
     produto_service.delete_produto(produto_id)

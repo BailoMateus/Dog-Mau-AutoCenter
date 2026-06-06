@@ -1,131 +1,92 @@
 /**
  * compra.js
- * 
- * Utilitário para operações de compra (pedidos).
- * Fornece funções para criar pedidos e adicionar produtos com tratamento de autenticação.
+ * * Utilitário focado em operações transacionais de checkout e pedidos.
+ * Centraliza a comunicação com o ecossistema de vendas da API.
  */
 
 /**
- * Cria um novo pedido
- * @param {number} valor_total - Valor total do pedido
- * @returns {Promise<Object>} - Dados do pedido criado ou erro
+ * Envia o carrinho completo e dados de entrega para finalização atômica do checkout
+ * @param {Object} checkoutData - Dados estruturados para o fechamento da compra
+ * @param {Array} checkoutData.itens - Lista de objetos { id_produto, quantidade }
+ * @param {number} checkoutData.id_veiculo - ID do veículo selecionado pelo cliente
+ * @param {string} checkoutData.endereco - Endereço completo para entrega/faturamento
+ * @param {number} checkoutData.frete - Valor calculado do frete
+ * @returns {Promise<Object>} - Dados do pedido gerado, notas e status atual
  */
-async function criarPedido(valor_total) {
+async function finalizarCheckout(checkoutData) {
     try {
-        const response = await fetch('/api/pedidos', {
+        // Validação defensiva no front antes do disparo de rede
+        if (!checkoutData.itens || checkoutData.itens.length === 0) {
+            throw new Error("Não é possível finalizar um pedido com o carrinho vazio.");
+        }
+        if (!checkoutData.id_veiculo) {
+            throw new Error("Por favor, selecione um veículo cadastrado para prosseguir.");
+        }
+        if (!checkoutData.endereco || checkoutData.endereco.trim() === "") {
+            throw new Error("O endereço de entrega é obrigatório para o cálculo e envio.");
+        }
+
+        // Item 3: Chamada ao endpoint atômico unificado (Evita requisições fragmentadas)
+        const response = await fetch('/api/checkout', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            credentials: 'include', // Envia cookies (token)
+            credentials: 'include', // Envia os cookies de sessão e tokens de autenticação
             body: JSON.stringify({
-                valor_total,
-                status: 'pendente'
+                itens: checkoutData.itens.map(item => ({
+                    id_produto: item.id_produto,
+                    quantidade: item.quantidade
+                })),
+                id_veiculo: parseInt(checkoutData.id_veiculo, 10),
+                endereco: checkoutData.endereco.trim(),
+                frete: parseFloat(checkoutData.frete) || 0
             })
         });
 
+        const data = await response.json();
+
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || 'Erro ao criar pedido');
+            // Trata erros de negócio capturados pelo backend (ex: Estoque Insuficiente - Item 5)
+            throw new Error(data.detail || 'Falha ao processar o checkout.');
         }
 
-        return await response.json();
+        return data; // Retorna o payload estruturado: { pedido: {...}, itens: [...] }
     } catch (error) {
-        console.error('Erro ao criar pedido:', error);
+        console.error('Erro na operação de checkout:', error);
         throw error;
     }
 }
 
 /**
- * Adiciona um produto a um pedido existente
- * @param {number} pedido_id - ID do pedido
- * @param {number} id_produto - ID do produto
- * @param {number} quantidade - Quantidade do produto
- * @returns {Promise<Object>} - Item do pedido criado ou erro
+ * Solicita o cancelamento de um pedido pendente, devolvendo os itens ao estoque
+ * @param {number} pedidoId - ID do pedido a ser cancelado
+ * @returns {Promise<Object>} - Resultado da operação com status atualizado
  */
-async function adicionarProdutoAoPedido(pedido_id, id_produto, quantidade) {
+async function cancelarPedido(pedidoId) {
     try {
-        const response = await fetch(`/api/pedidos/${pedido_id}/itens`, {
+        // Item 12 e 13: Ocorre a reposição automática no banco caso o status seja 'pendente'
+        const response = await fetch(`/api/pedidos/${pedidoId}/cancelar`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
-            credentials: 'include', // Envia cookies (token)
-            body: JSON.stringify({
-                id_produto,
-                quantidade
-            })
+            credentials: 'include'
         });
 
+        const data = await response.json();
+
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || 'Erro ao adicionar produto');
+            throw new Error(data.detail || 'Não foi possível cancelar o pedido.');
         }
 
-        return await response.json();
+        return data;
     } catch (error) {
-        console.error('Erro ao adicionar produto:', error);
+        console.error(`Erro ao cancelar o pedido #${pedidoId}:`, error);
         throw error;
     }
 }
 
-/**
- * Atualiza a quantidade de um produto em um pedido
- * @param {number} pedido_id - ID do pedido
- * @param {number} produto_id - ID do produto
- * @param {number} quantidade - Nova quantidade
- * @returns {Promise<Object>} - Item atualizado ou erro
- */
-async function atualizarQuantidadeProduto(pedido_id, produto_id, quantidade) {
-    try {
-        const response = await fetch(`/api/pedidos/${pedido_id}/itens/${produto_id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include', // Envia cookies (token)
-            body: JSON.stringify({
-                quantidade
-            })
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || 'Erro ao atualizar quantidade');
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error('Erro ao atualizar quantidade:', error);
-        throw error;
-    }
-}
-
-/**
- * Remove um produto de um pedido
- * @param {number} pedido_id - ID do pedido
- * @param {number} produto_id - ID do produto
- * @returns {Promise<void>}
- */
-async function removerProdutoDoPedido(pedido_id, produto_id) {
-    try {
-        const response = await fetch(`/api/pedidos/${pedido_id}/itens/${produto_id}`, {
-            method: 'DELETE',
-            credentials: 'include', // Envia cookies (token)
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || 'Erro ao remover produto');
-        }
-    } catch (error) {
-        console.error('Erro ao remover produto:', error);
-        throw error;
-    }
-}
-
-// Exporta funções globalmente
-window.criarPedido = criarPedido;
-window.adicionarProdutoAoPedido = adicionarProdutoAoPedido;
-window.atualizarQuantidadeProduto = atualizarQuantidadeProduto;
-window.removerProdutoDoPedido = removerProdutoDoPedido;
+// Exportação global limpa, focada no fluxo transacional do Ajuste 4
+window.finalizarCheckout = finalizarCheckout;
+window.cancelarPedido = cancelarPedido;
