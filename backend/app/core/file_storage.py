@@ -69,9 +69,12 @@ def validate_image_upload(file: UploadFile, max_size: int = MAX_IMAGE_SIZE_BYTES
             detail="Tipo de arquivo não permitido. Use JPG, JPEG ou PNG.",
         )
 
+    # Mede o tamanho do arquivo avançando o ponteiro
     file.file.seek(0, os.SEEK_END)
     size = file.file.tell()
+    # Garante o reset do ponteiro para o início do arquivo de qualquer forma
     file.file.seek(0)
+    
     if size > max_size:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -97,6 +100,8 @@ def save_image_upload(subdir: str, entity_id: int, file: UploadFile) -> str:
     file_name = f"{entity_id}_{uuid4().hex}.{ext}"
     file_path = target_dir / file_name
 
+    # Assegura que o ponteiro está no zero antes da leitura final
+    file.file.seek(0)
     content = file.file.read()
     if not content:
         raise HTTPException(
@@ -107,6 +112,7 @@ def save_image_upload(subdir: str, entity_id: int, file: UploadFile) -> str:
     logger.info("Saving file at %s", file_path.resolve())
     file_path.write_bytes(content)
     logger.info("File exists after save: %s", file_path.exists())
+    
     if not file_path.exists() or file_path.stat().st_size != len(content):
         logger.error(
             "falha ao persistir upload subdir=%s path=%s size_esperado=%s size_disco=%s",

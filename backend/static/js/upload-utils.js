@@ -71,7 +71,7 @@ class UploadManager {
     }
 
     /**
-     * Upload de foto de perfil
+     * Upload de foto de perfil baseado na sessão do usuário logado (/api/me)
      * @param {File} file - Arquivo a enviar
      * @returns {Promise<Object>} - Resposta da API
      */
@@ -99,28 +99,29 @@ class UploadManager {
     }
 
     /**
-     * Validar arquivo de imagem
+     * Validar arquivo de imagem de acordo com as travas do backend
      * @param {File} file - Arquivo a validar
      * @param {Object} opcoes - {maxSize: bytes, types: [mime types]}
      * @returns {boolean} - Válido ou não
      */
     static validarImagem(file, opcoes = {}) {
-        const maxSize = opcoes.maxSize || 5 * 1024 * 1024; // 5MB padrão
-        const tipos = opcoes.types || ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        // Alinhado com o backend: Máximo 2MB e apenas JPEG/PNG
+        const maxSize = opcoes.maxSize || 2 * 1024 * 1024; 
+        const tipos = opcoes.types || ['image/jpeg', 'image/jpg', 'image/png'];
 
         if (file.size > maxSize) {
-            throw new Error(`Arquivo muito grande (máx: ${maxSize / 1024 / 1024}MB)`);
+            throw new Error(`Arquivo excede o tamanho máximo permitido de ${maxSize / 1024 / 1024} MB.`);
         }
 
-        if (!tipos.includes(file.type)) {
-            throw new Error(`Tipo de arquivo não permitido. Aceitos: ${tipos.join(', ')}`);
+        if (!tipos.includes(file.type.toLowerCase())) {
+            throw new Error('Formato de imagem inválido. Use apenas JPG, JPEG ou PNG.');
         }
 
         return true;
     }
 
     /**
-     * Gerar preview de imagem
+     * Gerar preview de imagem (Data URL)
      * @param {File} file - Arquivo da imagem
      * @returns {Promise<string>} - Data URL da imagem
      */
@@ -134,7 +135,7 @@ class UploadManager {
     }
 
     /**
-     * Configurar input de arquivo com preview
+     * Configurar input de arquivo com preview e tratamento de erros
      * @param {string} inputId - ID do input file
      * @param {string} previewId - ID do elemento de preview
      * @param {Function} onFileSelected - Callback quando arquivo é selecionado
@@ -167,13 +168,19 @@ class UploadManager {
                 }
             } catch (error) {
                 console.error('Erro ao processar imagem:', error);
-                if (window.UINotification) UINotification.toast('Erro ao processar imagem: ' + error.message, 'error');
+                // Limpa o input para permitir nova tentativa
+                input.value = '';
+                if (window.UINotification) {
+                    window.UINotification.toast(error.message, 'error');
+                } else {
+                    alert(error.message);
+                }
             }
         });
     }
 }
 
-// Exportar para uso global
+// Exportar para uso global ou modular
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = UploadManager;
 } else {

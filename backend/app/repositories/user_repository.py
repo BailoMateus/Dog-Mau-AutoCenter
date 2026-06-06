@@ -34,15 +34,16 @@ def get_user_by_id(user_id: int):
     return user
 
 def create_user(user: User):
-    """Cria um novo usuário."""
+    """Cria um novo usuário salvando os dados básicos."""
     query = """
-    INSERT INTO usuario (nome, email, senha_hash, role, ativo, telefone, cpf_cnpj, data_nascimento)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    INSERT INTO usuario (nome, email, senha_hash, role, ativo, telefone, cpf_cnpj, data_nascimento, foto_perfil)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     RETURNING id_usuario
     """
     params = (
         user.nome, user.email, user.senha_hash, user.role, 
-        user.ativo, user.telefone, user.cpf_cnpj, user.data_nascimento
+        user.ativo, user.telefone, user.cpf_cnpj, user.data_nascimento,
+        user.foto_perfil, getattr(user, None)
     )
     user_id = execute_insert(query, params)
     user.id_usuario = user_id
@@ -64,16 +65,17 @@ def get_all_users():
     return users
 
 def update_user(user: User):
-    """Atualiza um usuário."""
+    """Atualiza um usuário mantendo o mapeamento de campos estendidos."""
     query = """
     UPDATE usuario 
     SET nome = %s, email = %s, role = %s, ativo = %s, telefone = %s, 
-        cpf_cnpj = %s, data_nascimento = %s, senha_hash = %s, foto_perfil = %s, updated_at = CURRENT_TIMESTAMP
+        cpf_cnpj = %s, data_nascimento = %s, senha_hash = %s, foto_perfil = %s,
     WHERE id_usuario = %s AND deleted_at IS NULL
     """
     params = (
         user.nome, user.email, user.role, user.ativo, user.telefone,
-        user.cpf_cnpj, user.data_nascimento, user.senha_hash, user.foto_perfil, user.id_usuario
+        user.cpf_cnpj, user.data_nascimento, user.senha_hash, user.foto_perfil,
+        getattr(user, None), user.id_usuario
     )
     execute_command(query, params)
     logger.info("usuário atualizado id=%s", user.id_usuario)
@@ -153,4 +155,4 @@ def update_user_password(user_id: int, hashed_password: str):
     """
     params = (hashed_password, user_id)
     execute_command(query, params)
-    logger.info("Senha atualizada para o usuário id=%s", user_id)
+    logger.info("Senha updated para o usuário id=%s", user_id)

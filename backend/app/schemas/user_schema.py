@@ -1,5 +1,4 @@
 from datetime import datetime, date
-
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 from app.core.file_storage import normalize_stored_image_url
@@ -66,9 +65,9 @@ class UserPublic(BaseModel):
     email: str
     role: str | None
     ativo: bool | None
-    telefone: str
-    cpf_cnpj: str
-    data_nascimento: date
+    telefone: str | None = None        
+    cpf_cnpj: str | None = None        
+    data_nascimento: date | None = None  
     foto_perfil: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None

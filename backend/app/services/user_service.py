@@ -1,4 +1,6 @@
 import logging
+import os
+from typing import Annotated
 
 from app.schemas.password_schema import PasswordChangeRequest
 from fastapi import HTTPException, status, UploadFile
@@ -88,7 +90,6 @@ def assert_can_modify(actor: dict, target_id: int, *, admin_only: bool = False):
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acesso não autorizado")
 
 def assert_can_manage_cliente_data(actor: dict, target_id: int):
-    # Verifica se o usuário pode gerenciar dados de cliente (endereços, veículos)
     if actor["role"] == ADMIN:
         return
     if actor["role"] == CLIENTE and _actor_user_id(actor) == str(target_id):
@@ -120,7 +121,7 @@ def update_user(
     if data.telefone is not None:
         user.telefone = data.telefone
     
-    # ⚠️ NOVO: Proteger CPF/CNPJ após criação
+    # Proteger CPF/CNPJ após criação
     if data.cpf_cnpj is not None:
         if user.cpf_cnpj is not None and user.cpf_cnpj != data.cpf_cnpj:
             logger.warning(
@@ -167,14 +168,10 @@ def update_user(
 def change_user_password(user_id: int, data: PasswordChangeRequest, *, actor: dict):
     """Altera senha do usuário após verificação de senha atual."""
     user = get_user_or_404(user_id)
-    
-    # Verificar se é o próprio usuário ou admin
     assert_can_update(actor, user_id)
     
-    # Importar função de hash
     from app.core.security import verify_password, hash_password
     
-    # 1. Validar senha atual
     if not verify_password(data.old_password, user.senha_hash):
         logger.warning("change_password senha incorreta user_id=%s", user_id)
         raise HTTPException(
@@ -182,21 +179,18 @@ def change_user_password(user_id: int, data: PasswordChangeRequest, *, actor: di
             detail="Senha atual incorreta"
         )
     
-    # 2. Verificar se nova senha é diferente da antiga
     if data.old_password == data.new_password:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Nova senha deve ser diferente da atual"
         )
     
-    # 3. Validar que novas senhas coincidem
     if data.new_password != data.confirm_password:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Novas senhas não coincidem"
         )
     
-    # 4. Atualizar senha
     user.senha_hash = hash_password(data.new_password.strip())
     
     try:
@@ -227,9 +221,36 @@ def delete_user(user_id: int, *, actor: dict):
 def assert_can_update(actor: dict, target_id: int):
     assert_can_modify(actor, target_id, admin_only=False)
 
+
 def upload_user_photo(user_id: int, file: UploadFile, *, actor: dict):
-    get_user_or_404(user_id)
+    """
+    REQUISITO 6: Realiza o upload da nova foto e remove o arquivo antigo 
+    da pasta local para mitigar o acúmulo de arquivos órfãos.
+    """
+    user = get_user_or_404(user_id)
     assert_can_update(actor, user_id)
+    
+    # Guardamos o caminho do arquivo anterior antes do novo processamento
+    old_photo_url = getattr(user, "foto_perfil", None)
+    
+    # Executa o salvamento físico da nova foto através do core utilitário
     photo_url = save_image_upload("perfil", user_id, file)
+    
+    # Atualiza a referência no repositório de banco de dados
     repo.update_user_photo(user_id, photo_url)
+    
+    # Se existia uma foto anterior e ela for diferente da nova, realiza o expurgo
+    if old_photo_url and old_photo_url != photo_url:
+        try:
+            # Converte a URL relativa (/uploads/perfil/...) para o caminho real no disco
+            # Remove a barra inicial se existir para não quebrar a junção de caminhos do OS
+            relative_path = old_photo_url.lstrip("/")
+            
+            if os.path.exists(relative_path) and os.path.isfile(relative_path):
+                os.remove(relative_path)
+                logger.info("REQUISITO 6: Arquivo de foto antigo expurgado com sucesso: %s", relative_path)
+        except Exception as e:
+            # Falhas na remoção do arquivo antigo não devem travar o fluxo principal do usuário
+            logger.error("Falha ao remover arquivo órfão antigo de perfil %s: %s", old_photo_url, e)
+
     return get_user_or_404(user_id)
