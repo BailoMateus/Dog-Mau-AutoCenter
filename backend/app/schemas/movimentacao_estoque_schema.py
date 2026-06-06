@@ -9,8 +9,8 @@ class MovimentacaoEstoqueCreate(BaseModel):
 
 
 class MovimentacaoEstoqueFiltro(BaseModel):
-    data_inicio: datetime | None = None
-    data_fim: datetime | None = None
+    data_inicio: date | None = None
+    data_fim: date | None = None
     tipo_movimentacao: str | None = None
     id_peca: int | None = Field(default=None, ge=1)
     id_produto: int | None = Field(default=None, ge=1)

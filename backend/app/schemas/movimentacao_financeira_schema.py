@@ -8,8 +8,8 @@ class MovimentacaoFinanceiraCreate(BaseModel):
     id_pagamento: int | None = Field(default=None, ge=1)
 
 class MovimentacaoFinanceiraPeriodo(BaseModel):
-    data_abertura: datetime
-    data_fim: datetime
+    data_abertura: date
+    data_fim: date
     limit: int = Field(default=100, le=500)
 
 class MovimentacaoFinanceiraPublic(BaseModel):
