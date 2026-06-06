@@ -1080,7 +1080,7 @@ a:hover {
 }
 
 .cart-dropdown {
-  border-left: 3px solid var(--dogmau-red);
+  border-left: none;
 }
 
 /* Autocomplete busca global */
