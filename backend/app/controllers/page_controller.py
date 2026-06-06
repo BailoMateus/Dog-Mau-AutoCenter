@@ -302,7 +302,7 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
                 "usuario_nome": usuario_nome
             })
 
-        # Veículos (Admin vê todos com nome do proprietário, cliente vê os seus)
+        # Veículos (Admin/Mecânico veem todos com nome do proprietário, cliente vê os seus)
         if user.get("role") in ("admin", "mecanico"):
             veiculos = execute_query(
                 "SELECT v.id_veiculo, v.placa, v.ano_fabricacao, v.cor, v.id_usuario, v.id_modelo, "
@@ -341,7 +341,17 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
                 "WHERE os.deleted_at IS NULL ORDER BY os.created_at DESC", fetch="all"
             )
             mecanicos = execute_query("SELECT id_usuario, nome FROM usuario WHERE role = 'mecanico' AND deleted_at IS NULL", fetch="all")
+        
         elif user.get("role") == "mecanico":
+            # CORREÇÃO: Mecânico agora também puxa os orçamentos gerais para poder trabalhar/gerar OS
+            orcamentos = execute_query(
+                "SELECT o.*, v.placa, m.nome_modelo, u.nome as usuario_nome FROM orcamento o "
+                "JOIN veiculo v ON o.id_veiculo = v.id_veiculo "
+                "JOIN modelo m ON v.id_modelo = m.id_modelo "
+                "JOIN usuario u ON o.id_usuario = u.id_usuario "
+                "WHERE o.deleted_at IS NULL ORDER BY o.created_at DESC", fetch="all"
+            )
+            # Carrega apenas as OSs atribuídas a este mecânico específico
             ordens_servico = execute_query(
                 "SELECT os.*, o.valor_total, v.placa, m.nome_modelo, u.nome as cliente_nome "
                 "FROM ordem_servico os "
@@ -352,6 +362,7 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
                 "WHERE os.deleted_at IS NULL AND os.id_usuario = %s ORDER BY os.created_at DESC", 
                 (int(user["user_id"]),), fetch="all"
             )
+        
         else: # Cliente
             orcamentos = execute_query(
                 "SELECT o.*, v.placa, m.nome_modelo FROM orcamento o "
@@ -366,7 +377,7 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
                 "JOIN orcamento o ON os.id_orcamento = o.id_orcamento "
                 "JOIN veiculo v ON o.id_veiculo = v.id_veiculo "
                 "JOIN modelo m ON v.id_modelo = m.id_modelo "
-                "WHERE os.deleted_at IS NULL AND o.id_usuario = %s ORDER BY os.created_at DESC", 
+                "WHERE os.deleted_at IS NULL AND os.id_usuario = %s ORDER BY os.created_at DESC", 
                 (int(user["user_id"]),), fetch="all"
             )
 
@@ -394,7 +405,6 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
             status_code=500,
             content={"error": str(e), "traceback": traceback.format_exc()}
         )
-
 
 
 @router.get("/admin/usuarios", include_in_schema=False)

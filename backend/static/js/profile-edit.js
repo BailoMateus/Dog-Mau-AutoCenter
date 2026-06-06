@@ -53,6 +53,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Configurar upload de foto de perfil
     setupProfilePhotoUpload();
+
+    // Listener para botão de gerenciar endereços
+    const gerenciarEnderecoBtn = document.getElementById('gerenciarEnderecoBtn');
+    if (gerenciarEnderecoBtn) {
+        gerenciarEnderecoBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Redireciona para a aba de endereços dentro do painel
+            window.location.href = '/painel?tab=meu_usuario#endereco-management';
+            // TODO: Criar modal ou seção para gerenciar endereços
+        });
+    }
 });
 
 /**
@@ -89,6 +100,9 @@ async function loadUserProfile() {
                 fotoPreview.src = currentUserData.foto_perfil;
             }
         }
+
+        // Carrega endereços do usuário
+        await loadUserEnderecos();
 
         // Mostra o formulário
         document.getElementById('profileForm').style.display = 'block';
@@ -375,6 +389,54 @@ async function submitProfileChanges(changes) {
 }
 
 /**
+ * Carrega endereços do usuário
+ */
+async function loadUserEnderecos() {
+    try {
+        const response = await fetch('/api/me/enderecos', {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            console.warn('Erro ao carregar endereços:', response.status);
+            return;
+        }
+
+        const enderecos = await response.json();
+        const select = document.getElementById('endereco_principal');
+        
+        if (!select) return;
+
+        // Limpa as opções existentes (exceto a primeira)
+        while (select.options.length > 1) {
+            select.remove(1);
+        }
+
+        // Adiciona os endereços carregados
+        if (Array.isArray(enderecos) && enderecos.length > 0) {
+            enderecos.forEach(endereco => {
+                const option = document.createElement('option');
+                option.value = endereco.id_endereco;
+                
+                // Formata o endereço para exibição
+                const rua = endereco.rua || '';
+                const numero = endereco.numero || '';
+                const cidade = endereco.cidade || '';
+                const estado = endereco.estado || '';
+                const label = `${rua} ${numero} - ${cidade}, ${estado}`.replace(/\s+/g, ' ').trim();
+                
+                option.textContent = label || `Endereço #${endereco.id_endereco}`;
+                option.dataset.full = JSON.stringify(endereco);
+                select.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Erro ao carregar endereços:', error);
+    }
+}
+
+/**
  * Mostra alertas para o usuário
  */
 function showAlert(type, message) {
@@ -403,3 +465,4 @@ window.confirmFieldChange = confirmFieldChange;
 window.submitProfileChanges = submitProfileChanges;
 window.loadUserProfile = loadUserProfile;
 window.setupProfilePhotoUpload = setupProfilePhotoUpload;
+window.loadUserEnderecos = loadUserEnderecos;

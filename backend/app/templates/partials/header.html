@@ -13,15 +13,15 @@
     <!-- Collapsible Wrapper -->
     <div class="collapse navbar-collapse" id="dogMauNavbar">
       
-      <!-- Center Links -->
+      <!-- Center Links - Padronizadas para branco -->
       <ul class="navbar-nav mx-auto mb-3 mb-lg-0 text-center mt-3 mt-lg-0">
-        <li class="nav-item"><a href="/" class="nav-link px-3 fs-5 {% if page == 'home' %}active{% endif %}">Home</a></li>
-        <li class="nav-item"><a href="/produtos" class="nav-link px-3 fs-5 {% if page == 'produtos' %}active{% endif %}">Produtos</a></li>
-        <li class="nav-item"><a href="/servicos" class="nav-link px-3 fs-5 {% if page == 'servicos' %}active{% endif %}">Serviços</a></li>
+        <li class="nav-item"><a href="/" class="nav-link px-3 fs-5 {% if page == 'home' %}active{% endif %}" style="color: white;">Home</a></li>
+        <li class="nav-item"><a href="/produtos" class="nav-link px-3 fs-5 {% if page == 'produtos' %}active{% endif %}" style="color: white;">Produtos</a></li>
+        <li class="nav-item"><a href="/servicos" class="nav-link px-3 fs-5 {% if page == 'servicos' %}active{% endif %}" style="color: white;">Serviços</a></li>
         {% if user %}
         <li class="nav-item">
-          <a href="/painel" class="nav-link px-3 fs-5 {% if page == 'painel' %}active{% endif %}">
-            {% if user.role == 'admin' %}Gestao{% elif user.role == 'mecanico' %}Oficina{% else %}Minha Área{% endif %}
+          <a href="/painel" class="nav-link px-3 fs-5 {% if page == 'painel' %}active{% endif %}" style="color: white;">
+            {% if user.role == 'admin' %}Gestão{% elif user.role == 'mecanico' %}Oficina{% else %}Minha Área{% endif %}
           </a>
         </li>
         {% endif %}

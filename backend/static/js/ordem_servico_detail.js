@@ -22,13 +22,16 @@
             const os = await response.json();
             exibirOrdemServico(os);
 
+            // Permite exibir os dados básicos mesmo se um dos blocos detalhados falhar isoladamente
+            if (content) content.style.display = 'block';
+            if (loader) loader.classList.remove('active');
+
             await Promise.all([carregarServicos(), carregarPecas(), carregarMovimentacoes()]);
 
-            if (loader) loader.classList.remove('active');
-            if (content) content.style.display = 'block';
         } catch (err) {
             console.error('Erro ao carregar OS:', err);
             if (loader) loader.classList.remove('active');
+            if (content) content.style.display = 'none';
             if (errorEl) errorEl.style.display = 'block';
         }
     }
@@ -89,6 +92,7 @@
         btn.textContent = 'Atualizar status';
         btn.addEventListener('click', async () => {
             try {
+                btn.disabled = true;
                 const res = await fetch(`${API_BASE}/ordens-servico/${osId}/status`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
@@ -103,6 +107,8 @@
                 carregarOrdemServico();
             } catch (e) {
                 notify(e.message, 'error');
+            } finally {
+                btn.disabled = false;
             }
         });
 
@@ -154,7 +160,7 @@
             if (loader) loader.style.display = 'none';
             if (content) content.style.display = 'block';
         } catch (err) {
-            console.error(err);
+            console.error('Erro ao carregar serviços:', err);
             if (loader) loader.style.display = 'none';
             if (empty) empty.style.display = 'block';
         }
@@ -200,7 +206,7 @@
             if (loader) loader.style.display = 'none';
             if (content) content.style.display = 'block';
         } catch (err) {
-            console.error(err);
+            console.error('Erro ao carregar peças:', err);
             if (loader) loader.style.display = 'none';
             if (empty) empty.style.display = 'block';
         }
@@ -216,7 +222,8 @@
             if (content) content.style.display = 'none';
             if (empty) empty.style.display = 'none';
 
-            const response = await fetch(`${API_BASE}/ordens-servico/${osId}/pecas/movimentacoes`, { credentials: 'include' });
+            // CORREÇÃO: Ajuste de rota para corresponder ao backend (/ordens-servico/{id}/movimentacoes)
+            const response = await fetch(`${API_BASE}/ordens-servico/${osId}/movimentacoes`, { credentials: 'include' });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
             const movimentacoes = await response.json();
@@ -242,7 +249,7 @@
             if (loader) loader.style.display = 'none';
             if (content) content.style.display = 'block';
         } catch (err) {
-            console.error(err);
+            console.error('Erro ao carregar movimentações:', err);
             if (loader) loader.style.display = 'none';
             if (empty) empty.style.display = 'block';
         }
@@ -257,8 +264,10 @@
     document.addEventListener('DOMContentLoaded', () => {
         if (osId && !isNaN(parseInt(osId, 10))) carregarOrdemServico();
         else {
-            document.getElementById('osLoader').classList.remove('active');
-            document.getElementById('osError').style.display = 'block';
+            const loader = document.getElementById('osLoader');
+            const errorEl = document.getElementById('osError');
+            if (loader) loader.classList.remove('active');
+            if (errorEl) errorEl.style.display = 'block';
         }
     });
 })();

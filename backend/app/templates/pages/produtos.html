@@ -338,6 +338,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Função para comprar diretamente (pode redirecionar para checkout com o produto)
 function comprarProduto(id_produto, nome, preco) {
+    // Verifica se está logado
+    const userLoggedIn = {% if user %}true{% else %}false{% endif %};
+    
+    if (!userLoggedIn) {
+        // Redireciona para login com volta ao carrinho
+        window.location.href = '/login?next=/checkout';
+        return;
+    }
+
     if (window.cart) {
         window.cart.addProduct({
             id_produto,
@@ -347,6 +356,23 @@ function comprarProduto(id_produto, nome, preco) {
         });
         // Abre o carrinho
         window.cart.toggleCart();
+    }
+}
+
+// Função para adicionar ao carrinho com verificação de login
+function addToCartWithLogin(produtoData) {
+    // Verifica se está logado
+    const userLoggedIn = {% if user %}true{% else %}false{% endif %};
+    
+    if (!userLoggedIn) {
+        // Redireciona para login
+        window.location.href = '/login?next=/produtos';
+        return;
+    }
+
+    // Se está logado, adiciona ao carrinho
+    if (window.cart) {
+        window.cart.addProduct(produtoData);
     }
 }
 </script>
