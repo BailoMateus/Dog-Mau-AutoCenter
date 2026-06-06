@@ -92,20 +92,6 @@ def list_movimentacoes_by_periodo(data: MovimentacaoFinanceiraPeriodo):
         for mov in movimentacoes
     ]
 
-@router.get("/{movimentacao_id}", response_model=MovimentacaoFinanceiraPublic)
-def get_movimentacao_financeira_by_id(movimentacao_id: int):
-    """Busca movimentação financeira por ID."""
-    logger.info("GET /movimentacoes-financeiras/%s", movimentacao_id)
-    movimentacao = movimentacao_financeira_service.get_movimentacao_financeira_by_id(movimentacao_id)
-    return MovimentacaoFinanceiraPublic(
-        id_movimentacao_financeira=movimentacao.id_movimentacao_financeira,
-        tipo_movimentacao=movimentacao.tipo_movimentacao,
-        valor=movimentacao.valor,
-        descricao=movimentacao.descricao,
-        id_pagamento=movimentacao.id_pagamento,
-        created_at=movimentacao.created_at
-    )
-
 @router.get("/pagamento/{pagamento_id}", response_model=list[MovimentacaoFinanceiraPublic])
 def list_movimentacoes_by_pagamento(pagamento_id: int):
     """Lista movimentações de um pagamento."""
@@ -151,3 +137,17 @@ def get_resumo_financeiro(
         )
         for item in resumo
     ]
+
+@router.get("/{movimentacao_id}", response_model=MovimentacaoFinanceiraPublic)
+def get_movimentacao_financeira_by_id(movimentacao_id: int):
+    """Busca movimentação financeira por ID."""
+    logger.info("GET /movimentacoes-financeiras/%s", movimentacao_id)
+    movimentacao = movimentacao_financeira_service.get_movimentacao_financeira_by_id(movimentacao_id)
+    return MovimentacaoFinanceiraPublic(
+        id_movimentacao_financeira=movimentacao.id_movimentacao_financeira,
+        tipo_movimentacao=movimentacao.tipo_movimentacao,
+        valor=movimentacao.valor,
+        descricao=movimentacao.descricao,
+        id_pagamento=movimentacao.id_pagamento,
+        created_at=movimentacao.created_at
+    )
