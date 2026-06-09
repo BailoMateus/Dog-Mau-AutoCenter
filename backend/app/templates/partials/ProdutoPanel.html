@@ -85,6 +85,83 @@
     </table>
 </div>
 
+{# ── Seção de Peças ── #}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 mt-5 gap-3">
+    <h2 class="fw-bold m-0" style="color: rgba(192, 37, 43); font-family: 'Orbitron', sans-serif;">
+        <i class="bi bi-gear-wide-connected me-2"></i>Peças
+    </h2>
+    {% if user.role in ['admin', 'mecanico'] %}
+    <button class="btn btn-primary px-4 py-2" onclick="openPecaModal('create', null)">
+        <i class="bi bi-plus-circle-fill me-2"></i>Nova Peça
+    </button>
+    {% endif %}
+</div>
+
+<div class="table-responsive rounded shadow card p-0 border-0" style="background-color: #111;">
+    <table class="table table-dark table-hover align-middle mb-0" style="background-color: transparent;">
+        <thead class="table-dark text-uppercase small" style="border-bottom: 2px solid #222;">
+            <tr>
+                <th class="py-3">ID</th>
+                <th class="py-3 text-center">Imagem</th>
+                <th class="py-3">Nome</th>
+                <th class="py-3 d-none d-md-table-cell">Descrição</th>
+                <th class="py-3">Preço</th>
+                <th class="py-3">Estoque</th>
+                {% if user.role in ['admin', 'mecanico'] %}
+                <th class="text-center py-3">Ações</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for pc in pecas %}
+            <tr>
+                <td>{{ pc.id_peca }}</td>
+                <td class="text-center">
+                    <img src="{{ pc.imagem_peca or 'https://via.placeholder.com/50x50?text=Sem+Imagem' }}" alt="{{ pc.nome }}" class="img-thumbnail rounded" style="width: 50px; height: 50px; object-fit: cover; background-color: #222; border-color: #333; padding: 2px;">
+                </td>
+                <td>{{ pc.nome }}</td>
+                <td class="d-none d-md-table-cell text-muted">—</td>
+                <td class="fw-bold" style="color: rgba(192, 37, 43);">R$ {{ "%.2f" | format(pc.preco_unitario | float) }}</td>
+                <td>
+                    {% if pc.quantidade_estoque is defined and pc.quantidade_estoque == 0 %}
+                    <span class="badge bg-secondary">Esgotado</span>
+                    {% elif pc.quantidade_estoque is defined and pc.quantidade_estoque <= 5 %}
+                    <span class="badge bg-danger">Crítico: {{ pc.quantidade_estoque }}</span>
+                    {% elif pc.quantidade_estoque is defined %}
+                    <span class="badge bg-success">{{ pc.quantidade_estoque }} un</span>
+                    {% else %}
+                    <span class="badge bg-secondary">—</span>
+                    {% endif %}
+                </td>
+                {% if user.role in ['admin', 'mecanico'] %}
+                <td class="text-center">
+                    <button class="btn btn-sm btn-outline-primary me-2"
+                            onclick="openPecaModal('edit', this)"
+                            data-peca-id="{{ pc.id_peca }}"
+                            data-peca-imagem-peca="{{ pc.imagem_peca or '' }}"
+                            data-peca-nome="{{ pc.nome }}"
+                            data-peca-preco="{{ pc.preco_unitario }}"
+                            data-peca-estoque="{{ pc.quantidade_estoque or 0 }}">
+                        <i class="bi bi-pencil"></i> Editar
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger"
+                            onclick="openDeletePecaModal(this)"
+                            data-peca-id="{{ pc.id_peca }}"
+                            data-peca-nome="{{ pc.nome }}">
+                        <i class="bi bi-trash"></i> Excluir
+                    </button>
+                </td>
+                {% endif %}
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="{% if user.role in ['admin', 'mecanico'] %}7{% else %}6{% endif %}" class="text-center py-4 text-muted">Nenhuma peça cadastrada no catálogo.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 {% if user.role in ['admin', 'mecanico'] %}
 <div id="produtoFormModal" class="custom-modal d-none">
     <div class="custom-modal-content rounded shadow card p-0" style="background-color: #111; border: 1px solid #222; max-width: 500px;">
@@ -156,6 +233,75 @@
         <div class="custom-modal-footer border-top border-secondary p-3 d-flex justify-content-between gap-2">
             <button type="button" class="btn btn-outline-secondary w-50 py-2" onclick="closeProdutoModal('deleteProdutoModal')">Cancelar</button>
             <button type="button" class="btn btn-danger w-50 py-2" onclick="confirmProdutoDelete()" id="btnConfirmProdutoDelete">Confirmar Exclusão</button>
+        </div>
+    </div>
+</div>
+
+<div id="pecaFormModal" class="custom-modal d-none">
+    <div class="custom-modal-content rounded shadow card p-0" style="background-color: #111; border: 1px solid #222; max-width: 500px;">
+        <div class="custom-modal-header border-bottom border-secondary p-3 d-flex justify-content-between align-items-center">
+            <h5 class="m-0 fw-bold" id="pecaModalTitle" style="color: rgba(192, 37, 43);">Nova Peça</h5>
+            <button type="button" class="btn-close btn-close-white" onclick="closeProdutoModal('pecaFormModal')"></button>
+        </div>
+        <div class="custom-modal-body p-4">
+            <form id="pecaForm" class="w-100 m-auto" style="max-width: 100%;">
+                <input type="hidden" id="pecaId" name="id" />
+
+                <div class="text-center mb-4">
+                    <img id="pecaImagemPreview" src="https://via.placeholder.com/150x150?text=Sem+Imagem" alt="Preview da Imagem" class="img-thumbnail rounded shadow-sm" style="width: 120px; height: 120px; object-fit: cover; background-color: #0b0b0b; border-color: #333;">
+                </div>
+
+                <div class="mb-3">
+                    <label for="pecaImagemPeca" class="form-label text-white-50">Imagem da peça (JPG, PNG)</label>
+                    <input type="file" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="pecaImagemPeca" name="imagem_peca" accept="image/jpeg,image/png,image/jpg">
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="pecaNome" name="nome" placeholder="Nome da Peça" required>
+                    <label for="pecaNome" class="text-white-50">Nome</label>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <div class="form-floating">
+                            <input type="number" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="pecaPreco" name="preco_unitario" placeholder="0.00" step="0.01" min="0.01" required>
+                            <label for="pecaPreco" class="text-white-50">Preço (R$)</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-floating">
+                            <input type="number" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="pecaEstoque" name="estoque" placeholder="0" step="1" min="0" required>
+                            <label for="pecaEstoque" class="text-white-50">Qtd. Estoque</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="pecaFormError" class="alert alert-danger d-none small"></div>
+
+                <div class="d-flex justify-content-between gap-2 mt-4">
+                    <button type="button" class="btn btn-outline-secondary w-50 py-2" onclick="closeProdutoModal('pecaFormModal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary w-50 py-2" id="pecaSaveButton">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="deletePecaModal" class="custom-modal d-none">
+    <div class="custom-modal-content rounded shadow card p-0" style="max-width: 400px; background-color: #111; border: 1px solid #222;">
+        <div class="custom-modal-header border-bottom border-secondary p-3 text-center position-relative">
+            <h5 class="m-0 text-danger w-100 fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Atenção</h5>
+            <button type="button" class="btn-close btn-close-white position-absolute top-50 end-0 translate-middle-y me-3" onclick="closeProdutoModal('deletePecaModal')"></button>
+        </div>
+        <div class="custom-modal-body p-4 text-center">
+            <p class="mb-0 text-white">Tem certeza que deseja excluir a peça <br><strong id="deletePecaName" style="color: rgba(192, 37, 43);"></strong>?</p>
+            <p class="text-muted small mt-2">Esta ação não poderá ser desfeita e removerá o item da vitrine.</p>
+            <input type="hidden" id="deletePecaId">
+            <div id="deletePecaError" class="alert alert-danger d-none small mt-3"></div>
+        </div>
+        <div class="custom-modal-footer border-top border-secondary p-3 d-flex justify-content-between gap-2">
+            <button type="button" class="btn btn-outline-secondary w-50 py-2" onclick="closeProdutoModal('deletePecaModal')">Cancelar</button>
+            <button type="button" class="btn btn-danger w-50 py-2" onclick="confirmPecaDelete()" id="btnConfirmPecaDelete">Confirmar Exclusão</button>
         </div>
     </div>
 </div>
@@ -337,6 +483,155 @@
             } else {
                 const data = await response.json();
                 errBox.textContent = data.detail || 'Produto não pôde ser excluído do sistema.';
+                errBox.classList.remove('d-none');
+            }
+        } catch (error) {
+            console.error(error);
+            errBox.textContent = 'Erro de rede ao se comunicar com o servidor da oficina.';
+            errBox.classList.remove('d-none');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Confirmar Exclusão';
+        }
+    }
+
+    // ───────────────────────── Peças ─────────────────────────
+    let pecaCurrentMode = 'create';
+
+    function openPecaModal(mode, btnElement) {
+        pecaCurrentMode = mode;
+        const form = document.getElementById('pecaForm');
+        form.reset();
+        document.getElementById('pecaFormError').classList.add('d-none');
+
+        const title = document.getElementById('pecaModalTitle');
+
+        if (mode === 'create') {
+            title.textContent = 'Nova Peça';
+            document.getElementById('pecaId').value = '';
+            document.getElementById('pecaImagemPeca').value = '';
+            document.getElementById('pecaImagemPreview').src = 'https://via.placeholder.com/150x150?text=Sem+Imagem';
+        } else if (mode === 'edit' && btnElement) {
+            title.textContent = 'Editar Peça';
+            document.getElementById('pecaId').value = btnElement.getAttribute('data-peca-id');
+            const imgUrl = btnElement.getAttribute('data-peca-imagem-peca');
+            document.getElementById('pecaImagemPeca').value = '';
+            document.getElementById('pecaImagemPreview').src = imgUrl || 'https://via.placeholder.com/150x150?text=Sem+Imagem';
+            document.getElementById('pecaNome').value = btnElement.getAttribute('data-peca-nome');
+            document.getElementById('pecaPreco').value = btnElement.getAttribute('data-peca-preco');
+            document.getElementById('pecaEstoque').value = btnElement.getAttribute('data-peca-estoque');
+        }
+
+        document.getElementById('pecaFormModal').classList.remove('d-none');
+    }
+
+    function openDeletePecaModal(btnElement) {
+        const id = btnElement.getAttribute('data-peca-id');
+        const nome = btnElement.getAttribute('data-peca-nome');
+        document.getElementById('deletePecaId').value = id;
+        document.getElementById('deletePecaName').textContent = nome;
+        document.getElementById('deletePecaError').classList.add('d-none');
+        document.getElementById('deletePecaModal').classList.remove('d-none');
+    }
+
+    document.querySelectorAll('#pecaFormModal, #deletePecaModal').forEach(modal => {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeProdutoModal(this.id);
+            }
+        });
+    });
+
+    document.getElementById('pecaImagemPeca').addEventListener('change', function(e) {
+        const preview = document.getElementById('pecaImagemPreview');
+        const file = e.target.files && e.target.files[0];
+        if (file) {
+            preview.src = URL.createObjectURL(file);
+        }
+    });
+
+    document.getElementById('pecaForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const saveBtn = document.getElementById('pecaSaveButton');
+        const errBox = document.getElementById('pecaFormError');
+        errBox.classList.add('d-none');
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Salvando...';
+
+        const id = document.getElementById('pecaId').value;
+        const nome = document.getElementById('pecaNome').value;
+        const preco = parseFloat(document.getElementById('pecaPreco').value);
+        const estoque = parseInt(document.getElementById('pecaEstoque').value, 10);
+        const imagemInput = document.getElementById('pecaImagemPeca');
+
+        let bodyPayload;
+        let headersPayload = {};
+
+        if (imagemInput.files && imagemInput.files[0]) {
+            const formData = new FormData();
+            formData.append('nome', nome);
+            formData.append('preco_unitario', String(preco));
+            formData.append('quantidade_estoque', String(estoque));
+            formData.append('imagem_peca', imagemInput.files[0]);
+            bodyPayload = formData;
+        } else {
+            headersPayload['Content-Type'] = 'application/json';
+            bodyPayload = JSON.stringify({
+                nome: nome,
+                preco_unitario: preco,
+                quantidade_estoque: estoque
+            });
+        }
+
+        const url = pecaCurrentMode === 'create' ? '/pecas' : `/pecas/${id}`;
+        const method = pecaCurrentMode === 'create' ? 'POST' : 'PATCH';
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: headersPayload,
+                credentials: 'include',
+                body: bodyPayload
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                errBox.textContent = data.detail || 'Erro ao salvar a peça. Verifique os limites informados.';
+                errBox.classList.remove('d-none');
+            }
+        } catch (error) {
+            console.error(error);
+            errBox.textContent = 'Erro de rede ao se comunicar com o servidor da oficina.';
+            errBox.classList.remove('d-none');
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = 'Salvar';
+        }
+    });
+
+    async function confirmPecaDelete() {
+        const id = document.getElementById('deletePecaId').value;
+        const btn = document.getElementById('btnConfirmPecaDelete');
+        const errBox = document.getElementById('deletePecaError');
+
+        errBox.classList.add('d-none');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Excluindo...';
+
+        try {
+            const response = await fetch(`/pecas/${id}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                errBox.textContent = data.detail || 'Peça não pôde ser excluída do sistema.';
                 errBox.classList.remove('d-none');
             }
         } catch (error) {

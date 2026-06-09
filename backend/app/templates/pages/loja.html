@@ -30,7 +30,7 @@
 
   <section class="container">
     <h2 class="loja-section-title">
-      <i class="bi bi-grid-3x3-gap me-2" style="color: #c0252b;"></i>Vitrine
+      <i class="bi bi-box-seam me-2" style="color: #c0252b;"></i>Produtos
     </h2>
 
     <p id="lojaEmptyMsg" class="loja-empty-msg">Nenhum produto encontrado para sua busca.</p>
@@ -73,6 +73,47 @@
         {% endfor %}
       {% endif %}
     </div>
+  </section>
+
+  <section class="container">
+    <h2 class="loja-section-title">
+      <i class="bi bi-gear-wide-connected me-2" style="color: #c0252b;"></i>Peças
+    </h2>
+
+    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4" id="lojaPecaGrid">
+      {% if pecas %}
+        {% for pc in pecas %}
+        {% set pc_estoque = pc.quantidade_estoque | default(0) %}
+        {% set pc_img = pc.imagem_peca if pc.imagem_peca else 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=600&h=600&fit=crop' %}
+        <div class="col">
+          <article class="loja-card" data-loja-card data-nome="{{ pc.nome }}" data-desc="">
+            <div class="loja-card-img-wrap">
+              <img src="{{ pc_img }}" alt="{{ pc.nome }}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=600&h=600&fit=crop'">
+              {% if pc_estoque <= 0 %}
+              <span class="loja-card-badge esgotado">Esgotado</span>
+              {% elif pc_estoque <= 5 %}
+              <span class="loja-card-badge baixo">Estoque baixo</span>
+              {% else %}
+              <span class="loja-card-badge disponivel">Disponível</span>
+              {% endif %}
+            </div>
+            <div class="loja-card-body">
+              <h3 class="loja-card-title">{{ pc.nome }}</h3>
+              <p class="loja-card-desc">Peça original Dog-Mau Auto Center.</p>
+              <p class="loja-card-price">
+                R$ {{ "%.2f"|format(pc.preco_unitario | float) }}
+                <small> / un.</small>
+              </p>
+            </div>
+          </article>
+        </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+
+    {% if not pecas %}
+    <p class="loja-empty-msg" style="display: block;">Nenhuma peça cadastrada no catálogo.</p>
+    {% endif %}
   </section>
 </div>
 

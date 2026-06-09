@@ -12,6 +12,24 @@ from app.schemas.movimentacao_estoque_schema import (
 
 logger = logging.getLogger(__name__)
 
+def _registrar_saida_financeira_estoque(peca_id: int, quantidade: int, tipo_movimentacao: str):
+    """Cria automaticamente uma movimentação financeira de saída para o valor gasto
+    na compra de peça/produto a partir de uma movimentação de estoque manual."""
+    try:
+        from app.repositories import movimentacao_financeira_repository
+        peca = peca_base_repo.get_peca_by_id(peca_id)
+        if not peca:
+            return
+        valor = float(peca.preco_unitario or 0) * quantidade
+        if valor <= 0:
+            return
+        movimentacao_financeira_repository.registrar_saida_financeira(
+            valor=valor,
+            descricao=f"Compra de peça (movimentação de estoque manual - {tipo_movimentacao}): {peca.nome} (x{quantidade})"
+        )
+    except Exception as e:
+        logger.error("falha ao registrar saída financeira da movimentação de estoque peca=%s: %s", peca_id, e)
+
 def list_all_movimentacoes(limit: int = 100):
     """Lista todas as movimentações de estoque."""
     return movimentacao_repo.get_all_movimentacoes(limit)
@@ -84,10 +102,13 @@ def registrar_entrada_estoque(data: MovimentacaoEstoqueCreate):
             quantidade=data.quantidade,
             motivo=data.motivo or "Entrada manual"
         )
-        
-        logger.info("entrada registrada peca=%s quantidade=%s estoque_anterior=%s motivo=%s", 
+
+        logger.info("entrada registrada peca=%s quantidade=%s estoque_anterior=%s motivo=%s",
                    data.id_peca, data.quantidade, estoque_anterior, data.motivo)
-        
+
+        # Movimentação financeira de saída (valor gasto na compra de peça/produto)
+        _registrar_saida_financeira_estoque(data.id_peca, data.quantidade, "entrada")
+
         return movimentacao
         
     except psycopg2.IntegrityError:
@@ -113,10 +134,13 @@ def registrar_saida_estoque(data: MovimentacaoEstoqueCreate):
             quantidade=data.quantidade,
             motivo=data.motivo or "Saída manual"
         )
-        
-        logger.info("saída registrada peca=%s quantidade=%s estoque_anterior=%s motivo=%s", 
+
+        logger.info("saída registrada peca=%s quantidade=%s estoque_anterior=%s motivo=%s",
                    data.id_peca, data.quantidade, estoque_anterior, data.motivo)
-        
+
+        # Movimentação financeira de saída (valor gasto na compra de peça/produto)
+        _registrar_saida_financeira_estoque(data.id_peca, data.quantidade, "saida")
+
         return movimentacao
         
     except ValueError as e:

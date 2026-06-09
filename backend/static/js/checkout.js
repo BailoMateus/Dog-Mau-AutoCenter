@@ -22,7 +22,6 @@ class CheckoutManager {
 
   loadCartItems() {
     const container = document.getElementById('cart-items-container');
-    const subtotalEl = document.getElementById('subtotal');
     const totalEl = document.getElementById('total');
 
     if (!container) return;
@@ -53,28 +52,18 @@ class CheckoutManager {
       `)
       .join('');
 
-    // Atualiza totais
-    const subtotal = this.cart.getTotal();
-    const frete = 15.00; // Valor fixo de frete para exemplo
-    const total = subtotal + frete;
-
-    subtotalEl.textContent = this.formatPrice(subtotal);
-    document.getElementById('frete').textContent = this.formatPrice(frete);
+    // Total da compra: soma do preço de todos os itens do carrinho (sem frete)
+    const total = this.cart.getTotal();
     totalEl.textContent = this.formatPrice(total);
   }
 
   loadUserData() {
     // Tenta preencher com dados do usuário logado
     const metaUser = document.querySelector('meta[name="user-name"]');
-    const metaEmail = document.querySelector('meta[name="user-email"]');
     const metaPhone = document.querySelector('meta[name="user-phone"]');
 
     if (metaUser && metaUser.content) {
-      document.getElementById('destinatario').value = metaUser.content;
-    }
-
-    if (metaEmail && metaEmail.content) {
-      document.getElementById('email').value = metaEmail.content;
+      document.getElementById('comprador').value = metaUser.content;
     }
 
     if (metaPhone && metaPhone.content) {
@@ -97,26 +86,14 @@ class CheckoutManager {
       return;
     }
 
-    // Coleta dados do formulário
-    const formData = new FormData(this.form);
-    const endereco = {
-      rua: formData.get('rua'),
-      numero: formData.get('numero'),
-      complemento: formData.get('complemento'),
-      bairro: formData.get('bairro'),
-      cidade: formData.get('cidade'),
-      estado: formData.get('estado'),
-      cep: formData.get('cep'),
-      tipo: 'entrega'
-    };
-
     // Mostra loading
     this.showLoading(true);
 
     try {
-      // 1. Cria pedido
+      // 1. Cria pedido com status pendente (disponível para aprovação de admin/mecânico)
       const pedidoData = {
-        valor_total: this.cart.getTotal()
+        valor_total: this.cart.getTotal(),
+        status: 'pendente'
       };
 
       const pedidoResponse = await fetch('/api/pedidos', {
@@ -204,7 +181,7 @@ class CheckoutManager {
       if (show) {
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processando...';
       } else {
-        submitBtn.innerHTML = '<i class="bi bi-lock-fill"></i> Confirmar Pedido e Pagar';
+        submitBtn.innerHTML = '<i class="bi bi-bag-check-fill"></i> Finalizar Pedido';
       }
     }
   }

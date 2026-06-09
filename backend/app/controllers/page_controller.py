@@ -26,6 +26,7 @@ from app.core.file_storage import normalize_stored_image_url
 from app.repositories import produto_repository as produto_repo
 from app.repositories import servico_repository as servico_repo
 from app.services import produto_service
+from app.services import peca_service
 from app.services import servico_service
 from app.services import pedido_service
 from app.services import veiculo_service
@@ -162,12 +163,14 @@ def services_page(request: Request, user=Depends(get_page_user)):
 def loja_page(request: Request, user=Depends(get_page_user)):
     """Página pública de e-commerce (Loja de Produtos)."""
     produtos = produto_service.list_produtos()
+    pecas = peca_service.list_pecas()
     pedidos = []
 
     return templates.TemplateResponse("pages/loja.html", {
         "request": request,
         "user": user,
         "produtos": produtos,
+        "pecas": pecas,
         "pedidos": pedidos,
         "page": "produtos",
     })
@@ -260,11 +263,13 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
         usuarios = []
         servicos = []
         produtos = []
+        pecas = []
         marcas = []
         if user.get("role") in ("admin", "mecanico"):
             usuarios = list_users()
             servicos = servico_service.list_servicos()
             produtos = produto_service.list_produtos()
+            pecas = peca_service.list_pecas()
             marcas = marca_service.list_marcas()
 
         # Pedidos
@@ -340,7 +345,7 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
                 "LEFT JOIN usuario mec ON os.id_usuario = mec.id_usuario "
                 "WHERE os.deleted_at IS NULL ORDER BY os.created_at DESC", fetch="all"
             )
-            mecanicos = execute_query("SELECT id_usuario, nome FROM usuario WHERE role = 'mecanico' AND deleted_at IS NULL", fetch="all")
+            mecanicos = execute_query("SELECT id_usuario, nome FROM usuario WHERE role IN ('mecanico', 'admin') AND deleted_at IS NULL ORDER BY nome", fetch="all")
         
         elif user.get("role") == "mecanico":
             # CORREÇÃO: Mecânico agora também puxa os orçamentos gerais para poder trabalhar/gerar OS
@@ -387,6 +392,7 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
             "usuarios": usuarios,
             "servicos": servicos,
             "produtos": produtos,
+            "pecas": pecas,
             "pedidos": pedidos,
             "veiculos": veiculos,
             "modelos": modelos,

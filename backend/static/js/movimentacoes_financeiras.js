@@ -74,7 +74,6 @@
                     <td><span class="${tipoClass}">${tipoLabel}</span></td>
                     <td>${mov.descricao || '—'}</td>
                     <td class="text-end">R$ ${formatarMoeda(mov.valor || 0)}</td>
-                    <td>${mov.id_pagamento || '—'}</td>
                     <td>${formatarData(mov.created_at)}</td>
                 </tr>
             `;
@@ -137,24 +136,19 @@
         const tipoMovimentacao = document.getElementById('tipoMovimentacao').value;
         const valor = document.getElementById('valor').value;
         const descricao = document.getElementById('descricao').value;
-        const idPagamento = document.getElementById('idPagamento').value;
-        
+
         if (!tipoMovimentacao || !valor || !descricao) {
             mostrarAlerta('Preencha todos os campos obrigatórios', 'warning');
             return;
         }
-        
+
         try {
             const endpoint = tipoMovimentacao === 'entrada' ? 'entrada' : 'saida';
             const payload = {
                 valor: parseFloat(valor),
                 descricao: descricao
             };
-            
-            if (idPagamento) {
-                payload.id_pagamento = parseInt(idPagamento);
-            }
-            
+
             const response = await fetch(`${API_BASE}/movimentacoes-financeiras/${endpoint}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

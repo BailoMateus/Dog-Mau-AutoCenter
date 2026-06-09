@@ -318,14 +318,17 @@ def iniciar_ordem_servico(id_os: int):
 
 def get_ordem_servico_servicos(id_os: int):
     """Busca serviços vinculados à ordem de serviço."""
-    return os_repo.get_ordem_servico_servicos(id_os)
+    from app.repositories import os_servico_repository
+    return os_servico_repository.get_servicos_by_os(id_os)
 
 
 def get_ordem_servico_pecas(id_os: int):
     """Busca peças vinculadas à ordem de serviço."""
-    return os_repo.get_ordem_servico_pecas(id_os)
+    from app.repositories import os_peca_repository
+    return os_peca_repository.get_pecas_by_os(id_os)
 
 
 def get_ordem_servico_movimentacoes(id_os: int):
     """Busca movimentações de estoque das peças da ordem de serviço."""
-    return os_repo.get_ordem_servico_movimentacoes(id_os)
+    from app.repositories import movimentacao_estoque_repository
+    return movimentacao_estoque_repository.get_movimentacoes_by_os(id_os)
