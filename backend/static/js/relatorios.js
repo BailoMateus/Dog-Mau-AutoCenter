@@ -24,7 +24,7 @@
     function buildPeriodoPayload(dataInicio, dataFim) {
         return {
             data_abertura: dataInicio,
-            data_fim: dataFim ? `${dataFim}T23:59:59` : dataFim
+            data_fim: dataFim
         };
     }
 
@@ -52,7 +52,13 @@
                 body: JSON.stringify(buildPeriodoPayload(dataInicio, dataFim))
             });
             
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (!response.ok) {
+                const errBody = await response.json().catch(() => ({}));
+                const detail = errBody.detail
+                    ? (Array.isArray(errBody.detail) ? errBody.detail.map(d => d.msg || d).join('; ') : errBody.detail)
+                    : `HTTP ${response.status}`;
+                throw new Error(detail);
+            }
             const data = await response.json();
             
             let html = '';
@@ -108,7 +114,13 @@
                 body: JSON.stringify(buildPeriodoPayload(dataInicio, dataFim))
             });
             
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (!response.ok) {
+                const errBody = await response.json().catch(() => ({}));
+                const detail = errBody.detail
+                    ? (Array.isArray(errBody.detail) ? errBody.detail.map(d => d.msg || d).join('; ') : errBody.detail)
+                    : `HTTP ${response.status}`;
+                throw new Error(detail);
+            }
             const data = await response.json();
             
             let html = '';
@@ -148,7 +160,13 @@
             content.style.display = 'none';
             
             const response = await fetch(`${API_BASE}/relatorios/estoque`, { credentials: 'include' });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (!response.ok) {
+                const errBody = await response.json().catch(() => ({}));
+                const detail = errBody.detail
+                    ? (Array.isArray(errBody.detail) ? errBody.detail.map(d => d.msg || d).join('; ') : errBody.detail)
+                    : `HTTP ${response.status}`;
+                throw new Error(detail);
+            }
             const data = await response.json();
             
             let html = '';
@@ -201,7 +219,13 @@
                 body: JSON.stringify(buildPeriodoPayload(dataInicio, dataFim))
             });
             
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (!response.ok) {
+                const errBody = await response.json().catch(() => ({}));
+                const detail = errBody.detail
+                    ? (Array.isArray(errBody.detail) ? errBody.detail.map(d => d.msg || d).join('; ') : errBody.detail)
+                    : `HTTP ${response.status}`;
+                throw new Error(detail);
+            }
             const data = await response.json();
             
             let html = '';
@@ -256,7 +280,13 @@
                 body: JSON.stringify(buildPeriodoPayload(dataInicio, dataFim))
             });
             
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (!response.ok) {
+                const errBody = await response.json().catch(() => ({}));
+                const detail = errBody.detail
+                    ? (Array.isArray(errBody.detail) ? errBody.detail.map(d => d.msg || d).join('; ') : errBody.detail)
+                    : `HTTP ${response.status}`;
+                throw new Error(detail);
+            }
             const data = await response.json();
             
             let html = '';

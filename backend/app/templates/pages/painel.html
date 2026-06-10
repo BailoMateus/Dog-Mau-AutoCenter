@@ -148,28 +148,29 @@
                         <form id="profileForm" style="display: none;">
                             <div class="row text-white">
                                 <div class="col-md-6 mb-4">
-                                    <label class="text-white-50 d-block mb-2">Foto de Perfil</label>
-                                    <div class="text-center mb-3">
+                                    <div class="profile-photo-section">
+                                        <label class="text-white-50 d-block mb-0">Foto de Perfil</label>
                                         <img id="fotoPreview" 
                                              src="{{ user.avatar or '/static/assets/avatar-placeholder.png' }}" 
                                              alt="Foto de Perfil de {{ user.nome }}" 
-                                             class="rounded-circle"
-                                             style="width: 150px; height: 150px; object-fit: cover; border: 2px solid #555;">
-                                    </div>
-                                    <input type="file" 
-                                           id="fotoPerfil" 
-                                           class="form-control text-white"
-                                           style="background-color: #0b0b0b; border-color: #333;"
-                                           accept="image/jpeg,image/jpg,image/png">
-                                    <small class="text-muted d-block mt-1">JPG ou PNG (máx. 2 MB)</small>
-                                    <button type="button" 
-                                             id="uploadFotoBtn" 
-                                             class="btn btn-sm btn-primary mt-2"
-                                             style="display: none;">
-                                        <i class="bi bi-cloud-upload me-1"></i>Enviar Foto
-                                    </button>
-                                    <div id="fotoUploadStatus" style="display: none; margin-top: 0.5rem;">
-                                        <small id="fotoUploadMessage" class="d-block"></small>
+                                             class="profile-photo-preview">
+                                        <input type="file" 
+                                               id="fotoPerfil" 
+                                               class="d-none"
+                                               accept="image/jpeg,image/jpg,image/png">
+                                        <label for="fotoPerfil" class="btn btn-sm btn-outline-secondary mb-0">
+                                            <i class="bi bi-image me-1"></i>Escolher Arquivo
+                                        </label>
+                                        <small class="text-muted">JPG ou PNG (máx. 2 MB)</small>
+                                        <button type="button" 
+                                                 id="uploadFotoBtn" 
+                                                 class="btn btn-sm btn-primary"
+                                                 style="display: none;">
+                                            <i class="bi bi-cloud-upload me-1"></i>Enviar Foto
+                                        </button>
+                                        <div id="fotoUploadStatus" style="display: none;">
+                                            <small id="fotoUploadMessage" class="d-block"></small>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -228,7 +229,8 @@
                                             <i class="bi bi-gear"></i>
                                         </button>
                                     </div>
-                                    <small class="text-muted d-block mt-1">Selecione seu endereço principal para entregas</small>
+                                    <div id="endereco_detalhado_container" class="mt-2 p-2 rounded border border-secondary text-muted small" style="background-color: #151515; display: none;"></div>
+                                    <small class="text-muted d-block mt-1">Selecione seu endereço principal</small>
                                 </div>
                             </div>
 

@@ -483,29 +483,26 @@ async function loadUserEnderecos() {
  * REQUISITO 4: Renderiza textualmente os dados detalhados do endereço ativo
  */
 function renderActiveAddressCard(selectElement) {
-    let containerVisual = document.getElementById('endereco_detalhado_container');
-    
-    // Se não existir o container na tela, cria dinamicamente abaixo do select para evitar quebras de UI
-    if (!containerVisual) {
-        containerVisual = document.createElement('div');
-        containerVisual.id = 'endereco_detalhado_container';
-        containerVisual.className = 'mt-3 p-3 rounded text-white border border-secondary';
-        containerVisual.style.backgroundColor = '#151515';
-        selectElement.parentNode.appendChild(containerVisual);
-    }
+    const containerVisual = document.getElementById('endereco_detalhado_container');
+    if (!containerVisual) return;
 
     const selectedOption = selectElement.options[selectElement.selectedIndex];
     
     if (!selectedOption || !selectedOption.value || selectedOption.value === "") {
+        containerVisual.style.display = 'block';
         containerVisual.innerHTML = `
-            <div class="text-muted text-center py-2">
-                <i class="bi bi-geo-alt me-1"></i> Nenhum endereço cadastrado ou selecionado como principal.
-            </div>`;
+            <span class="d-flex align-items-center">
+                <i class="bi bi-geo-alt me-2"></i>
+                Nenhum endereço cadastrado ou selecionado como principal.
+            </span>`;
         return;
     }
 
     try {
         const data = JSON.parse(selectedOption.dataset.full);
+        containerVisual.style.display = 'block';
+        containerVisual.className = 'mt-2 p-3 rounded border border-secondary text-white';
+        containerVisual.style.backgroundColor = '#151515';
         containerVisual.innerHTML = `
             <div class="d-flex align-items-start gap-2">
                 <i class="bi bi-geo-alt-fill text-danger mt-1" style="font-size: 1.2rem;"></i>
@@ -521,7 +518,8 @@ function renderActiveAddressCard(selectElement) {
             </div>
         `;
     } catch (e) {
-        containerVisual.innerHTML = `<div class="text-muted small">${selectedOption.textContent}</div>`;
+        containerVisual.style.display = 'block';
+        containerVisual.innerHTML = `<span class="text-muted small">${selectedOption.textContent}</span>`;
     }
 }
 

@@ -1,10 +1,11 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
 class RelatorioPeriodo(BaseModel):
-    data_abertura: datetime
-    data_fim: datetime
+    """Período de relatório — aceita datas YYYY-MM-DD dos inputs type=date."""
+    data_abertura: date
+    data_fim: date
 
 class FaturamentoDetalhe(BaseModel):
     mes: str

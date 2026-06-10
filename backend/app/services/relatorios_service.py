@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, time, timezone
 
 from fastapi import HTTPException, status
 
@@ -14,9 +14,17 @@ from app.schemas.relatorios_schema import RelatorioPeriodo
 
 logger = logging.getLogger(__name__)
 
+
+def _periodo_bounds(data: RelatorioPeriodo):
+    """Converte datas YYYY-MM-DD em intervalo datetime inclusivo para queries SQL."""
+    inicio = datetime.combine(data.data_abertura, time.min)
+    fim = datetime.combine(data.data_fim, time(23, 59, 59, 999999))
+    return inicio, fim
+
+
 def validate_periodo(data: RelatorioPeriodo):
     """Valida período do relatório."""
-    if data.data_abertura.date() > data.data_fim.date():
+    if data.data_abertura > data.data_fim:
         logger.warning("período inválido inicio=%s fim=%s", data.data_abertura, data.data_fim)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -35,6 +43,7 @@ def validate_periodo(data: RelatorioPeriodo):
 def gerar_relatorio_faturamento(data: RelatorioPeriodo):
     """Gera relatório de faturamento por período."""
     validate_periodo(data)
+    inicio, fim = _periodo_bounds(data)
     
     # Busca pagamentos confirmados no período
     query = """
@@ -52,7 +61,7 @@ def gerar_relatorio_faturamento(data: RelatorioPeriodo):
     """
     
     from app.database.db import execute_query
-    results = execute_query(query, (data.data_abertura, data.data_fim))
+    results = execute_query(query, (inicio, fim))
     
     relatorio = []
     valor_total_geral = 0.0
@@ -70,7 +79,7 @@ def gerar_relatorio_faturamento(data: RelatorioPeriodo):
         quantidade_total += row["quantidade_pagamentos"]
     
     logger.info("relatório faturamento período=%s a %s total=%.2f", 
-                data.data_abertura, data.data_fim, valor_total_geral)
+                inicio, fim, valor_total_geral)
     
     return {
         "periodo": {
@@ -87,6 +96,7 @@ def gerar_relatorio_faturamento(data: RelatorioPeriodo):
 def gerar_relatorio_servicos_realizados(data: RelatorioPeriodo):
     """Gera relatório de serviços realizados por período."""
     validate_periodo(data)
+    inicio, fim = _periodo_bounds(data)
     
     from app.database.db import execute_query
 
@@ -106,7 +116,7 @@ def gerar_relatorio_servicos_realizados(data: RelatorioPeriodo):
     GROUP BY DATE_TRUNC('month', os.data_conclusao)
     ORDER BY mes DESC
     """
-    results = execute_query(query_resumo, (data.data_abertura, data.data_fim))
+    results = execute_query(query_resumo, (inicio, fim))
 
     query_detalhes = """
     SELECT 
@@ -122,7 +132,7 @@ def gerar_relatorio_servicos_realizados(data: RelatorioPeriodo):
     GROUP BY s.id_servico, s.nome_servico, s.descricao
     ORDER BY qtd_realizadas DESC
     """
-    detalhes_rows = execute_query(query_detalhes, (data.data_abertura, data.data_fim))
+    detalhes_rows = execute_query(query_detalhes, (inicio, fim))
     
     relatorio = []
     valor_total_geral = 0.0
@@ -154,7 +164,7 @@ def gerar_relatorio_servicos_realizados(data: RelatorioPeriodo):
         })
     
     logger.info("relatório serviços realizados período=%s a %s os=%s servicos=%s", 
-                data.data_abertura, data.data_fim, os_total, servicos_total)
+                inicio, fim, os_total, servicos_total)
     
     return {
         "periodo": {
@@ -227,6 +237,7 @@ def gerar_relatorio_estoque():
 def gerar_relatorio_ordens_servico(data: RelatorioPeriodo):
     """Gera relatório de ordens de serviço por período."""
     validate_periodo(data)
+    inicio, fim = _periodo_bounds(data)
     
     # Busca OS por status e período
     query = """
@@ -256,7 +267,7 @@ def gerar_relatorio_ordens_servico(data: RelatorioPeriodo):
     """
     
     from app.database.db import execute_query
-    results = execute_query(query, (data.data_abertura, data.data_fim))
+    results = execute_query(query, (inicio, fim))
     
     relatorio = []
     valor_total_geral = 0.0
@@ -274,7 +285,7 @@ def gerar_relatorio_ordens_servico(data: RelatorioPeriodo):
         os_total += row["quantidade"]
     
     logger.info("relatório ordens serviço período=%s a %s os=%s valor=%.2f", 
-                data.data_abertura, data.data_fim, os_total, valor_total_geral)
+                inicio, fim, os_total, valor_total_geral)
     
     return {
         "periodo": {
@@ -291,16 +302,22 @@ def gerar_relatorio_ordens_servico(data: RelatorioPeriodo):
 def gerar_relatorio_financeiro_periodo(data: RelatorioPeriodo):
     """Gera relatório financeiro completo por período."""
     validate_periodo(data)
+    inicio, fim = _periodo_bounds(data)
     
     # Reutiliza função existente de movimentações financeiras
     from app.services.movimentacao_financeira_service import get_resumo_financeiro
+    from app.services.movimentacao_financeira_service import calcular_saldo_periodo
+    from app.schemas.movimentacao_financeira_schema import MovimentacaoFinanceiraPeriodo
     
     # Busca resumo financeiro
-    resumo = get_resumo_financeiro(data.data_abertura, data.data_fim)
+    resumo = get_resumo_financeiro(inicio, fim)
     
     # Busca saldo do período
-    from app.services.movimentacao_financeira_service import calcular_saldo_periodo
-    saldo_info = calcular_saldo_periodo(data)
+    periodo_fin = MovimentacaoFinanceiraPeriodo(
+        data_abertura=data.data_abertura,
+        data_fim=data.data_fim,
+    )
+    saldo_info = calcular_saldo_periodo(periodo_fin)
     
     # Busca resumo de pagamentos
     query = """
@@ -317,7 +334,7 @@ def gerar_relatorio_financeiro_periodo(data: RelatorioPeriodo):
     """
     
     from app.database.db import execute_query
-    pagamentos_results = execute_query(query, (data.data_abertura, data.data_fim))
+    pagamentos_results = execute_query(query, (inicio, fim))
     
     pagamentos = []
     for row in pagamentos_results:
@@ -329,7 +346,7 @@ def gerar_relatorio_financeiro_periodo(data: RelatorioPeriodo):
         })
     
     logger.info("relatório financeiro período=%s a %s saldo=%.2f", 
-                data.data_abertura, data.data_fim, saldo_info["saldo"])
+                inicio, fim, saldo_info["saldo"])
     
     return {
         "periodo": {
