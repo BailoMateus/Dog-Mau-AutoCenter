@@ -95,10 +95,12 @@ function prosseguirVeiculo() {
 function populateModelos() {
     const marcaId = document.getElementById('marcaSelect')?.value;
     const modeloSelect = document.getElementById('modeloSelect');
-    if (!modeloSelect) return;
+    const anoInput = document.getElementById('veiculoAno');
+    if (!modeloSelect || !anoInput) return;
 
     modeloSelect.innerHTML = '<option value="" disabled selected>Selecione o modelo...</option>';
     modeloSelect.disabled = !marcaId;
+    anoInput.value = '';
 
     if (!marcaId || !modelosPorMarca[marcaId]) return;
 
@@ -106,9 +108,19 @@ function populateModelos() {
         const opt = document.createElement('option');
         opt.value = mod.id;
         opt.textContent = mod.nome;
+        opt.dataset.ano = mod.ano_lancamento || '';
         modeloSelect.appendChild(opt);
     });
     modeloSelect.disabled = false;
+}
+
+function atualizarAnoPorModelo() {
+    const modeloSelect = document.getElementById('modeloSelect');
+    const anoInput = document.getElementById('veiculoAno');
+    if (!modeloSelect || !anoInput) return;
+
+    const selectedOption = modeloSelect.options[modeloSelect.selectedIndex];
+    anoInput.value = selectedOption?.dataset?.ano || '';
 }
 
 async function enviarSolicitacao() {
@@ -212,6 +224,7 @@ function resetForm() {
 
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('marcaSelect')?.addEventListener('change', populateModelos);
+    document.getElementById('modeloSelect')?.addEventListener('change', atualizarAnoPorModelo);
 
     const pending = sessionStorage.getItem('dogmau_pending_services');
     if (pending && userLoggedIn) {

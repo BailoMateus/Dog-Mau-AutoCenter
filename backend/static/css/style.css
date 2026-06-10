@@ -104,6 +104,17 @@ header .nav-link {
   font-weight: 700 !important;
 }
 
+.navbar .dropdown-item,
+.navbar .dropdown-menu .dropdown-item {
+  color: white !important;
+}
+
+.navbar .dropdown-item:hover,
+.navbar .dropdown-item:focus {
+  color: white !important;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
 /* Força Orbitron em todos os elementos dentro do navbar */
 .navbar * {
   font-family: "Orbitron", sans-serif !important;
