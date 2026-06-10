@@ -145,7 +145,8 @@ def services_page(request: Request, user=Depends(get_page_user)):
             modelos_por_marca[mod.id_marca] = []
         modelos_por_marca[mod.id_marca].append({
             "id": mod.id_modelo,
-            "nome": mod.nome_modelo
+            "nome": mod.nome_modelo,
+            "ano_lancamento": mod.ano_lancamento,
         })
     
     return templates.TemplateResponse("pages/services.html", {

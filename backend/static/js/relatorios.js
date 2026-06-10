@@ -21,71 +21,11 @@
         });
     }
 
-    // ─── Dashboard ───
-    async function carregarDashboard() {
-        const loader = document.getElementById('dashboardLoader');
-        const content = document.getElementById('dashboardContent');
-        
-        try {
-            loader.classList.add('active');
-            content.style.display = 'none';
-            
-            const response = await fetch(`${API_BASE}/relatorios/dashboard`, { credentials: 'include' });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            
-            const data = await response.json();
-            exibirDashboard(data);
-            
-            loader.classList.remove('active');
-            content.style.display = 'block';
-        } catch (error) {
-            console.error('Erro ao carregar dashboard:', error);
-            mostrarAlerta('Erro ao carregar dashboard: ' + error.message, 'danger');
-            loader.classList.remove('active');
-        }
-    }
-
-    function exibirDashboard(data) {
-        const metricsHtml = `
-            <div class="col-md-4">
-                <div class="metric-card">
-                    <div class="metric-label">Faturamento Total</div>
-                    <div class="metric-value">R$ ${formatarMoeda(data.faturamento_total ?? data.faturamento ?? 0)}</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="metric-card">
-                    <div class="metric-label">Serviços Realizados</div>
-                    <div class="metric-value">${data.servicos_realizados ?? data.quantidade_servicos_concluidos ?? 0}</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="metric-card">
-                    <div class="metric-label">Ordens de Serviço</div>
-                    <div class="metric-value">${data.total_ordem_servico ?? data.quantidade_servicos_concluidos ?? 0}</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="metric-card">
-                    <div class="metric-label">Lucro Total</div>
-                    <div class="metric-value" style="color: #28a745;">R$ ${formatarMoeda(data.lucro_total || 0)}</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="metric-card">
-                    <div class="metric-label">Prejuízo Total</div>
-                    <div class="metric-value" style="color: #f44336;">R$ ${formatarMoeda(data.prejuizo_total ?? data.prejuizo_despesas_total ?? 0)}</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="metric-card">
-                    <div class="metric-label">Quantidade em Estoque</div>
-                    <div class="metric-value">${data.quantidade_estoque || 0}</div>
-                </div>
-            </div>
-        `;
-        
-        document.getElementById('dashboardMetrics').innerHTML = metricsHtml;
+    function buildPeriodoPayload(dataInicio, dataFim) {
+        return {
+            data_abertura: dataInicio,
+            data_fim: dataFim ? `${dataFim}T23:59:59` : dataFim
+        };
     }
 
     // ─── Faturamento ───
@@ -109,10 +49,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({
-                    data_abertura: dataInicio,
-                    data_fim: dataFim
-                })
+                body: JSON.stringify(buildPeriodoPayload(dataInicio, dataFim))
             });
             
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -168,10 +105,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({
-                    data_abertura: dataInicio,
-                    data_fim: dataFim
-                })
+                body: JSON.stringify(buildPeriodoPayload(dataInicio, dataFim))
             });
             
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -264,10 +198,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({
-                    data_abertura: dataInicio,
-                    data_fim: dataFim
-                })
+                body: JSON.stringify(buildPeriodoPayload(dataInicio, dataFim))
             });
             
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -322,10 +253,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({
-                    data_abertura: dataInicio,
-                    data_fim: dataFim
-                })
+                body: JSON.stringify(buildPeriodoPayload(dataInicio, dataFim))
             });
             
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -386,6 +314,5 @@
     // ─── Inicialização ───
     document.addEventListener('DOMContentLoaded', () => {
         setDatasPadraoFiltros();
-        carregarDashboard();
     });
 })();

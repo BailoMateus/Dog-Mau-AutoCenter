@@ -67,10 +67,10 @@
     <div class="card hidden text-white shadow-sm" id="screen3">
         <h2 class="mb-4 pb-2 border-bottom border-secondary">3. Dados do Veículo</h2>
 
-        <div class="row g-3">
+        <div class="row g-3 align-items-end">
             <div class="col-md-6">
                 <label class="form-label fw-bold">Marca</label>
-                <select id="marcaSelect" class="form-select bg-dark text-white border-secondary p-3 rounded-3">
+                <select id="marcaSelect" class="form-select bg-dark text-white border-secondary p-3 rounded-3 veiculo-field">
                     <option value="" disabled selected>Selecione a marca...</option>
                     {% for marca in marcas %}
                     <option value="{{ marca.id_marca }}">{{ marca.nome }}</option>
@@ -79,13 +79,23 @@
             </div>
             <div class="col-md-6">
                 <label class="form-label fw-bold">Modelo</label>
-                <select id="modeloSelect" class="form-select bg-dark text-white border-secondary p-3 rounded-3" disabled>
+                <select id="modeloSelect" class="form-select bg-dark text-white border-secondary p-3 rounded-3 veiculo-field" disabled>
                     <option value="" disabled selected>Selecione a marca primeiro...</option>
                 </select>
             </div>
             <div class="col-md-4">
+                <label class="form-label fw-bold">Placa</label>
+                <input type="text" id="veiculoPlaca" data-mask="plate" class="form-control bg-dark text-white border-secondary p-3 rounded-3 text-uppercase veiculo-field" placeholder="ABC-1234" maxlength="8">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Ano de Lançamento</label>
+                <select id="veiculoAno" class="form-select bg-dark text-white border-secondary p-3 rounded-3 veiculo-field" disabled>
+                    <option value="" disabled selected>Selecione o modelo...</option>
+                </select>
+            </div>
+            <div class="col-md-4">
                 <label class="form-label fw-bold">Cor</label>
-                <select id="veiculoCor" class="form-select bg-dark text-white border-secondary p-3 rounded-3">
+                <select id="veiculoCor" class="form-select bg-dark text-white border-secondary p-3 rounded-3 veiculo-field">
                     <option value="" disabled selected>Selecione a cor...</option>
                     <option value="Prata">Prata</option>
                     <option value="Preto">Preto</option>
@@ -99,14 +109,6 @@
                     <option value="Marrom">Marrom</option>
                     <option value="Bege">Bege</option>
                 </select>
-            </div>
-            <div class="col-md-4">
-                <label class="form-label fw-bold">Ano</label>
-                <input type="text" id="veiculoAno" class="form-control bg-dark text-white border-secondary p-3 rounded-3" placeholder="Selecione o modelo" readonly>
-            </div>
-            <div class="col-md-4">
-                <label class="form-label fw-bold">Placa</label>
-                <input type="text" id="veiculoPlaca" data-mask="plate" class="form-control bg-dark text-white border-secondary p-3 rounded-3 text-uppercase" placeholder="ABC-1234" maxlength="8">
             </div>
         </div>
 

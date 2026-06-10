@@ -155,21 +155,22 @@ header .nav-link::after {
   bottom: 0;
   width: 0%;
   height: 2px;
-  background: darkred;;
+  background: white;
   transition: 0.3s;
 }
 
-header .nav-link:hover::after {
+header .nav-link:hover::after,
+header .nav-link.active::after {
   width: 100%;
-  color: darkred !important;
 }
 
-header .nav-link:hover {
-  color: darkred !important;
-}
-
+header .nav-link:hover,
 header .nav-link.active {
-  color: darkred !important;
+  color: white !important;
+}
+
+.veiculo-field {
+  min-height: 58px;
 }
 
 .search-input {

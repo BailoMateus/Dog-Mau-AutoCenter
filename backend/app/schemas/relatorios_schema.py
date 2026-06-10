@@ -22,11 +22,10 @@ class FaturamentoRelatorio(BaseModel):
     detalhes: list[FaturamentoDetalhe]
 
 class ServicosRealizadosDetalhe(BaseModel):
-    mes: str
-    quantidade_os: int
-    servicos_diferentes: int
-    total_servicos: int
-    valor_total_servicos: float
+    nome_servico: str
+    qtd_realizadas: int
+    receita_total: float
+    receita_media: float
 
 class ServicosRealizadosResumo(BaseModel):
     valor_total_geral: float

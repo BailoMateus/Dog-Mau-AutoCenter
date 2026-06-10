@@ -92,15 +92,21 @@ function prosseguirVeiculo() {
     nextStep(3);
 }
 
+function resetAnoSelect() {
+    const anoSelect = document.getElementById('veiculoAno');
+    if (!anoSelect) return;
+    anoSelect.innerHTML = '<option value="" disabled selected>Selecione o modelo...</option>';
+    anoSelect.disabled = true;
+}
+
 function populateModelos() {
     const marcaId = document.getElementById('marcaSelect')?.value;
     const modeloSelect = document.getElementById('modeloSelect');
-    const anoInput = document.getElementById('veiculoAno');
-    if (!modeloSelect || !anoInput) return;
+    if (!modeloSelect) return;
 
     modeloSelect.innerHTML = '<option value="" disabled selected>Selecione o modelo...</option>';
     modeloSelect.disabled = !marcaId;
-    anoInput.value = '';
+    resetAnoSelect();
 
     if (!marcaId || !modelosPorMarca[marcaId]) return;
 
@@ -116,11 +122,24 @@ function populateModelos() {
 
 function atualizarAnoPorModelo() {
     const modeloSelect = document.getElementById('modeloSelect');
-    const anoInput = document.getElementById('veiculoAno');
-    if (!modeloSelect || !anoInput) return;
+    const anoSelect = document.getElementById('veiculoAno');
+    if (!modeloSelect || !anoSelect) return;
 
     const selectedOption = modeloSelect.options[modeloSelect.selectedIndex];
-    anoInput.value = selectedOption?.dataset?.ano || '';
+    const ano = selectedOption?.dataset?.ano || '';
+
+    anoSelect.innerHTML = '';
+    if (!ano) {
+        resetAnoSelect();
+        return;
+    }
+
+    const opt = document.createElement('option');
+    opt.value = ano;
+    opt.textContent = ano;
+    opt.selected = true;
+    anoSelect.appendChild(opt);
+    anoSelect.disabled = false;
 }
 
 async function enviarSolicitacao() {
@@ -192,7 +211,7 @@ async function enviarSolicitacao() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ id_servico: parseInt(s.id, 10), valor_unitario: s.price })
+                body: JSON.stringify({ id_servico: parseInt(s.id, 10), quantidade: 1 })
             });
             if (!itemResponse.ok) throw new Error('Falha ao associar serviço ao orçamento.');
         }

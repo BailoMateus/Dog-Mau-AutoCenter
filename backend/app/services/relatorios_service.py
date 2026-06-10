@@ -16,11 +16,11 @@ logger = logging.getLogger(__name__)
 
 def validate_periodo(data: RelatorioPeriodo):
     """Valida período do relatório."""
-    if data.data_abertura >= data.data_fim:
+    if data.data_abertura.date() > data.data_fim.date():
         logger.warning("período inválido inicio=%s fim=%s", data.data_abertura, data.data_fim)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Data de início deve ser anterior à data de fim"
+            detail="Data de início deve ser anterior ou igual à data de fim"
         )
     
     # Validação de período máximo (1 ano)

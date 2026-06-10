@@ -143,7 +143,9 @@ async function loadUserProfile() {
         // Altera visibilidade do esqueleto da página
         const form = document.getElementById('profileForm');
         const loader = document.getElementById('perfilLoader');
+        const passwordSection = document.getElementById('passwordSection');
         if (form) form.style.display = 'block';
+        if (passwordSection) passwordSection.style.display = 'block';
         if (loader) loader.style.display = 'none';
 
     } catch (error) {
