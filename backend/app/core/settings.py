@@ -51,6 +51,11 @@ class Settings(BaseSettings):
 
     firebase_web_api_key: str = ""
 
+    # Bucket do Firebase Storage para persistir as imagens (uploads).
+    # Em produção (Cloud Run) o filesystem é efêmero; as imagens precisam
+    # ficar no Storage. Se vazio, é derivado de "<project_id>.appspot.com".
+    firebase_storage_bucket: str = ""
+
     resend_api_key: str = ""
     frontend_url: str = ""
 

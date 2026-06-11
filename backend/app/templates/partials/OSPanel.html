@@ -40,19 +40,20 @@
                             {% endif %}
                         </td>
                         {% if user.role == 'admin' %}
-                        <td>
-                            {% if os.status == 'aberta' and not os.id_mecanico_responsavel %}
+                        <td style="min-width: 230px;">
+                            <div class="small text-white-50 mb-1">
+                                Responsável: <span class="text-white">{{ os.mecanico_nome or 'Não atribuído' }}</span>
+                            </div>
+                            {% if os.status not in ['concluida', 'finalizada', 'cancelada'] %}
                             <div class="d-flex gap-2">
                                 <select class="form-select form-select-sm bg-dark text-white border-secondary" id="mecanicoSelect_{{ os.id_os }}">
-                                    <option value="" disabled selected>Selecione</option>
+                                    <option value="" disabled {% if not os.id_usuario %}selected{% endif %}>Selecione</option>
                                     {% for m in mecanicos %}
-                                    <option value="{{ m.id_usuario }}">{{ m.nome }}</option>
+                                    <option value="{{ m.id_usuario }}" {% if m.id_usuario == os.id_usuario %}selected{% endif %}>{{ m.nome }}</option>
                                     {% endfor %}
                                 </select>
                                 <button class="btn btn-sm btn-outline-danger" onclick="atribuirMecanico({{ os.id_os }})">Atribuir</button>
                             </div>
-                            {% else %}
-                            {{ os.mecanico_nome or 'Não atribuído' }}
                             {% endif %}
                         </td>
                         {% endif %}

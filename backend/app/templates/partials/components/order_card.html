@@ -24,10 +24,17 @@
 
     <div class="pedido-items-wrap mt-2 mb-3">
         <ul class="pedido-items-list list-unstyled m-0">
-            {% if ped.itens %}
+            {% if ped.itens or ped.itens_peca %}
                 {% for item in ped.itens %}
                 <li class="d-flex justify-content-between border-bottom border-secondary pb-1 mb-1">
                     <span class="item-nome text-truncate"><span class="badge bg-secondary me-2">{{ item.quantidade }}x</span>{{ item.produto_nome | default('Produto ' ~ item.id_produto) }}</span>
+                    <span class="badge bg-dark text-muted">Produto</span>
+                </li>
+                {% endfor %}
+                {% for item in ped.itens_peca %}
+                <li class="d-flex justify-content-between border-bottom border-secondary pb-1 mb-1">
+                    <span class="item-nome text-truncate"><span class="badge bg-secondary me-2">{{ item.quantidade }}x</span>{{ item.peca_nome | default('Peça ' ~ item.id_peca) }}</span>
+                    <span class="badge bg-dark" style="color: #c0252b;">Peça</span>
                 </li>
                 {% endfor %}
             {% else %}

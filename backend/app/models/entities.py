@@ -2,10 +2,20 @@
 Entidades de dados simples (sem ORM).
 Substitui os models SQLAlchemy por classes básicas e dicionários.
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import Optional
 from datetime import datetime, date
 from decimal import Decimal
+
+
+def _filter_fields(cls, data: dict) -> dict:
+    """Mantém apenas as chaves que são campos da dataclass alvo.
+
+    Consultas com JOIN retornam colunas extras (ex.: placa, mecanico_nome) que
+    não existem na dataclass; passá-las ao construtor causaria TypeError.
+    """
+    allowed = {f.name for f in fields(cls)}
+    return {k: v for k, v in data.items() if k in allowed}
 
 @dataclass
 class User:
@@ -124,6 +134,17 @@ class Peca:
     preco_unitario: float = 0.0
     quantidade_estoque: int = 0
     imagem_peca: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    deleted_at: Optional[datetime] = None
+
+@dataclass
+class PedidoPeca:
+    id_pedido: int = 0
+    id_peca: int = 0
+    quantidade: int = 1
+    peca_nome: Optional[str] = None
+    peca_preco: Optional[Decimal] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
@@ -351,7 +372,13 @@ def dict_to_peca(data: dict) -> Optional[Peca]:
     """Converte dicionário do banco para entidade Peca."""
     if not data:
         return None
-    return Peca(**data)
+    return Peca(**_filter_fields(Peca, data))
+
+def dict_to_pedido_peca(data: dict) -> Optional[PedidoPeca]:
+    """Converte dicionário do banco para entidade PedidoPeca (ignora colunas extras de JOIN)."""
+    if not data:
+        return None
+    return PedidoPeca(**_filter_fields(PedidoPeca, data))
 
 def dict_to_agendamento(data: dict) -> Optional[Agendamento]:
     """Converte dicionário do banco para entidade Agendamento."""
@@ -392,10 +419,15 @@ def dict_to_orcamento_servico(data: dict) -> Optional[OrcamentoServico]:
     )
 
 def dict_to_ordem_servico(data: dict) -> Optional[OrdemServico]:
-    """Converte dicionário do banco para entidade OrdemServico."""
+    """Converte dicionário do banco para entidade OrdemServico.
+
+    Ignora colunas extras retornadas por JOINs (ex.: placa, cor, nome_modelo,
+    proprietario_nome, mecanico_nome, orcamento_status), evitando TypeError no
+    construtor da dataclass — causa do erro 500 em GET /ordens-servico/{id}.
+    """
     if not data:
         return None
-    return OrdemServico(**data)
+    return OrdemServico(**_filter_fields(OrdemServico, data))
 
 def dict_to_ordem_servico_peca(data: dict) -> Optional[OrdemServicoPeca]:
     """Converte dicionário do banco para entidade OrdemServicoPeca."""

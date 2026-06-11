@@ -1,14 +1,19 @@
 /**
- * loja.js — busca na vitrine e fluxo transacional do botão Comprar
+ * loja.js — busca na vitrine e adição de produtos/peças ao carrinho.
+ *
+ * Comportamento (Requisito 4): ao clicar em "Adicionar ao Carrinho" o item é
+ * adicionado ao carrinho e o usuário PERMANECE na tela (sem redirecionar para
+ * checkout/carrinho).
  */
 (function () {
   const searchInput = document.getElementById('lojaSearchInput');
   const grid = document.getElementById('lojaProductGrid');
+  const pecaGrid = document.getElementById('lojaPecaGrid');
   const emptyMsg = document.getElementById('lojaEmptyMsg');
 
-  if (!grid) return;
-
+  // A busca atua sobre a grade de produtos (quando existir)
   function filterProducts() {
+    if (!grid) return;
     const term = (searchInput?.value || '').trim().toLowerCase();
     const cards = grid.querySelectorAll('[data-loja-card]');
     let visible = 0;
@@ -47,7 +52,6 @@
       container.className = 'loja-toast-container';
       document.body.appendChild(container);
     }
-    container = document.querySelector('.loja-toast-container') || container;
 
     const el = document.createElement('div');
     el.className = `alert alert-${type || 'info'} shadow-lg mb-2`;
@@ -57,18 +61,17 @@
     setTimeout(() => el.remove(), 4000);
   }
 
-  // Captura o evento de clique nos cards da vitrine pública de produtos
-  grid.addEventListener('click', async (e) => {
-    const btn = e.target.closest('.btn-loja-comprar');
+  // Handler único para adicionar produto OU peça ao carrinho.
+  function handleAddToCart(btn) {
     if (!btn || btn.disabled) return;
 
     const isDemo = btn.dataset.demo === 'true';
     if (isDemo) {
-      showToast('Produto demonstrativo — cadastre itens reais no painel para comprar.', 'secondary');
+      showToast('Item demonstrativo — cadastre itens reais no painel para comprar.', 'secondary');
       return;
     }
 
-    // Item 17: Validar login antes de checkout / compra
+    // Exige login antes de adicionar (mantém o fluxo de autenticação existente)
     const loggedIn = btn.dataset.loggedIn === 'true';
     if (!loggedIn) {
       const next = encodeURIComponent(window.location.pathname);
@@ -76,37 +79,47 @@
       return;
     }
 
-    // Item 5: Impedir no front a compra de itens sem estoque
+    // Impede no front a compra de itens sem estoque
     const estoque = parseInt(btn.dataset.estoque, 10);
     if (isNaN(estoque) || estoque <= 0) {
-      showToast('Produto sem estoque no momento.', 'warning');
+      showToast('Item sem estoque no momento.', 'warning');
       return;
     }
-
-    // Extrair dados do produto a partir do card HTML
-    const card = btn.closest('.loja-card') || btn.closest('[data-loja-card]');
-    const produtoId = parseInt(btn.dataset.produtoId, 10);
-    const preco = parseFloat(btn.dataset.preco) || 0;
-    const nome = card ? (card.dataset.nome || 'Produto') : 'Produto';
-    const imgEl = card ? card.querySelector('.loja-card-img-wrap img, .produto-imagem img') : null;
-    const imagem = imgEl ? imgEl.src : null;
 
     if (!window.cart) {
       showToast('Sistema de carrinho não carregado. Recarregue a página.', 'danger');
       return;
     }
 
-    // CORREÇÃO: Alinhamento de chaves com o estado interno global (name/price)
-    window.cart.addProduct({
-      id_produto: produtoId,
-      name: nome,
-      price: preco,
-      imagem_produto: imagem,
-      quantity: 1
+    const card = btn.closest('.loja-card') || btn.closest('[data-loja-card]');
+    const nome = card ? (card.dataset.nome || 'Item') : 'Item';
+    const preco = parseFloat(btn.dataset.preco) || 0;
+    const imgEl = card ? card.querySelector('.loja-card-img-wrap img') : null;
+    const imagem = imgEl ? imgEl.src : null;
+
+    const tipo = btn.dataset.tipo === 'peca' ? 'peca' : 'produto';
+
+    if (tipo === 'peca') {
+      const pecaId = parseInt(btn.dataset.pecaId, 10);
+      window.cart.addPeca({ id_peca: pecaId, nome: nome, preco: preco, imagem_peca: imagem });
+    } else {
+      const produtoId = parseInt(btn.dataset.produtoId, 10);
+      window.cart.addProduct({ id_produto: produtoId, nome: nome, preco: preco, imagem_produto: imagem });
+    }
+
+    // Requisito 4: permanecer na tela atual (NÃO redirecionar para checkout/carrinho).
+    showToast(`${nome} adicionado ao carrinho!`, 'success');
+  }
+
+  // Delegação de clique cobrindo as grades de produtos e de peças.
+  function bindGrid(el) {
+    if (!el) return;
+    el.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-loja-comprar');
+      if (btn) handleAddToCart(btn);
     });
+  }
 
-    // CORREÇÃO (Item 2): Encaminha o cliente diretamente para a página do Checkout Real
-    window.location.href = '/checkout';
-  });
-
+  bindGrid(grid);
+  bindGrid(pecaGrid);
 })();

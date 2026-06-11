@@ -1,6 +1,11 @@
 /**
  * Sistema de Carrinho - Dog Mau Auto Center
- * Gerencia carrinho local e integra com API de pedidos
+ * Gerencia carrinho local (produtos e peças) e integra com a API de pedidos.
+ *
+ * Cada item do carrinho tem o formato:
+ *   { tipo: 'produto'|'peca', id: <int>, nome, preco, quantidade, imagem }
+ * A chave única do item é `${tipo}:${id}` — assim produtos e peças com o mesmo
+ * número de ID não colidem.
  */
 
 class ShoppingCart {
@@ -22,7 +27,7 @@ class ShoppingCart {
     if (savedOwner && currentUserId && savedOwner !== currentUserId) {
         localStorage.removeItem(this.cartKey);
     }
-    
+
     // Atualiza quem é o dono atual do carrinho na sessão local, apenas se estiver logado
     if (currentUserId) {
         localStorage.setItem(this.ownerKey, currentUserId);
@@ -34,11 +39,29 @@ class ShoppingCart {
   loadCart() {
     try {
       const saved = localStorage.getItem(this.cartKey);
-      return saved ? JSON.parse(saved) : [];
+      const raw = saved ? JSON.parse(saved) : [];
+      // Normaliza itens (compatibilidade com formatos antigos baseados em id_produto)
+      return raw.map((it) => this.normalizeItem(it)).filter(Boolean);
     } catch (e) {
       console.error('Erro ao carregar carrinho:', e);
       return [];
     }
+  }
+
+  normalizeItem(it) {
+    if (!it) return null;
+    const tipo = it.tipo || (it.id_peca ? 'peca' : 'produto');
+    const id = it.id != null ? it.id : (tipo === 'peca' ? it.id_peca : it.id_produto);
+    if (id == null) return null;
+    const preco = Number(it.preco != null ? it.preco : it.price);
+    return {
+      tipo,
+      id: parseInt(id, 10),
+      nome: it.nome || it.name || (tipo === 'peca' ? 'Peça' : 'Produto'),
+      preco: isNaN(preco) ? 0 : preco,
+      quantidade: parseInt(it.quantidade || it.quantity || 1, 10),
+      imagem: it.imagem || it.imagem_produto || it.imagem_peca || null,
+    };
   }
 
   saveCart() {
@@ -52,36 +75,61 @@ class ShoppingCart {
 
   // === OPERAÇÕES DO CARRINHO ===
 
-  addProduct(produto) {
-    // Verifica se já existe no carrinho
-    const existing = this.cart.find(item => item.id_produto === produto.id_produto);
+  itemKey(item) {
+    return `${item.tipo}:${item.id}`;
+  }
 
-    if (existing) {
-      existing.quantidade++;
-    } else {
-      this.cart.push({
-        id_produto: produto.id_produto,
-        nome: produto.nome,
-        preco: produto.preco,
-        quantidade: 1,
-        imagem_produto: produto.imagem_produto || null
-      });
+  addItem(data) {
+    const item = this.normalizeItem(data);
+    if (!item) {
+      console.error('Item inválido para o carrinho:', data);
+      return;
     }
-
-    this.saveCart();
-    this.showNotification(`${produto.nome} adicionado ao carrinho!`);
-  }
-
-  removeProduct(id_produto) {
-    this.cart = this.cart.filter(item => item.id_produto !== id_produto);
-    this.saveCart();
-  }
-
-  updateQuantity(id_produto, quantidade) {
-    if (quantidade <= 0) {
-      this.removeProduct(id_produto);
+    const key = this.itemKey(item);
+    const existing = this.cart.find((i) => this.itemKey(i) === key);
+    if (existing) {
+      existing.quantidade += item.quantidade || 1;
     } else {
-      const item = this.cart.find(item => item.id_produto === id_produto);
+      this.cart.push(item);
+    }
+    this.saveCart();
+    this.showNotification(`${item.nome} adicionado ao carrinho!`);
+  }
+
+  // Compatibilidade: adicionar produto
+  addProduct(produto) {
+    this.addItem({
+      tipo: 'produto',
+      id: produto.id_produto != null ? produto.id_produto : produto.id,
+      nome: produto.nome,
+      preco: produto.preco,
+      imagem: produto.imagem_produto || produto.imagem || null,
+      quantidade: produto.quantidade || 1,
+    });
+  }
+
+  // Adicionar peça
+  addPeca(peca) {
+    this.addItem({
+      tipo: 'peca',
+      id: peca.id_peca != null ? peca.id_peca : peca.id,
+      nome: peca.nome,
+      preco: peca.preco != null ? peca.preco : peca.preco_unitario,
+      imagem: peca.imagem_peca || peca.imagem || null,
+      quantidade: peca.quantidade || 1,
+    });
+  }
+
+  removeItem(key) {
+    this.cart = this.cart.filter((item) => this.itemKey(item) !== key);
+    this.saveCart();
+  }
+
+  updateQuantity(key, quantidade) {
+    if (quantidade <= 0) {
+      this.removeItem(key);
+    } else {
+      const item = this.cart.find((i) => this.itemKey(i) === key);
       if (item) {
         item.quantidade = quantidade;
         this.saveCart();
@@ -90,7 +138,7 @@ class ShoppingCart {
   }
 
   getTotal() {
-    return this.cart.reduce((total, item) => total + (item.preco * item.quantidade), 0);
+    return this.cart.reduce((total, item) => total + (Number(item.preco) * item.quantidade), 0);
   }
 
   getItemCount() {
@@ -123,19 +171,19 @@ class ShoppingCart {
             <h5>Carrinho de Compras</h5>
             <button type="button" class="btn-close btn-close-white" id="close-cart"></button>
           </div>
-          
+
           <div class="cart-items" id="cart-items">
             <div class="empty-cart">Carrinho vazio</div>
           </div>
-          
+
           <div class="cart-footer">
             <div class="cart-total">
               <strong>Total:</strong>
               <span id="cart-total-price">R$ 0,00</span>
             </div>
-            <button 
-              type="button" 
-              id="checkout-btn" 
+            <button
+              type="button"
+              id="checkout-btn"
               class="btn btn-danger w-100"
               style="display: none;"
             >
@@ -143,7 +191,7 @@ class ShoppingCart {
             </button>
           </div>
         </div>
-        
+
         <!-- Overlay para fechar o carrinho -->
         <div id="cart-overlay" class="cart-overlay"></div>
       `;
@@ -241,39 +289,41 @@ class ShoppingCart {
   }
 
   renderCartItem(item) {
+    const key = this.itemKey(item);
+    const tipoLabel = item.tipo === 'peca' ? 'Peça' : 'Produto';
     return `
-      <div class="cart-item" data-produto-id="${item.id_produto}">
+      <div class="cart-item" data-key="${key}">
         <div class="cart-item-info">
-          ${item.imagem_produto ? `<img src="${item.imagem_produto}" alt="${item.nome}" class="cart-item-image">` : ''}
+          ${item.imagem ? `<img src="${item.imagem}" alt="${item.nome}" class="cart-item-image">` : ''}
           <div class="cart-item-details">
-            <h6 class="cart-item-name">${item.nome}</h6>
+            <h6 class="cart-item-name">${item.nome} <small class="text-muted">(${tipoLabel})</small></h6>
             <p class="cart-item-price">${this.formatPrice(item.preco)}</p>
           </div>
         </div>
-        
+
         <div class="cart-item-controls">
           <div class="quantity-control">
             <button type="button" class="qty-btn qty-minus" data-action="minus">−</button>
-            <input 
-              type="number" 
-              class="qty-input" 
-              value="${item.quantidade}" 
+            <input
+              type="number"
+              class="qty-input"
+              value="${item.quantidade}"
               min="1"
-              data-produto-id="${item.id_produto}"
+              data-key="${key}"
             >
             <button type="button" class="qty-btn qty-plus" data-action="plus">+</button>
           </div>
-          
-          <button 
-            type="button" 
-            class="btn-remove" 
-            data-produto-id="${item.id_produto}"
+
+          <button
+            type="button"
+            class="btn-remove"
+            data-key="${key}"
             title="Remover do carrinho"
           >
             <i class="bi bi-trash"></i>
           </button>
         </div>
-        
+
         <div class="cart-item-subtotal">
           <small>Subtotal:</small>
           <strong>${this.formatPrice(item.preco * item.quantidade)}</strong>
@@ -288,31 +338,31 @@ class ShoppingCart {
       btn.addEventListener('click', (e) => {
         const action = e.target.closest('.qty-btn').dataset.action;
         const input = e.target.closest('.quantity-control').querySelector('.qty-input');
-        const id_produto = parseInt(input.dataset.produtoId);
+        const key = input.dataset.key;
         let qty = parseInt(input.value);
 
         if (action === 'plus') qty++;
         else if (action === 'minus' && qty > 1) qty--;
 
-        this.updateQuantity(id_produto, qty);
+        this.updateQuantity(key, qty);
       });
     });
 
     // Input de quantidade
     document.querySelectorAll('.qty-input').forEach(input => {
       input.addEventListener('change', (e) => {
-        const id_produto = parseInt(e.target.dataset.produtoId);
+        const key = e.target.dataset.key;
         let qty = parseInt(e.target.value) || 0;
         if (qty < 1) qty = 1;
-        this.updateQuantity(id_produto, qty);
+        this.updateQuantity(key, qty);
       });
     });
 
     // Botões de remover
     document.querySelectorAll('.btn-remove').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        const id_produto = parseInt(e.target.closest('.btn-remove').dataset.produtoId);
-        this.removeProduct(id_produto);
+        const key = e.target.closest('.btn-remove').dataset.key;
+        this.removeItem(key);
       });
     });
   }
@@ -335,7 +385,7 @@ class ShoppingCart {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
-    }).format(value);
+    }).format(value || 0);
   }
 
   getAuthToken() {
