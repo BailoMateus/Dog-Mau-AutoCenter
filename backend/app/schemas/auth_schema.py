@@ -6,8 +6,6 @@ class LoginRequest(BaseModel):
     email: str
     password: str
 
-class FirebaseLoginRequest(BaseModel):
-    id_token: str
 
 class RegisterRequest(BaseModel):
     nome: str = Field(..., min_length=5)

@@ -4,7 +4,7 @@ import os
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, status, Body
 from fastapi.responses import JSONResponse, RedirectResponse
 
-from app.schemas.auth_schema import FirebaseLoginRequest, LoginRequest, RegisterRequest
+from app.schemas.auth_schema import LoginRequest, RegisterRequest
 from app.services.auth_service import login
 from app.services import user_service
 from app.schemas.user_schema import UserCreate
@@ -50,7 +50,6 @@ def login_user(request: Request, email: str = Form(...), password: str = Form(..
             "request": request,
             "user": None,
             "error": "Usuário ou senha incorretos.",
-            "firebase_api_key": os.environ.get("FIREBASE_WEB_API_KEY", ""),
         }, status_code=401)
 
     # Sucesso: redireciona para / com cookie setado (303 = POST → GET)
@@ -111,7 +110,6 @@ def register_user(
             "request": request,
             "user": None,
             "error": e.detail,
-            "firebase_api_key": os.environ.get("FIREBASE_WEB_API_KEY", ""),
         }, status_code=e.status_code)
     except Exception as e:
         logger.error("Erro inesperado ao criar usuário: %s", e, exc_info=True)
@@ -120,7 +118,6 @@ def register_user(
             "request": request,
             "user": None,
             "error": "Erro interno ao criar conta. Tente novamente.",
-            "firebase_api_key": os.environ.get("FIREBASE_WEB_API_KEY", ""),
         }, status_code=500)
 
     # Salvar Endereço se fornecido
@@ -151,65 +148,6 @@ def register_user(
     logger.info("POST /auth/register sucesso user_id=%s — redirect 303", user.id_usuario)
     return response
 
-
-# ---------------------------------------------------------------------------
-# API JSON: Login com Google (Firebase Auth) — mantém fetch/JSON
-# porque o popup do Google é client-side por natureza
-# ---------------------------------------------------------------------------
-@router.post("/google")
-def login_with_google(data: FirebaseLoginRequest):
-    logger.info("POST /auth/google - Validando Token com Firebase Admin")
-
-    try:
-        from firebase_admin import auth as firebase_auth
-    except ImportError:
-        logger.error("firebase-admin não instalado")
-        raise HTTPException(status_code=500, detail="Serviço Google indisponível")
-
-    try:
-        decoded_token = firebase_auth.verify_id_token(data.id_token)
-        email = decoded_token.get("email")
-        nome = decoded_token.get("name", "Usuário Google")
-    except Exception as e:
-        logger.error("Falha na validação do Firebase Token: %s", str(e))
-        raise HTTPException(status_code=401, detail="Token do Google inválido ou expirado")
-
-    from app.repositories import user_repository
-    user = user_repository.get_user_by_email(email)
-
-    if not user:
-        import uuid
-        generic_secure_password = str(uuid.uuid4()) + "A1@"
-
-        user_data = UserCreate(
-            nome=nome,
-            email=email,
-            password=generic_secure_password,
-            role=CLIENTE,
-            ativo=True,
-        )
-        try:
-            user = user_service.create_user(user_data)
-        except HTTPException as e:
-            raise e
-        except Exception as e:
-            logger.error("Erro ao criar usuário Google: %s", e, exc_info=True)
-            raise HTTPException(status_code=500, detail="Erro ao criar conta Google")
-
-        token = login(email, generic_secure_password)
-        if not token:
-            raise HTTPException(status_code=500, detail="Erro ao gerar token")
-    else:
-        from app.core.security import create_access_token
-        token = create_access_token(
-            {"sub": str(user.id_usuario), "role": user.role}
-        )
-
-    # Sucesso: redireciona para / com cookie setado (303 = POST → GET)
-    response = RedirectResponse(url="/", status_code=303)
-    _set_auth_cookie(response, token)
-    logger.info("POST /auth/google sucesso — cookie setado")
-    return response
 
 
 @router.get("/me")

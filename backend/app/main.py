@@ -117,12 +117,7 @@ async def log_requests(request: Request, call_next):
 @app.on_event("startup")
 async def on_startup():
     ensure_upload_subdirs()
-    from app.core.firebase import init_firebase
-    try:
-        init_firebase()
-        logger.info("API iniciada (FastAPI) com Firebase Configurado")
-    except Exception as e:
-        logger.warning(f"API iniciada (FastAPI) - Firebase não disponível: {e}")
+    logger.info("API iniciada (FastAPI) - Banco de dados local.")
 
 
 @app.get("/testar-banco")
@@ -160,9 +155,8 @@ if __name__ == "__main__":
 
     port = int(os.environ.get("PORT", 8080))
     try:
-        # Passar o objeto 'app' diretamente (e não a string) evita que o uvicorn faça 
-        # recarregamentos dinâmicos que quebram o path no Docker/Cloud Run
-        uvicorn.run(app, host="0.0.0.0", port=port)
+        # Habilitado reload automático para desenvolvimento local
+        uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=True)
     except BaseException as e:
         print(f"=== STARTUP CRASH: {type(e).__name__} ===", file=sys.stderr, flush=True)
         traceback.print_exc()

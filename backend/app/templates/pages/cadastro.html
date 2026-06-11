@@ -129,28 +129,12 @@
 
         <button class="btn btn-primary w-100 py-2" type="submit">Cadastrar</button>
 
-        <button class="btn btn-outline-danger w-100 py-2 mt-2" type="button" id="btnGoogleLogin">
-          <i class="bi bi-google"></i> Continuar com Google
-        </button>
+
         <p class="mt-3 text-center"><a href="/login" class="text-decoration-none">Já tem conta? Entre aqui</a></p>
         <p class="mt-5 mb-3 text-body-secondary">&copy; 2025–2026</p>
       </form>
     </main>
 {% endblock %}
 
-{% block extra_scripts %}
-    <!-- Firebase Auth SDK (compat) -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-    <script>
-        const firebaseConfig = {
-            apiKey: "{{ firebase_api_key | default('') }}",
-            authDomain: "dog-mau-autocenter.firebaseapp.com",
-            projectId: "dog-mau-autocenter",
-        };
-        if (firebaseConfig.apiKey) {
-            firebase.initializeApp(firebaseConfig);
-        }
-    </script>
     <script src="/static/js/cadastro.js"></script>
 {% endblock %}

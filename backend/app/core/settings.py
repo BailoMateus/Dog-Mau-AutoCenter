@@ -39,17 +39,14 @@ class Settings(BaseSettings):
     # Opcional: URL completa do Postgres (ex.: local com proxy ou tunel)
     database_url: Optional[str] = Field(default=None)
 
-    db_user: str = "usuario_vazio"
-    db_pass: str = ""
-    db_name: str = "banco_vazio"
-    instance_connection_name: str = "conexao_vazia"
+
 
     debug_log: bool = False
 
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
 
-    firebase_web_api_key: str = ""
+
 
     resend_api_key: str = ""
     frontend_url: str = ""
