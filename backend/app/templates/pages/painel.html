@@ -44,7 +44,7 @@
         {% else %}
         <li class="nav-item" role="presentation">
             <a class="nav-link nav-tab-link {% if tab == 'meu_usuario' %}active{% endif %}" href="?tab=meu_usuario" role="tab">
-                <i class="bi bi-person-badge me-1"></i>Meu Usuário
+                <i class="bi bi-person-badge me-1"></i>Meu Perfil
             </a>
         </li>
         {% endif %}
@@ -73,14 +73,13 @@
             </a>
         </li>
 
+        {% if user.role in ['admin', 'mecanico'] %}
         <li class="nav-item" role="presentation">
             <a class="nav-link nav-tab-link {% if tab == 'servicos' %}active{% endif %}" href="?tab=servicos" role="tab">
-                <i class="bi bi-tools me-1"></i>
-                {% if user.role in ['admin', 'mecanico'] %}Serviços{% else %}Meus Serviços{% endif %}
+                <i class="bi bi-tools me-1"></i>Serviços
             </a>
         </li>
 
-        {% if user.role in ['admin', 'mecanico'] %}
         <li class="nav-item" role="presentation">
             <a class="nav-link nav-tab-link {% if tab == 'pedidos' %}active{% endif %}" href="?tab=pedidos" role="tab">
                 <i class="bi bi-cart3 me-1"></i>Pedidos
@@ -134,162 +133,161 @@
         {# ── Aba de Perfil (Cliente / Admin / Mecânico) ── #}
         {% if tab == 'meu_usuario' %}
         <div class="tab-pane fade show active" id="perfil" role="tabpanel">
-            <div class="card border-0 shadow rounded" style="background-color: #111;">
-                <div class="card-body p-4">
-                    <h4 class="fw-bold text-white mb-4"><i class="bi bi-person-badge me-2"></i>Editar Meus Dados</h4>
-                    
-                    <div id="perfilLoader" class="text-center py-5">
-                        <div class="spinner-border" style="color: rgba(192, 37, 43);" role="status">
-                            <span class="visually-hidden">Carregando...</span>
-                        </div>
-                        <p class="mt-3 text-muted">Carregando dados do perfil...</p>
-                    </div>
-
-                    <form id="profileForm" style="display: none;">
-                        <div class="row text-white">
-                            <div class="col-md-6 mb-4">
-                                <label class="text-muted small d-block mb-2">Foto de Perfil</label>
-                                <div class="text-center mb-3">
-                                    <img id="fotoPreview" 
-                                         src="{{ user.avatar or '/static/assets/avatar-placeholder.png' }}" 
-                                         alt="Foto de Perfil de {{ user.nome }}" 
-                                         class="rounded-circle"
-                                         style="width: 150px; height: 150px; object-fit: cover; border: 2px solid #555;">
-                                </div>
-                                <input type="file" 
-                                       id="fotoPerfil" 
-                                       class="form-control form-control-sm bg-dark border-secondary text-white"
-                                       accept="image/jpeg,image/jpg,image/png">
-                                <small class="text-muted d-block mt-1">JPG ou PNG (máx. 2 MB)</small>
-                                <button type="button" 
-                                         id="uploadFotoBtn" 
-                                         class="btn btn-sm btn-warning mt-2"
-                                         style="display: none;">
-                                    <i class="bi bi-cloud-upload me-1"></i>Enviar Foto
-                                </button>
-                                <div id="fotoUploadStatus" style="display: none; margin-top: 0.5rem;">
-                                    <small id="fotoUploadMessage" class="d-block"></small>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6 mb-4"></div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="nome" class="text-muted small d-block">Nome</label>
-                                <input type="text" id="nome" class="form-control form-control-sm bg-dark border-secondary text-white" placeholder="Seu nome completo">
-                                <small class="text-muted d-block mt-1">Clique em Salvar para confirmar alterações</small>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="email" class="text-muted small d-block">E-mail</label>
-                                <input type="email" id="email" class="form-control form-control-sm bg-dark border-secondary text-white" placeholder="seu@email.com">
-                                <small class="text-muted d-block mt-1">Clique em Salvar para confirmar alterações</small>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="telefone" class="text-muted small d-block">Telefone</label>
-                                <input type="tel" 
-                                       id="telefone" 
-                                       class="form-control form-control-sm bg-dark border-secondary text-white"
-                                       data-mask="phone"
-                                       placeholder="(11) 98765-4321">
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="cpf_cnpj" class="text-muted small d-block">CPF/CNPJ</label>
-                                <input type="text" 
-                                       id="cpf_cnpj" 
-                                       class="form-control form-control-sm bg-dark border-secondary text-white"
-                                       data-mask="cpf_cnpj"
-                                       placeholder="000.000.000-00"
-                                       disabled>
-                                <small class="text-muted d-block mt-1">
-                                    <i class="bi bi-lock-fill me-1"></i>Não pode ser alterado após cadastro
-                                </small>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="data_nascimento" class="text-muted small d-block">Data de Nascimento</label>
-                                <input type="date" id="data_nascimento" class="form-control form-control-sm bg-dark border-secondary text-white">
-                                <small class="text-muted d-block mt-1">Clique em Salvar para confirmar alterações</small>
-                            </div>
-
-                            <div class="col-12 mb-3">
-                                <label for="endereco_principal" class="text-muted small d-block">Endereço Principal</label>
-                                <div class="input-group input-group-sm">
-                                    <select id="endereco_principal" class="form-select form-select-sm bg-dark border-secondary text-white">
-                                        <option value="">Nenhum endereço selecionado</option>
-                                    </select>
-                                    <button class="btn btn-outline-secondary" type="button" id="gerenciarEnderecoBtn" title="Gerenciar endereços">
-                                        <i class="bi bi-gear"></i>
-                                    </button>
-                                </div>
-                                <small class="text-muted d-block mt-1">Selecione seu endereço principal para entregas</small>
-                            </div>
-                        </div>
-
-                        <div class="card border-0 shadow rounded mt-4" style="background-color: #111;">
-                            <div class="card-body p-4">
-                                <h4 class="fw-bold text-white mb-4">
-                                    <i class="bi bi-key me-2"></i>Alterar Senha
-                                </h4>
-                                <div class="row text-white">
-                                    <div class="col-md-4 mb-3">
-                                        <label for="senhaAtual" class="text-muted small d-block">Senha Atual</label>
-                                        <div class="input-group input-group-sm">
-                                            <input type="password" id="senhaAtual" class="form-control bg-dark border-secondary text-white" placeholder="Digite sua senha atual">
-                                            <button class="btn btn-outline-secondary toggle-password" type="button" data-target="senhaAtual">
-                                                <i class="bi bi-eye"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label for="novaSenha" class="text-muted small d-block">Nova Senha</label>
-                                        <div class="input-group input-group-sm">
-                                            <input type="password" id="novaSenha" class="form-control bg-dark border-secondary text-white" placeholder="Digite a nova senha">
-                                            <button class="btn btn-outline-secondary toggle-password" type="button" data-target="novaSenha">
-                                                <i class="bi bi-eye"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label for="confirmarSenha" class="text-muted small d-block">Confirmar Senha</label>
-                                        <div class="input-group input-group-sm">
-                                            <input type="password" id="confirmarSenha" class="form-control bg-dark border-secondary text-white" placeholder="Confirme a nova senha">
-                                            <button class="btn btn-outline-secondary toggle-password" type="button" data-target="confirmarSenha">
-                                                <i class="bi bi-eye"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <hr class="border-secondary my-4">
-                                <button type="button" class="btn btn-warning" id="changePasswordBtn">
-                                    <i class="bi bi-shield-lock me-1"></i>Alterar Senha
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6 mb-3 mt-3">
-                            <label class="text-muted small d-block">Cargo</label>
-                            {% if user.role == 'admin' %}
-                            <span class="badge bg-primary">{{ user.role | upper }}</span>
-                            {% else %}
-                            <span class="badge bg-info text-dark">{{ user.role | upper }}</span>
-                            {% endif %}
-                            <small class="text-muted d-block mt-1">Não pode ser alterado</small>
-                        </div>
-
-                        <hr class="border-secondary my-4">
+            <div class="mx-auto" style="max-width: 900px;">
+                <div class="card border-0 shadow rounded" style="background-color: #111;">
+                    <div class="card-body p-4">
+                        <h4 class="fw-bold text-white mb-4 text-center"><i class="bi bi-person-badge me-2"></i>Editar Meus Dados</h4>
                         
-                        <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-danger" id="saveBtn">
-                                <i class="bi bi-check-circle me-1"></i>Salvar Alterações
-                            </button>
-                            <button type="reset" class="btn btn-secondary">
-                                <i class="bi bi-arrow-clockwise me-1"></i>Desfazer
+                        <div id="perfilLoader" class="text-center py-5">
+                            <div class="spinner-border" style="color: rgba(192, 37, 43);" role="status">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
+                            <p class="mt-3 text-muted">Carregando dados do perfil...</p>
+                        </div>
+
+                        <form id="profileForm" style="display: none;">
+                            <div class="row text-white">
+                                <div class="col-md-6 mb-4">
+                                    <div class="profile-photo-section">
+                                        <label class="text-white-50 d-block mb-0">Foto de Perfil</label>
+                                        <img id="fotoPreview" 
+                                             src="{{ user.avatar or '/static/assets/avatar-placeholder.png' }}" 
+                                             alt="Foto de Perfil de {{ user.nome }}" 
+                                             class="profile-photo-preview">
+                                        <input type="file" 
+                                               id="fotoPerfil" 
+                                               class="d-none"
+                                               accept="image/jpeg,image/jpg,image/png">
+                                        <label for="fotoPerfil" class="btn btn-sm btn-outline-secondary mb-0">
+                                            <i class="bi bi-image me-1"></i>Escolher Arquivo
+                                        </label>
+                                        <small class="text-muted">JPG ou PNG (máx. 2 MB)</small>
+                                        <button type="button" 
+                                                 id="uploadFotoBtn" 
+                                                 class="btn btn-sm btn-primary"
+                                                 style="display: none;">
+                                            <i class="bi bi-cloud-upload me-1"></i>Enviar Foto
+                                        </button>
+                                        <div id="fotoUploadStatus" style="display: none;">
+                                            <small id="fotoUploadMessage" class="d-block"></small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-4 d-flex flex-column justify-content-center">
+                                    <div class="form-floating mb-3">
+                                        <input type="text" id="nome" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" placeholder="Seu nome completo">
+                                        <label for="nome" class="text-white-50">Nome</label>
+                                    </div>
+                                    <div class="form-floating mb-3">
+                                        <input type="email" id="email" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" placeholder="seu@email.com">
+                                        <label for="email" class="text-white-50">E-mail</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-floating">
+                                        <input type="tel" id="telefone" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" data-mask="phone" placeholder="(11) 98765-4321">
+                                        <label for="telefone" class="text-white-50">Telefone</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-floating">
+                                        <input type="text" id="cpf_cnpj" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" data-mask="cpf_cnpj" placeholder="000.000.000-00" disabled>
+                                        <label for="cpf_cnpj" class="text-white-50">CPF/CNPJ</label>
+                                    </div>
+                                    <small class="text-muted d-block mt-1">
+                                        <i class="bi bi-lock-fill me-1"></i>Não pode ser alterado após cadastro
+                                    </small>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-floating">
+                                        <input type="date" id="data_nascimento" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;">
+                                        <label for="data_nascimento" class="text-white-50">Data de Nascimento</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-white-50 d-block mb-2">Cargo</label>
+                                    {% if user.role == 'admin' %}
+                                    <span class="badge bg-primary">{{ user.role | upper }}</span>
+                                    {% else %}
+                                    <span class="badge bg-info text-dark">{{ user.role | upper }}</span>
+                                    {% endif %}
+                                    <small class="text-muted d-block mt-1">Não pode ser alterado</small>
+                                </div>
+
+                                <div class="col-12 mb-3">
+                                    <label for="endereco_principal" class="text-white-50 d-block mb-2">Endereço Principal</label>
+                                    <div class="input-group">
+                                        <select id="endereco_principal" class="form-select text-white" style="background-color: #0b0b0b; border-color: #333;">
+                                            <option value="">Nenhum endereço selecionado</option>
+                                        </select>
+                                        <button class="btn btn-outline-secondary" type="button" id="gerenciarEnderecoBtn" title="Gerenciar endereços">
+                                            <i class="bi bi-gear"></i>
+                                        </button>
+                                    </div>
+                                    <div id="endereco_detalhado_container" class="mt-2 p-2 rounded border border-secondary text-muted small" style="background-color: #151515; display: none;"></div>
+                                    <small class="text-muted d-block mt-1">Selecione seu endereço principal</small>
+                                </div>
+                            </div>
+
+                            <hr class="border-secondary my-4">
+                            
+                            <div class="d-flex justify-content-center gap-2">
+                                <button type="button" class="btn btn-danger px-4" id="saveBtn">
+                                    <i class="bi bi-check-circle me-1"></i>Salvar Alterações
+                                </button>
+                                <button type="reset" class="btn btn-secondary px-4">
+                                    <i class="bi bi-arrow-clockwise me-1"></i>Desfazer
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow rounded mt-4" id="passwordSection" style="background-color: #111; display: none;">
+                    <div class="card-body p-4">
+                        <h4 class="fw-bold text-white mb-4 text-center">
+                            <i class="bi bi-key me-2"></i>Alterar Senha
+                        </h4>
+                        <div class="row text-white mx-auto" style="max-width: 800px;">
+                            <div class="col-md-4 mb-3">
+                                <div class="form-floating">
+                                    <input type="password" id="senhaAtual" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" placeholder="Senha atual">
+                                    <label for="senhaAtual" class="text-white-50">Senha Atual</label>
+                                </div>
+                                <button class="btn btn-sm btn-outline-secondary toggle-password mt-1" type="button" data-target="senhaAtual">
+                                    <i class="bi bi-eye"></i> Mostrar
+                                </button>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="form-floating">
+                                    <input type="password" id="novaSenha" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" placeholder="Nova senha">
+                                    <label for="novaSenha" class="text-white-50">Nova Senha</label>
+                                </div>
+                                <button class="btn btn-sm btn-outline-secondary toggle-password mt-1" type="button" data-target="novaSenha">
+                                    <i class="bi bi-eye"></i> Mostrar
+                                </button>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="form-floating">
+                                    <input type="password" id="confirmarSenha" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" placeholder="Confirmar senha">
+                                    <label for="confirmarSenha" class="text-white-50">Confirmar Senha</label>
+                                </div>
+                                <button class="btn btn-sm btn-outline-secondary toggle-password mt-1" type="button" data-target="confirmarSenha">
+                                    <i class="bi bi-eye"></i> Mostrar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <button type="button" class="btn btn-primary px-4" id="changePasswordBtn">
+                                <i class="bi bi-shield-lock me-1"></i>Alterar Senha
                             </button>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>

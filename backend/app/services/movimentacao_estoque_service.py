@@ -138,8 +138,9 @@ def registrar_saida_estoque(data: MovimentacaoEstoqueCreate):
         logger.info("saída registrada peca=%s quantidade=%s estoque_anterior=%s motivo=%s",
                    data.id_peca, data.quantidade, estoque_anterior, data.motivo)
 
-        # Movimentação financeira de saída (valor gasto na compra de peça/produto)
-        _registrar_saida_financeira_estoque(data.id_peca, data.quantidade, "saida")
+        # Requisito 3: a movimentação financeira (saída = valor de aquisição) é
+        # criada APENAS na entrada manual de estoque. A saída de estoque não gera
+        # movimentação financeira (não há compra de itens nesse fluxo).
 
         return movimentacao
         

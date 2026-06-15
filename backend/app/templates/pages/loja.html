@@ -104,6 +104,19 @@
                 R$ {{ "%.2f"|format(pc.preco_unitario | float) }}
                 <small> / un.</small>
               </p>
+
+              <button type="button"
+                      class="btn btn-loja-comprar"
+                      data-tipo="peca"
+                      data-demo="false"
+                      data-logged-in="{{ 'true' if user else 'false' }}"
+                      data-peca-id="{{ pc.id_peca }}"
+                      data-preco="{{ pc.preco_unitario }}"
+                      data-estoque="{{ pc_estoque }}"
+                      {% if pc_estoque <= 0 %}disabled{% endif %}>
+                <i class="bi bi-cart-plus me-2"></i>
+                {% if pc_estoque <= 0 %}Indisponível{% else %}Adicionar ao Carrinho{% endif %}
+              </button>
             </div>
           </article>
         </div>

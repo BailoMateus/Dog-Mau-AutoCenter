@@ -218,7 +218,8 @@
             document.getElementById('userName').value = btnElement.getAttribute('data-user-nome');
             document.getElementById('userEmail').value = btnElement.getAttribute('data-user-email');
             document.getElementById('userRole').value = btnElement.getAttribute('data-user-role');
-            document.getElementById('userAtivo').checked = btnElement.getAttribute('data-user-ativo') === 'True';
+            const ativoValue = String(btnElement.getAttribute('data-user-ativo')).toLowerCase();
+            document.getElementById('userAtivo').checked = ['true', '1', 't', 'yes', 'y'].includes(ativoValue);
         }
 
         document.getElementById('formModal').classList.remove('d-none');

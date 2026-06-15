@@ -86,34 +86,37 @@
             <form id="veiculoForm" class="form-signin w-100 m-auto" style="max-width: 100%;">
                 <input type="hidden" id="veiculoId" name="id" />
                 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
+                <div class="form-floating mb-3">
+                    <select class="form-select text-white" style="background-color: #0b0b0b; border-color: #333;" id="veiculoModelo" name="id_modelo" required>
+                        <option value="" disabled selected>Selecione um modelo...</option>
+                        {% for m in modelos %}
+                        <option value="{{ m.id_modelo }}" data-ano="{{ m.ano_lancamento or '' }}">{{ m.nome_modelo }}</option>
+                        {% endfor %}
+                    </select>
+                    <label for="veiculoModelo" class="text-white-50">Modelo</label>
+                </div>
+
+                <div class="row align-items-end">
+                    <div class="col-md-4 mb-3">
                         <div class="form-floating">
                             <input type="text" class="form-control text-white text-uppercase" style="background-color: #0b0b0b; border-color: #333;" id="veiculoPlaca" name="placa" data-mask="plate" placeholder="ABC-1234" maxlength="8" required>
                             <label for="veiculoPlaca" class="text-white-50">Placa</label>
                         </div>
                     </div>
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-4 mb-3">
                         <div class="form-floating">
-                            <input type="number" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="veiculoAno" name="ano_fabricacao" placeholder="2020" required>
-                            <label for="veiculoAno" class="text-white-50">Ano Fabricação</label>
+                            <select class="form-select text-white" style="background-color: #0b0b0b; border-color: #333;" id="veiculoAno" name="ano_fabricacao" required disabled>
+                                <option value="" disabled selected>Selecione o modelo...</option>
+                            </select>
+                            <label for="veiculoAno" class="text-white-50">Ano de Lançamento</label>
                         </div>
                     </div>
-                </div>
-
-                <div class="form-floating mb-3">
-                    <input type="text" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="veiculoCor" name="cor" placeholder="Preto" required>
-                    <label for="veiculoCor" class="text-white-50">Cor</label>
-                </div>
-
-                <div class="form-floating mb-3">
-                    <select class="form-select text-white" style="background-color: #0b0b0b; border-color: #333;" id="veiculoModelo" name="id_modelo" required>
-                        <option value="" disabled selected>Selecione um modelo...</option>
-                        {% for m in modelos %}
-                        <option value="{{ m.id_modelo }}">{{ m.nome_modelo }}</option>
-                        {% endfor %}
-                    </select>
-                    <label for="veiculoModelo" class="text-white-50">Modelo</label>
+                    <div class="col-md-4 mb-3">
+                        <div class="form-floating">
+                            <input type="text" class="form-control text-white" style="background-color: #0b0b0b; border-color: #333;" id="veiculoCor" name="cor" placeholder="Preto" required>
+                            <label for="veiculoCor" class="text-white-50">Cor</label>
+                        </div>
+                    </div>
                 </div>
                 
                 {% if user.role in ['admin', 'mecanico'] %}
@@ -182,6 +185,34 @@
     let veiculoMode = 'create';
     const userRole = "{{ user.role }}";
 
+    function resetVeiculoAnoSelect() {
+        const anoSelect = document.getElementById('veiculoAno');
+        anoSelect.innerHTML = '<option value="" disabled selected>Selecione o modelo...</option>';
+        anoSelect.disabled = true;
+    }
+
+    function atualizarAnoVeiculoPorModelo(anoPreselecionado) {
+        const modeloSelect = document.getElementById('veiculoModelo');
+        const anoSelect = document.getElementById('veiculoAno');
+        const selectedOption = modeloSelect.options[modeloSelect.selectedIndex];
+        const ano = anoPreselecionado || selectedOption?.dataset?.ano || '';
+
+        anoSelect.innerHTML = '';
+        if (!ano) {
+            resetVeiculoAnoSelect();
+            return;
+        }
+
+        const opt = document.createElement('option');
+        opt.value = ano;
+        opt.textContent = ano;
+        opt.selected = true;
+        anoSelect.appendChild(opt);
+        anoSelect.disabled = false;
+    }
+
+    document.getElementById('veiculoModelo')?.addEventListener('change', () => atualizarAnoVeiculoPorModelo());
+
     function openVeiculoModal(mode, btnElement) {
         veiculoMode = mode;
         const form = document.getElementById('veiculoForm');
@@ -193,13 +224,14 @@
         if (mode === 'create') {
             title.textContent = 'Novo Veículo';
             document.getElementById('veiculoId').value = '';
+            resetVeiculoAnoSelect();
         } else if (mode === 'edit' && btnElement) {
             title.textContent = 'Editar Veículo';
             document.getElementById('veiculoId').value = btnElement.getAttribute('data-veiculo-id');
             document.getElementById('veiculoPlaca').value = btnElement.getAttribute('data-veiculo-placa');
-            document.getElementById('veiculoAno').value = btnElement.getAttribute('data-veiculo-ano');
             document.getElementById('veiculoCor').value = btnElement.getAttribute('data-veiculo-cor');
             document.getElementById('veiculoModelo').value = btnElement.getAttribute('data-veiculo-modelo');
+            atualizarAnoVeiculoPorModelo(btnElement.getAttribute('data-veiculo-ano'));
             
             if (userRole === 'admin' || userRole === 'mecanico') {
                 document.getElementById('veiculoUsuario').value = btnElement.getAttribute('data-veiculo-usuario');

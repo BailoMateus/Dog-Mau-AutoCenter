@@ -89,8 +89,9 @@ def add_produto_to_pedido(pedido_id: int, data: PedidoProdutoCreate):
         novo_estoque = quantidade_estoque- data.quantidade
         repo.update_produto_stock(data.id_produto, novo_estoque)
         
-        # Recalcula valor total do pedido
-        novo_valor_total = repo.calcular_valor_total_pedido(pedido_id)
+        # Recalcula valor total do pedido (produtos + peças)
+        from app.repositories import pedido_peca_repository as _pp_repo
+        novo_valor_total = float(repo.calcular_valor_total_pedido(pedido_id) or 0) + _pp_repo.calcular_valor_total_pecas(pedido_id)
         repo.update_valor_total_pedido(pedido_id, novo_valor_total)
         
         logger.info("produto adicionado ao pedido pedido=%s produto=%s quantidade=%s", 
@@ -146,8 +147,9 @@ def update_quantidade_produto(pedido_id: int, produto_id: int, data: PedidoProdu
         novo_estoque = repo.get_produto_stock(produto_id) - diferenca
         repo.update_produto_stock(produto_id, novo_estoque)
         
-        # Recalcula valor total do pedido
-        novo_valor_total = repo.calcular_valor_total_pedido(pedido_id)
+        # Recalcula valor total do pedido (produtos + peças)
+        from app.repositories import pedido_peca_repository as _pp_repo
+        novo_valor_total = float(repo.calcular_valor_total_pedido(pedido_id) or 0) + _pp_repo.calcular_valor_total_pecas(pedido_id)
         repo.update_valor_total_pedido(pedido_id, novo_valor_total)
         
         logger.info("quantidade atualizada pedido=%s produto=%s nova_quantidade=%s", 
@@ -189,8 +191,9 @@ def remove_produto_from_pedido(pedido_id: int, produto_id: int):
         novo_estoque = quantidade_estoque+ item_existente.quantidade
         repo.update_produto_stock(produto_id, novo_estoque)
         
-        # Recalcula valor total do pedido
-        novo_valor_total = repo.calcular_valor_total_pedido(pedido_id)
+        # Recalcula valor total do pedido (produtos + peças)
+        from app.repositories import pedido_peca_repository as _pp_repo
+        novo_valor_total = float(repo.calcular_valor_total_pedido(pedido_id) or 0) + _pp_repo.calcular_valor_total_pecas(pedido_id)
         repo.update_valor_total_pedido(pedido_id, novo_valor_total)
         
         logger.info("produto removido do pedido pedido=%s produto=%s quantidade_devolvida=%s", 

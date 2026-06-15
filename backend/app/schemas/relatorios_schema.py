@@ -1,10 +1,11 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
 class RelatorioPeriodo(BaseModel):
-    data_abertura: datetime
-    data_fim: datetime
+    """Período de relatório — aceita datas YYYY-MM-DD dos inputs type=date."""
+    data_abertura: date
+    data_fim: date
 
 class FaturamentoDetalhe(BaseModel):
     mes: str
@@ -22,11 +23,10 @@ class FaturamentoRelatorio(BaseModel):
     detalhes: list[FaturamentoDetalhe]
 
 class ServicosRealizadosDetalhe(BaseModel):
-    mes: str
-    quantidade_os: int
-    servicos_diferentes: int
-    total_servicos: int
-    valor_total_servicos: float
+    nome_servico: str
+    qtd_realizadas: int
+    receita_total: float
+    receita_media: float
 
 class ServicosRealizadosResumo(BaseModel):
     valor_total_geral: float

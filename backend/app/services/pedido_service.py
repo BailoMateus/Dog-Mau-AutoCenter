@@ -15,13 +15,16 @@ def list_pedidos():
     return repo.get_all_pedidos()
 
 def list_pedidos_detalhados():
-    """Lista todos os pedidos com detalhes de cliente e itens."""
+    """Lista todos os pedidos com detalhes de cliente e itens (produtos e peças)."""
+    from app.repositories import pedido_peca_repository as pedido_peca_repo
+
     pedidos_raw = repo.get_all_pedidos_detalhado()
-    
-    # Agregar itens do pedido_produto_repository
+
+    # Agregar itens (produtos + peças) de cada pedido
     for p in pedidos_raw:
         p['itens'] = pedido_produto_repo.get_itens_by_pedido(p['id_pedido'])
-        
+        p['itens_peca'] = pedido_peca_repo.get_itens_by_pedido(p['id_pedido'])
+
     return pedidos_raw
 
 def get_pedido_or_404(pedido_id: int) -> Pedido:
@@ -123,34 +126,39 @@ def update_pedido(pedido_id: int, data: PedidoUpdate):
     
     try:
         updated_pedido = repo.update_pedido(pedido)
-        
-        # --- Lógica de Automação de Estoque e Financeiro ---
+
+        # --- Movimentação financeira automática na conclusão do pedido ---
+        # Requisito 3: pedido concluído gera ENTRADA com a soma dos produtos e a
+        # soma das peças vendidas. (O estoque já é baixado no momento em que cada
+        # item é adicionado ao pedido — não há baixa duplicada aqui.)
         if status_anterior != "concluido" and pedido.status == "concluido":
             from app.repositories import pedido_produto_repository
-            from app.repositories import movimentacao_estoque_repository
+            from app.repositories import pedido_peca_repository
             from app.repositories import movimentacao_financeira_repository
-            
-            # 1. Baixar estoque dos produtos
-            produtos_do_pedido = pedido_produto_repository.get_itens_by_pedido(pedido_id)
-            for pp in produtos_do_pedido:
-                try:
-                    movimentacao_estoque_repository.registrar_saida_estoque_produto(
-                        produto_id=pp.id_produto,
-                        quantidade=pp.quantidade,
-                        motivo=f"Venda no Pedido #{pedido_id}"
-                    )
-                except Exception as e:
-                    logger.error("Erro ao dar baixa no estoque do produto=%s: %s", pp.id_produto, e)
-            
-            # 2. Registrar Entrada Financeira
-            valor_total = float(pedido.valor_total) if pedido.valor_total else 0.0
-            if valor_total > 0:
+
+            total_produtos = float(pedido_produto_repository.calcular_valor_total_pedido(pedido_id) or 0)
+            total_pecas = float(pedido_peca_repository.calcular_valor_total_pecas(pedido_id) or 0)
+
+            if total_produtos > 0:
                 movimentacao_financeira_repository.registrar_entrada_financeira(
-                    valor=valor_total,
-                    descricao=f"Faturamento do Pedido #{pedido_id}"
+                    valor=total_produtos,
+                    descricao=f"Venda de produtos - Pedido #{pedido_id}"
                 )
+            if total_pecas > 0:
+                movimentacao_financeira_repository.registrar_entrada_financeira(
+                    valor=total_pecas,
+                    descricao=f"Venda de peças - Pedido #{pedido_id}"
+                )
+            # Pedido manual (sem itens vinculados) mas com valor informado
+            if total_produtos == 0 and total_pecas == 0:
+                valor_total = float(pedido.valor_total) if pedido.valor_total else 0.0
+                if valor_total > 0:
+                    movimentacao_financeira_repository.registrar_entrada_financeira(
+                        valor=valor_total,
+                        descricao=f"Faturamento do Pedido #{pedido_id}"
+                    )
         # ----------------------------------------------------
-        
+
         return updated_pedido
     except psycopg2.IntegrityError:
         logger.error("update_pedido erro de integridade id=%s", pedido_id)
@@ -185,11 +193,13 @@ def get_pedidos_detalhados_by_usuario(usuario_id: int):
         )
     
     from app.models.entities import pedido_to_dict
+    from app.repositories import pedido_peca_repository as pedido_peca_repo
     pedidos = repo.get_pedidos_by_usuario(usuario_id)
     pedidos_detalhados = []
     for p in pedidos:
         p_dict = pedido_to_dict(p)
         p_dict['itens'] = pedido_produto_repo.get_itens_by_pedido(p.id_pedido)
+        p_dict['itens_peca'] = pedido_peca_repo.get_itens_by_pedido(p.id_pedido)
         pedidos_detalhados.append(p_dict)
-    
+
     return pedidos_detalhados

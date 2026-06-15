@@ -145,7 +145,8 @@ def services_page(request: Request, user=Depends(get_page_user)):
             modelos_por_marca[mod.id_marca] = []
         modelos_por_marca[mod.id_marca].append({
             "id": mod.id_modelo,
-            "nome": mod.nome_modelo
+            "nome": mod.nome_modelo,
+            "ano_lancamento": mod.ano_lancamento,
         })
     
     return templates.TemplateResponse("pages/services.html", {
@@ -286,6 +287,7 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
                 valor_total = p.get('valor_total')
                 status = p.get('status')
                 itens = p.get('itens', [])
+                itens_peca = p.get('itens_peca', [])
                 usuario_nome = p.get('usuario_nome')
             else:
                 id_pedido = p.id_pedido
@@ -293,10 +295,12 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
                 valor_total = p.valor_total
                 status = p.status
                 itens = getattr(p, 'itens', [])
+                itens_peca = getattr(p, 'itens_peca', [])
                 usuario_nome = getattr(p, 'usuario_nome', None)
-                
-            qtd_itens = sum(i.quantidade for i in itens) if itens else 0
-            
+
+            qtd_itens = (sum(i.quantidade for i in itens) if itens else 0) \
+                + (sum(i.quantidade for i in itens_peca) if itens_peca else 0)
+
             pedidos.append({
                 "id_pedido": id_pedido,
                 "data_pedido": created_at.strftime('%Y-%m-%d') if created_at else "",
@@ -304,6 +308,7 @@ def painel_page(request: Request, tab: str = None, user=Depends(get_page_user)):
                 "status": status,
                 "qtd_itens": qtd_itens,
                 "itens": itens,
+                "itens_peca": itens_peca,
                 "usuario_nome": usuario_nome
             })
 

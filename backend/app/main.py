@@ -5,10 +5,10 @@ from pathlib import Path
 
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI, Request, Response
 from fastapi.staticfiles import StaticFiles
 
-from app.core.file_storage import ensure_upload_subdirs, get_uploads_root
+from app.core.file_storage import ensure_upload_subdirs, get_uploads_root, read_image_bytes
 from app.core.settings import get_settings
 
 _settings = get_settings()
@@ -31,6 +31,7 @@ from app.controllers.produto_controller import router as produtos_router
 from app.controllers.peca_controller import router as pecas_router
 from app.controllers.pedido_controller import router as pedidos_router
 from app.controllers.pedido_produto_controller import router as pedido_itens_router
+from app.controllers.pedido_peca_controller import router as pedido_pecas_router
 from app.controllers.agendamento_controller import router as agendamentos_router
 from app.controllers.orcamento_controller import router as orcamentos_router
 from app.controllers.orcamento_item_controller import router as orcamento_itens_router
@@ -56,8 +57,26 @@ if _STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
 
 _UPLOADS_DIR = ensure_upload_subdirs()
-app.mount("/uploads", StaticFiles(directory=str(_UPLOADS_DIR)), name="uploads")
-logger.info("StaticFiles /uploads -> %s", get_uploads_root())
+logger.info("uploads root -> %s (servido via rota /uploads, disco ou Firebase Storage)", get_uploads_root())
+
+
+@app.get("/uploads/{file_path:path}", include_in_schema=False)
+def serve_upload(file_path: str):
+    """Serve imagens de upload do disco local ou do Firebase Storage.
+
+    Mantém as URLs públicas no formato /uploads/<subdir>/<arquivo>, mas os
+    bytes podem residir no Firebase Storage (persistente) — essencial no
+    Cloud Run, cujo filesystem é efêmero.
+    """
+    data = read_image_bytes(file_path)
+    if not data:
+        return Response(status_code=404)
+    content, content_type = data
+    return Response(
+        content=content,
+        media_type=content_type,
+        headers={"Cache-Control": "public, max-age=86400"},
+    )
 
 app.add_middleware(
     CORSMiddleware,
@@ -80,6 +99,7 @@ app.include_router(produtos_router)
 app.include_router(pecas_router)
 app.include_router(pedidos_router)
 app.include_router(pedido_itens_router)
+app.include_router(pedido_pecas_router)
 app.include_router(agendamentos_router)
 app.include_router(orcamentos_router)
 app.include_router(orcamento_itens_router)

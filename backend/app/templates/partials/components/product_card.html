@@ -54,8 +54,8 @@
               {% if user %}data-user-id="{{ user.user_id }}"{% endif %}
               {% endif %}
               {% if not is_demo and p_estoque <= 0 %}disabled{% endif %}>
-        <i class="bi bi-bag-plus me-2"></i>
-        {% if not is_demo and p_estoque <= 0 %}Indisponível{% else %}Comprar{% endif %}
+        <i class="bi bi-cart-plus me-2"></i>
+        {% if not is_demo and p_estoque <= 0 %}Indisponível{% else %}Adicionar ao Carrinho{% endif %}
       </button>
     {% endif %}
   </div>

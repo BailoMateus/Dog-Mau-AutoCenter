@@ -4,6 +4,16 @@
 
 {% block extra_head %}
 <style>
+    .painel-nav-tabs { border-bottom-color: #333 !important; }
+    .nav-tab-link { color: #aaa !important; border: 1px solid transparent !important; }
+    .nav-tab-link:hover { color: rgba(192, 37, 43) !important; background-color: #0a0a0a !important; }
+    .nav-tab-link.active {
+        background-color: #111 !important;
+        color: rgba(192, 37, 43) !important;
+        border-color: #333 #333 #111 !important;
+        font-weight: bold;
+    }
+
     .tab-pane {
         animation: fadeIn 0.3s ease-in;
     }
@@ -143,30 +153,30 @@
     </div>
 
     <!-- Abas de Relatórios -->
-    <ul class="nav nav-tabs mb-4" role="tablist" style="border-bottom: 2px solid #333;">
+    <ul class="nav nav-tabs mb-4 painel-nav-tabs flex-nowrap overflow-auto" id="relatoriosTabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <a class="nav-link text-white" href="#faturamento" data-bs-toggle="tab" role="tab" style="color: white;" onmouseover="this.style.color='rgba(192, 37, 43)'" onmouseout="this.style.color='white'">
-                <i class="bi bi-currency-dollar me-2"></i>Faturamento
+            <a class="nav-link nav-tab-link active" href="#faturamento" data-bs-toggle="tab" role="tab">
+                <i class="bi bi-currency-dollar me-1"></i>Faturamento
             </a>
         </li>
         <li class="nav-item" role="presentation">
-            <a class="nav-link text-white" href="#servicos" data-bs-toggle="tab" role="tab" style="color: white;" onmouseover="this.style.color='rgba(192, 37, 43)'" onmouseout="this.style.color='white'">
-                <i class="bi bi-tools me-2"></i>Serviços
+            <a class="nav-link nav-tab-link" href="#servicos" data-bs-toggle="tab" role="tab">
+                <i class="bi bi-tools me-1"></i>Serviços
             </a>
         </li>
         <li class="nav-item" role="presentation">
-            <a class="nav-link text-white" href="#estoque" data-bs-toggle="tab" role="tab" style="color: white;" onmouseover="this.style.color='rgba(192, 37, 43)'" onmouseout="this.style.color='white'">
-                <i class="bi bi-boxes me-2"></i>Estoque
+            <a class="nav-link nav-tab-link" href="#estoque" data-bs-toggle="tab" role="tab">
+                <i class="bi bi-boxes me-1"></i>Estoque
             </a>
         </li>
         <li class="nav-item" role="presentation">
-            <a class="nav-link text-white" href="#financeiro" data-bs-toggle="tab" role="tab" style="color: white;" onmouseover="this.style.color='rgba(192, 37, 43)'" onmouseout="this.style.color='white'">
-                <i class="bi bi-cash-flow me-2"></i>Financeiro
+            <a class="nav-link nav-tab-link" href="#financeiro" data-bs-toggle="tab" role="tab">
+                <i class="bi bi-cash-stack me-1"></i>Financeiro
             </a>
         </li>
         <li class="nav-item" role="presentation">
-            <a class="nav-link text-white" href="#ordens" data-bs-toggle="tab" role="tab" style="color: white;" onmouseover="this.style.color='rgba(192, 37, 43)'" onmouseout="this.style.color='white'">
-                <i class="bi bi-card-checklist me-2"></i>Ordens de Serviço
+            <a class="nav-link nav-tab-link" href="#ordens" data-bs-toggle="tab" role="tab">
+                <i class="bi bi-card-checklist me-1"></i>Ordens de Serviço
             </a>
         </li>
     </ul>
@@ -271,13 +281,17 @@
 
         <!-- Estoque -->
         <div class="tab-pane fade" id="estoque" role="tabpanel">
-            <div class="mb-3 d-flex gap-2">
-                <button class="btn btn-danger" id="btnEstoque">
-                    <i class="bi bi-arrow-repeat me-2"></i>Carregar Relatório de Estoque
-                </button>
-                <button class="btn btn-secondary" id="btnEstoqueExportar" style="display: none;">
-                    <i class="bi bi-download me-2"></i>Exportar
-                </button>
+            <div class="date-range-form">
+                <div class="row g-3">
+                    <div class="col-12 d-flex align-items-end gap-2">
+                        <button class="btn btn-danger" id="btnEstoque">
+                            <i class="bi bi-arrow-repeat me-2"></i>Gerar Relatório
+                        </button>
+                        <button class="btn btn-secondary" id="btnEstoqueExportar" style="display: none;">
+                            <i class="bi bi-download me-2"></i>Exportar
+                        </button>
+                    </div>
+                </div>
             </div>
             
             <div id="estoqueLoader" class="loading-spinner">

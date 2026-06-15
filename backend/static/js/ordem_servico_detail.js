@@ -222,8 +222,8 @@
             if (content) content.style.display = 'none';
             if (empty) empty.style.display = 'none';
 
-            // CORREÇÃO: Ajuste de rota para corresponder ao backend (/ordens-servico/{id}/movimentacoes)
-            const response = await fetch(`${API_BASE}/ordens-servico/${osId}/movimentacoes`, { credentials: 'include' });
+            // Rota correta do backend: /ordens-servico/{id}/pecas/movimentacoes
+            const response = await fetch(`${API_BASE}/ordens-servico/${osId}/pecas/movimentacoes`, { credentials: 'include' });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
             const movimentacoes = await response.json();

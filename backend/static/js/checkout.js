@@ -31,25 +31,28 @@ class CheckoutManager {
       return;
     }
 
-    // Renderiza itens
+    // Renderiza itens (produtos e peças)
     container.innerHTML = this.cart.cart
-      .map(item => `
+      .map(item => {
+        const tipoLabel = item.tipo === 'peca' ? 'Peça' : 'Produto';
+        return `
         <div class="checkout-item">
           <div class="checkout-item-image">
-            ${item.imagem_produto ?
-              `<img src="${item.imagem_produto}" alt="${item.nome}">` :
+            ${item.imagem ?
+              `<img src="${item.imagem}" alt="${item.nome}">` :
               '<i class="bi bi-box" style="font-size: 2em; color: #555;"></i>'
             }
           </div>
           <div class="checkout-item-info">
-            <div class="checkout-item-name">${item.nome}</div>
+            <div class="checkout-item-name">${item.nome} <small style="color:#888;">(${tipoLabel})</small></div>
             <div class="checkout-item-details">
               <span>${item.quantidade}x ${this.formatPrice(item.preco)}</span>
               <strong>${this.formatPrice(item.quantidade * item.preco)}</strong>
             </div>
           </div>
         </div>
-      `)
+      `;
+      })
       .join('');
 
     // Total da compra: soma do preço de todos os itens do carrinho (sem frete)
@@ -115,20 +118,27 @@ class CheckoutManager {
         throw new Error('ID do pedido não retornado');
       }
 
-      // 2. Adiciona itens ao pedido
+      // 2. Adiciona itens ao pedido (produtos e peças vão para endpoints distintos)
       for (const item of this.cart.cart) {
-        const itemResponse = await fetch(`/api/pedidos/${pedidoId}/itens`, {
+        let url, payload;
+        if (item.tipo === 'peca') {
+          url = `/api/pedidos/${pedidoId}/pecas`;
+          payload = { id_peca: item.id, quantidade: item.quantidade };
+        } else {
+          url = `/api/pedidos/${pedidoId}/itens/`;
+          payload = { id_produto: item.id, quantidade: item.quantidade };
+        }
+
+        const itemResponse = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',  // Envia cookies HttpOnly (autenticação)
-          body: JSON.stringify({
-            id_produto: item.id_produto,
-            quantidade: item.quantidade
-          })
+          body: JSON.stringify(payload)
         });
 
         if (!itemResponse.ok) {
-          throw new Error('Erro ao adicionar item ao pedido');
+          const err = await itemResponse.json().catch(() => ({}));
+          throw new Error(err.detail || 'Erro ao adicionar item ao pedido');
         }
       }
 
