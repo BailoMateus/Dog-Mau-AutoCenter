@@ -37,13 +37,13 @@ def create_user(user: User):
     """Cria um novo usuário salvando os dados básicos."""
     query = """
     INSERT INTO usuario (nome, email, senha_hash, role, ativo, telefone, cpf_cnpj, data_nascimento, foto_perfil)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
     RETURNING id_usuario
     """
     params = (
-        user.nome, user.email, user.senha_hash, user.role, 
+        user.nome, user.email, user.senha_hash, user.role,
         user.ativo, user.telefone, user.cpf_cnpj, user.data_nascimento,
-        user.foto_perfil, getattr(user, None)
+        user.foto_perfil
     )
     user_id = execute_insert(query, params)
     user.id_usuario = user_id
@@ -67,15 +67,16 @@ def get_all_users():
 def update_user(user: User):
     """Atualiza um usuário mantendo o mapeamento de campos estendidos."""
     query = """
-    UPDATE usuario 
-    SET nome = %s, email = %s, role = %s, ativo = %s, telefone = %s, 
+    UPDATE usuario
+    SET nome = %s, email = %s, role = %s, ativo = %s, telefone = %s,
         cpf_cnpj = %s, data_nascimento = %s, senha_hash = %s, foto_perfil = %s,
+        updated_at = CURRENT_TIMESTAMP
     WHERE id_usuario = %s AND deleted_at IS NULL
     """
     params = (
         user.nome, user.email, user.role, user.ativo, user.telefone,
         user.cpf_cnpj, user.data_nascimento, user.senha_hash, user.foto_perfil,
-        getattr(user, None), user.id_usuario
+        user.id_usuario
     )
     execute_command(query, params)
     logger.info("usuário atualizado id=%s", user.id_usuario)
