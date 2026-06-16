@@ -1,7 +1,7 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Path, status, Header, File, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Path, status, File, UploadFile, Request
 
 from app.core.roles import ADMIN, CLIENTE, MECANICO
 from app.core.security import require_role
@@ -74,7 +74,7 @@ def list_users(
 @router.post("/api/users", response_model=UserPublic, status_code=201)
 def create_user(
     data: UserCreate,
-    authorization: Annotated[str | None, Header()] = None,
+    request: Request,  # Injeta o objeto Request aqui para o middleware poder ler os cookies
 ):
     existing_admin = user_service.get_user_by_role(ADMIN)
     if not existing_admin:
@@ -92,18 +92,16 @@ def create_user(
             user = user_service.create_user(data)
             return user
         
-        # Correção do Fallback de segurança removendo objetos soltos/fantasmas (request)
-        if not authorization:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token não fornecido ou cabeçalho de autorização ausente"
-            )
+        # Tenta obter o usuário logado passando o objeto request correto
+        try:
+            current_user = get_current_user(request)
+        except Exception:
+            current_user = None
 
-        current_user = get_current_user(authorization)
         if not current_user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token inválido ou expirado"
+                detail="Token não fornecido, inválido ou sessão expirada"
             )
         
         if current_user["role"] not in [ADMIN, MECANICO]:
