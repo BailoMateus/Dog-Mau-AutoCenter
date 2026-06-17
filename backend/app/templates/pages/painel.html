@@ -96,7 +96,11 @@
 
         <li class="nav-item" role="presentation">
             <a class="nav-link nav-tab-link {% if tab == 'ordens_servico' %}active{% endif %}" href="?tab=ordens_servico" role="tab">
-                <i class="bi bi-wrench-adjustable me-1"></i>Ordens
+                {% if user.role in ['admin', 'mecanico'] %}
+                    <i class="bi bi-wrench-adjustable me-1"></i>Ordens
+                {% else %}
+                    <i class="bi bi-cart-check me-1"></i>Meus Pedidos
+                {% endif %}
             </a>
         </li>
 

@@ -2,10 +2,9 @@
     <div class="card-body p-4">
         <h4 class="fw-bold text-white mb-4">
             <i class="bi bi-wrench-adjustable me-2"></i>
-            {% if user.role == 'admin' %}Gestão de Ordens de Serviço
-            {% elif user.role == 'mecanico' %}Minhas Ordens de Serviço
-            {% else %}Ordens de Serviço do Veículo
-            {% endif %}
+            <h4 class="fw-bold text-white mb-4">
+            <i class="bi bi-wrench-adjustable me-2"></i>
+            {% if user.role in ['admin', 'mecanico'] %}Ordens de Serviço{% else %}Meus Pedidos{% endif %}
         </h4>
 
         <div class="table-responsive">
