@@ -451,11 +451,11 @@ async function loadUserEnderecos() {
                 const option = document.createElement('option');
                 option.value = endereco.id_endereco;
                 
-                const rua = endereco.rua || '';
+                const logradouro = endereco.logradouro || '';
                 const numero = endereco.numero || '';
                 const cidade = endereco.cidade || '';
                 const estado = endereco.estado || '';
-                const label = `${rua}, ${numero} - ${cidade}/${estado}`.replace(/\s+/g, ' ').trim();
+                const label = `${logradouro}, ${numero} - ${cidade}/${estado}`.replace(/\s+/g, ' ').trim();
                 
                 option.textContent = label || `Endereço #${endereco.id_endereco}`;
                 
@@ -507,9 +507,9 @@ function renderActiveAddressCard(selectElement) {
             <div class="d-flex align-items-start gap-2">
                 <i class="bi bi-geo-alt-fill text-danger mt-1" style="font-size: 1.2rem;"></i>
                 <div>
-                    <h6 class="mb-1 text-white fw-bold">Endereço de Entrega Principal</h6>
+                    <h6 class="mb-1 text-white fw-bold">Endereço Cadastrado</h6>
                     <p class="mb-0 text-muted small" style="line-height: 1.5;">
-                        <strong>Logradouro:</strong> ${data.rua || ''}, Nº ${data.numero || 'S/N'}<br>
+                        <strong>Logradouro:</strong> ${data.logradouro || ''}, Nº ${data.numero || 'S/N'}<br>
                         ${data.complemento ? `<strong>Complemento:</strong> ${data.complemento}<br>` : ''}
                         <strong>Bairro:</strong> ${data.bairro || ''} | <strong>CEP:</strong> ${data.cep || ''}<br>
                         <strong>Cidade/Estado:</strong> ${data.cidade || ''} - ${data.estado || ''}
