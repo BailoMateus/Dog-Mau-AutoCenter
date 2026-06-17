@@ -88,7 +88,7 @@
         <div class="row g-3 veiculo-dados-row mt-1">
             <div class="col-md-4">
                 <label class="form-label fw-bold mb-2">Placa</label>
-                <input type="text" id="veiculoPlaca" data-mask="plate" class="form-control bg-dark text-white border-secondary rounded-3 text-uppercase" placeholder="ABC-1234" maxlength="8">
+                <input type="text" id="veiculoPlaca" class="form-control bg-dark text-white border-secondary rounded-3 text-uppercase" placeholder="ABC-1234" maxlength="8" oninput="formatarPlaca(this)">
             </div>
             <div class="col-md-4">
                 <label class="form-label fw-bold mb-2">Ano de Lançamento</label>
@@ -157,6 +157,20 @@
 {% endblock %}
 
 {% block extra_scripts %}
+<script>
+    function formatarPlaca(input) {
+        // Remove tudo que não for letra ou número
+        let valor = input.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+        
+        // Se tiver mais de 3 caracteres, adiciona o hífen no padrão clássico/Mercosul visual
+        if (valor.length > 3) {
+            valor = valor.substring(0, 3) + '-' + valor.substring(3, 7);
+        }
+        
+        input.value = valor;
+    }
+</script>
+
 <script src="/static/js/input-masks.js"></script>
 <script>
     const userLoggedIn = {% if user %}true{% else %}false{% endif %};
