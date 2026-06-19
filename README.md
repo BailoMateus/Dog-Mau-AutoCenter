@@ -1,8 +1,10 @@
-# 🐶 DogMau Auto Center
+# DogMau Auto Center
 
 > Sistema Web para Gestão de Oficinas Mecânicas
 
-O **DogMau Auto Center** é um sistema web desenvolvido como projeto da disciplina de **Experiência Criativa: Implementando Sistemas de Informação**, com o objetivo de integrar, em uma única aplicação, os conhecimentos adquiridos ao longo da graduação em Engenharia de Software.
+O **DogMau Auto Center** é um sistema web desenvolvido como projeto da disciplina de **Experiência Criativa: Implementando Sistemas de Informação**, com o objetivo de integrar, em uma única aplicação, os conhecimentos adquiridos ao longo da graduação em Sistemas de Informação.
+
+Essa branch é contém o projeto final desenvolvido para a disciplina, visando preservar a entrega feita mesmo com os futuros ajustes.
 
 O projeto simula o funcionamento de uma oficina mecânica moderna, oferecendo recursos para gerenciamento de clientes, veículos, ordens de serviço, estoque, financeiro, orçamentos e vendas de produtos.
 
